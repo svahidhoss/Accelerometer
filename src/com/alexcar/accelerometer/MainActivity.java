@@ -49,39 +49,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 	String nameDevice = "";
 	// ********end bluetooth****
 
-	// ********HANDLER*********************** we use this handler to enable
-	// communication with the threads.
-	private final Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			// TODO Auto-generated method stub
-			// super.handleMessage(msg);
-
-			if (msg.what == Constants.CONNECTED_HANDLER) {
-				// Toast.makeText(getApplicationContext(),
-				// "Connected! (handler info)", Toast.LENGTH_SHORT).show();
-				connected();
-			} else if (msg.what == Constants.CONNECTING_HANDLER) {
-				TextView state = (TextView) findViewById(R.id.textViewNotConnected);
-				state.setText("Connecting...");
-			} else if (msg.what == Constants.DISCONNECTED_HANDLER) {
-				Toast.makeText(getApplicationContext(), "Unable to connect!",
-						Toast.LENGTH_SHORT).show();
-				notConnected();
-			}
-		}
-	};
-	// *****end HANDLER********************
-
 	// ******sensors*****
 	SensorManager mSensorManager;
 	Sensor mAccelerometer, mOrientation;
 
 	// ----values---
-	float[] acceleromterValues = new float[] { 0, 0, 0 }; // it's important to
-															// initialize the
-															// values.
+	
+	// it's important to initialize the values.
+	float[] acceleromterValues = new float[] { 0, 0, 0 }; 
 	float[] orientationValues = new float[] { 0, 0, 0 };
+	
 	// -end--values-
 
 	// ---filters--
@@ -113,13 +90,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// ****
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // keep
-																				// the
-																				// screen
-																				// on
-																				// (check)
-		// ****
+		// keeps the screen on		
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); 
 
 		// setContentView(R.layout.not_connected);
 
@@ -257,7 +229,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private void notConnected() {
 
 		// *******
-		setContentView(R.layout.not_connected);
+		setContentView(R.layout.activity_main_not_connected);
 
 		bConnect = (Button) findViewById(R.id.buttonConnectFromNoConnected);
 		bConnect.setOnClickListener(new OnClickListener() {
@@ -694,5 +666,29 @@ public class MainActivity extends Activity implements SensorEventListener {
 		}
 
 	}
+
+	// ********HANDLER*********************** we use this handler to enable
+	// communication with the threads.
+	private final Handler mHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			// TODO Auto-generated method stub
+			// super.handleMessage(msg);
+
+			if (msg.what == Constants.CONNECTED_HANDLER) {
+				// Toast.makeText(getApplicationContext(),
+				// "Connected! (handler info)", Toast.LENGTH_SHORT).show();
+				connected();
+			} else if (msg.what == Constants.CONNECTING_HANDLER) {
+				TextView state = (TextView) findViewById(R.id.textViewNotConnected);
+				state.setText("Connecting...");
+			} else if (msg.what == Constants.DISCONNECTED_HANDLER) {
+				Toast.makeText(getApplicationContext(), "Unable to connect!",
+						Toast.LENGTH_SHORT).show();
+				notConnected();
+			}
+		}
+	};
+	// *****end HANDLER********************
 
 }

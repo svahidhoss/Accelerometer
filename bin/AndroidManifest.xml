@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="14"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="20" />
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -23,7 +23,6 @@
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -31,12 +30,12 @@
             android:name="com.alexcar.accelerometer.BluetoothDevices"
             android:label="@string/title_activity_bluetooth_devices"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Dialog" >
+            android:theme="@android:style/Theme.DeviceDefault.Dialog" >
         </activity>
         <activity
-            android:theme="@android:style/Theme.Dialog"
             android:name="com.alexcar.accelerometer.Settings_m"
-            android:label="@string/title_activity_settings_m" >
+            android:label="@string/title_activity_settings_m"
+            android:theme="@android:style/Theme.DeviceDefault.Dialog" >
         </activity>
     </application>
 
