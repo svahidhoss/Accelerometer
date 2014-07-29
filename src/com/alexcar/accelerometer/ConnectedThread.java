@@ -60,7 +60,7 @@ public class ConnectedThread extends Thread {
         	//when error have occurred trying to write, it's because we are not connected any more.
         	Message msgException = new Message();
         	msgException.setTarget(mHandler);
-        	msgException.what=Constant.DISCONNECTED_HANDLER;
+        	msgException.what=Constants.DISCONNECTED_HANDLER;
         	msgException.sendToTarget();
         }
     }

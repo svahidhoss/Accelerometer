@@ -34,11 +34,11 @@ public class Settings_m extends Activity {
 		
 
 		EditText precisionET = (EditText) findViewById(R.id.editTextPrecisionID);
-		precisionET.setText(""+Constant.precision);
+		precisionET.setText(""+Constants.precision);
 		
 		
 		EditText delayET = (EditText) findViewById(R.id.editTextDelayID);
-		delayET.setText(""+Constant.marginMilliseconds);
+		delayET.setText(""+Constants.marginMilliseconds);
 	
 	}
 
@@ -57,22 +57,22 @@ public class Settings_m extends Activity {
 		EditText delayET = (EditText) findViewById(R.id.editTextDelayID);
 		
 		try {
-			Constant.precision = Float.parseFloat(precisionET.getText().toString());	
+			Constants.precision = Float.parseFloat(precisionET.getText().toString());	
 		} catch (Exception e) {
 			// TODO: handle exception
-			Constant.precision = 0;
+			Constants.precision = 0;
 			//Toast.makeText(getApplicationContext(), "Error saving, try again", Toast.LENGTH_SHORT).show();
 		}
 		try {
-			Constant.marginMilliseconds = Long.parseLong(delayET.getText().toString());
+			Constants.marginMilliseconds = Long.parseLong(delayET.getText().toString());
 
 		} catch (Exception e) {
 			// TODO: handle exception
-			Constant.marginMilliseconds = 0;
+			Constants.marginMilliseconds = 0;
 			//Toast.makeText(getApplicationContext(), "Error saving, try again", Toast.LENGTH_SHORT).show();
 		}
 		
-		Toast.makeText(getApplicationContext(), "Saved!\n  *precision = "+Constant.precision+"\n  *delay = "+Constant.marginMilliseconds, Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), "Saved!\n  *precision = "+Constants.precision+"\n  *delay = "+Constants.marginMilliseconds, Toast.LENGTH_SHORT).show();
 		
 	}
 	
