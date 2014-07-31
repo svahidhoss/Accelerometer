@@ -5,6 +5,9 @@ import java.util.UUID;
 import android.hardware.SensorManager;
 
 public class Constants {
+	public static boolean DEBUG = true;
+	public static String TAG = "Debugging Tag";
+	
 	public static float precision = (float) 0.9;
 	public static long marginMilliseconds = 300;
 	public static double gravity = SensorManager.STANDARD_GRAVITY;

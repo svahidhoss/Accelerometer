@@ -3,11 +3,13 @@ package com.alexcar.accelerometer;
 import java.util.Calendar;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
@@ -18,6 +20,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,9 +34,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements SensorEventListener {
-
+	
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int GET_ADDRESS = 2;
+
+	// used for exiting on pressing back double
+	private boolean doubleBackToExitIsPressedOnce = false;
 
 	// *****references********
 	mMath mmath = new mMath();
@@ -45,20 +51,22 @@ public class MainActivity extends Activity implements SensorEventListener {
 	BroadcastReceiver mReceiver;
 	ConnectThread ct = null;
 	ConnectedThread connected = null;
-	Button bConnect;
 	String nameDevice = "";
-	// ********end bluetooth****
+
+	// Defining view elements
+	private Button btnConnect;
+	private TextView tvState;
 
 	// ******sensors*****
 	SensorManager mSensorManager;
 	Sensor mAccelerometer, mOrientation;
 
 	// ----values---
-	
+
 	// it's important to initialize the values.
-	float[] acceleromterValues = new float[] { 0, 0, 0 }; 
+	float[] acceleromterValues = new float[] { 0, 0, 0 };
 	float[] orientationValues = new float[] { 0, 0, 0 };
-	
+
 	// -end--values-
 
 	// ---filters--
@@ -90,27 +98,28 @@ public class MainActivity extends Activity implements SensorEventListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// keeps the screen on		
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); 
+		// keeps the screen on
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// setContentView(R.layout.not_connected);
 
-		// ******
-		notConnected(); // include setContentView, listener for the button,
-						// state, etc
+		// include setContentView, listener for the button, state, etc
+		notConnected();
 
-		initializeBluetooth(); // include turn on, find devices with
-								// BluetoothDevices.class, registerReceivers,
-		// ******
+		// include turn on, find devices with BluetoothDevices.class,
+		// registerReceivers
+
+		// We don't need to use this!!
+		// initializeBluetooth();
 
 	}
 
 	@Override
 	protected void onStop() {
-		// TODO Auto-generated method stub
 		super.onStop();
 		notConnected(); // #check, ... I put this here because when the
-						// orientation changes, the Activity is desroyed, so the
+						// orientation changes, the Activity is destroyed, so
+						// the
 						// device is disconnecting automatically
 						// (cancelAll())...
 		unregisterSensores();
@@ -118,24 +127,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void initializeBluetooth() {
-		// TODO Auto-generated method stub
-
 		if (mBluetoothAdapter == null) {
-			Toast.makeText(getApplicationContext(),
-					"Device does not support Bluetooth", Toast.LENGTH_SHORT)
-					.show();
-			notConnected();
+			noBtDetected();
 			return;
-
 		} else if (!mBluetoothAdapter.isEnabled()) {
-			Intent enableBtIntent = new Intent(
-					BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT); // if the
-																		// user
-																		// accept,
-																		// onActivityResutl
-																		// calls
-																		// getDeviceAddressAndConnect();
+			enableBtDialog();
 		} else {
 			getDeviceAddressAndConnect();
 		}
@@ -202,13 +198,15 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		switch (requestCode) {
 		case REQUEST_ENABLE_BT:
+			if (resultCode == RESULT_CANCELED) {
+				Toast.makeText(this, R.string.bt_required,
+						Toast.LENGTH_SHORT).show();
+				// finish();
+			}
 			if (resultCode == RESULT_OK) {
+				Toast.makeText(this, "Bluetooth is enabled.",
+						Toast.LENGTH_SHORT).show();
 				getDeviceAddressAndConnect();
-			} else {
-				Toast.makeText(getApplicationContext(),
-						"Bluetooth is required", Toast.LENGTH_SHORT).show();
-				notConnected();
-
 			}
 			break;
 		case GET_ADDRESS:
@@ -227,40 +225,32 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void notConnected() {
-
-		// *******
 		setContentView(R.layout.activity_main_not_connected);
 
-		bConnect = (Button) findViewById(R.id.buttonConnectFromNoConnected);
-		bConnect.setOnClickListener(new OnClickListener() {
+		btnConnect = (Button) findViewById(R.id.buttonConnectFromNoConnected);
+		tvState = (TextView) findViewById(R.id.textViewNotConnected);
+
+		btnConnect.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
 				initializeBluetooth();
-
 			}
 		});
 
-		TextView state = (TextView) findViewById(R.id.textViewNotConnected);
-
-		// Toast.makeText(getApplicationContext(), "Not connected",
-		// Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), "Not connected",
+				Toast.LENGTH_SHORT).show();
 
 		if (mBluetoothAdapter == null) {
-			bConnect.setVisibility(View.GONE);
-			state.setText("Device does not support Bluetooth");
-			ImageView imError = (ImageView) findViewById(R.id.imageViewWrong);
-			imError.setVisibility(View.VISIBLE);
-			// no tiene bluetooth posible, salir? texto?
+			noBtDetected();
 		} else {
-			bConnect.setVisibility(View.VISIBLE);
+			btnConnect.setVisibility(View.VISIBLE);
 
 			if (!mBluetoothAdapter.isEnabled()) {
-				state.setText("Bluetooth is turned OFF");
-				bConnect.setText(" Turn ON and Connect ");
+				tvState.setText("Bluetooth is turned OFF");
+				btnConnect.setText(" Turn ON Bluetooth ");
 			} else if (mBluetoothAdapter.isEnabled()) {
-				state.setText("Not Connected");
-				bConnect.setText(" Connect Now ");
+				tvState.setText("Not Connected");
+				btnConnect.setText(" Connect Now ");
 			}
 		}
 
@@ -591,7 +581,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}// end case Accelerometer (if)
 
 			else if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
-				System.out.println("copy Orientation");
+				if (Constants.DEBUG) {
+					Log.d(Constants.TAG, "copy Orientation");
+				}
 				String angles = "azimuth: "
 						+ mmath.redondeo(event.values[0], 3) + "\npitch: "
 						+ mmath.redondeo(event.values[1], 3) + "\nroll: "
@@ -689,6 +681,81 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}
 		}
 	};
+
 	// *****end HANDLER********************
+
+	/**
+	 * Dialog that is displayed when no bluetooth is found on the device. The
+	 * app then closes.
+	 */
+	private void noBtDetected() {
+		btnConnect.setVisibility(View.GONE);
+		tvState.setText("Device does not support Bluetooth");
+		ImageView ivError = (ImageView) findViewById(R.id.imageViewWrong);
+		ivError.setVisibility(View.VISIBLE);
+	}
+
+	/**
+	 * Dialog that asks from the user to enable the bluetooth.
+	 */
+	private void enableBtDialog() {
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+				MainActivity.this);
+
+		// Setting Dialog Title
+		alertDialog.setTitle("Warning!");
+		// Setting Dialog Message
+		alertDialog
+				.setMessage("Bluetooth must be enabled on the phone!\n\nDo you wish to continue?");
+		// disable canceling button on pressing back
+		alertDialog.setCancelable(false);
+		// Setting Icon to Dialog
+		alertDialog.setIcon(R.drawable.warning);
+		// Setting OK Button
+		alertDialog.setPositiveButton("Yes",
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// enable bluetooth
+						Intent enableBtIntent = new Intent(
+								BluetoothAdapter.ACTION_REQUEST_ENABLE);
+						startActivityForResult(enableBtIntent,
+								REQUEST_ENABLE_BT);
+					}
+				});
+		alertDialog.setNegativeButton("No",
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Toast.makeText(MainActivity.this, R.string.bt_required,
+								Toast.LENGTH_SHORT).show();
+					}
+				});
+		alertDialog.create();
+		alertDialog.show();
+	}
+
+	/**
+	 * Using the following function of "clicking TWICE the back button to exit
+	 * app" has been implemented.
+	 */
+	@Override
+	public void onBackPressed() {
+		if (doubleBackToExitIsPressedOnce) {
+			super.onBackPressed();
+			return;
+		}
+		this.doubleBackToExitIsPressedOnce = true;
+		Toast.makeText(this, "Press BACK again to exit", Toast.LENGTH_SHORT)
+				.show();
+		new Handler().postDelayed(new Runnable() {
+
+			@Override
+			public void run() {
+				doubleBackToExitIsPressedOnce = false;
+
+			}
+		}, 2000);
+	}
 
 }

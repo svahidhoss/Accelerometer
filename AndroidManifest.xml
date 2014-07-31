@@ -19,7 +19,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.alexcar.accelerometer.MainActivity"
-            android:label="@string/title_activity_main"
+            android:label="@string/activity_main_title"
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,13 +28,13 @@
         </activity>
         <activity
             android:name="com.alexcar.accelerometer.BluetoothDevices"
-            android:label="@string/title_activity_bluetooth_devices"
+            android:label="@string/activity_bluetooth_devices_title"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.DeviceDefault.Dialog" >
         </activity>
         <activity
             android:name="com.alexcar.accelerometer.Settings_m"
-            android:label="@string/title_activity_settings_m"
+            android:label="@string/activity_settings_m_title"
             android:theme="@android:style/Theme.DeviceDefault.Dialog" >
         </activity>
     </application>

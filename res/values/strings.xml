@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Accelerometer</string>
-    <string name="title_activity_main">Acceleromter</string>
+    <string name="activity_main_title">Acceleromter</string>
+    <string name="activity_bluetooth_devices_title">BluetoothDevices</string>
+    <string name="activity_settings_m_title">Settings</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="title_activity_bluetooth_devices">BluetoothDevices</string>
-    <string name="title_activity_settings_m">Settings</string>
-
+    <string name="bt_required">Bluetooth is required to continue.</string>
 </resources>
