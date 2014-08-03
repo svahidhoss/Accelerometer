@@ -2,6 +2,7 @@ package com.alexcar.accelerometer;
 
 import java.util.Calendar;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -212,7 +213,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		case GET_ADDRESS:
 			if (resultCode == RESULT_OK) {
 				String addressPasada = data.getExtras().getString(
-						BluetoothDevices.EXTRA_ADDRESS);
+						BluetoothDevicesActivity.EXTRA_ADDRESS);
 
 				connect(addressPasada);
 			} else {
@@ -237,8 +238,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}
 		});
 
-		Toast.makeText(getApplicationContext(), "Not connected",
-				Toast.LENGTH_SHORT).show();
+//		Toast.makeText(getApplicationContext(), "Not connected",
+//				Toast.LENGTH_SHORT).show();
+		setStatus(R.string.title_not_connected);
 
 		if (mBluetoothAdapter == null) {
 			noBtDetected();
@@ -259,7 +261,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private void getDeviceAddressAndConnect() {
 		// TODO Auto-generated method stub
-		startActivityForResult(new Intent(this, BluetoothDevices.class),
+		startActivityForResult(new Intent(this, BluetoothDevicesActivity.class),
 				GET_ADDRESS);
 	}
 
@@ -672,8 +674,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 				// "Connected! (handler info)", Toast.LENGTH_SHORT).show();
 				connected();
 			} else if (msg.what == Constants.CONNECTING_HANDLER) {
-				TextView state = (TextView) findViewById(R.id.textViewNotConnected);
-				state.setText("Connecting...");
+				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
+				tvState.setText(R.string.title_connecting);
+				setStatus(R.string.title_connecting);
 			} else if (msg.what == Constants.DISCONNECTED_HANDLER) {
 				Toast.makeText(getApplicationContext(), "Unable to connect!",
 						Toast.LENGTH_SHORT).show();
@@ -756,6 +759,24 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			}
 		}, 2000);
+	}
+	
+	/**
+	 * Method used for setting up status title of the action bar.
+	 * @param subTitle
+	 */
+	private final void setStatus(CharSequence subTitle) {
+		final ActionBar actionBar = getActionBar();
+		actionBar.setSubtitle(subTitle);
+	}
+	
+	/**
+	 * Method used for setting up status title of the action bar.
+	 * @param resource Id
+	 */
+	private final void setStatus(int resourceId) {
+		final ActionBar actionBar = getActionBar();
+		actionBar.setSubtitle(resourceId);
 	}
 
 }

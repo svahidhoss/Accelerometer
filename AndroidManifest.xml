@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.alexcar.accelerometer.BluetoothDevices"
+            android:name="com.alexcar.accelerometer.BluetoothDevicesActivity"
             android:label="@string/activity_bluetooth_devices_title"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.DeviceDefault.Dialog" >

@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -22,10 +23,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BluetoothDevices extends Activity implements OnItemClickListener {
+public class BluetoothDevicesActivity extends Activity implements
+		OnItemClickListener {
 
 	private static final int REQUEST_ENABLE_BT = 1;
-	
+
 	// TODO what's this?
 	static final String EXTRA_ADDRESS = "resultActivityExtraAddress";
 
@@ -45,8 +47,13 @@ public class BluetoothDevices extends Activity implements OnItemClickListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
+		// Setup the window
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.activity_bluetooth_devices);
+
+		// Set result CANCELED in case the user backs out
+		setResult(Activity.RESULT_CANCELED);
 
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		initViews();
@@ -58,7 +65,7 @@ public class BluetoothDevices extends Activity implements OnItemClickListener {
 	}
 
 	/**
-	 * Function used to initialize the views of the activity 
+	 * Function used to initialize the views of the activity
 	 */
 	private void initViews() {
 		progressBar = (ProgressBar) findViewById(R.id.progressBarScaning);
@@ -76,7 +83,6 @@ public class BluetoothDevices extends Activity implements OnItemClickListener {
 		btnScan.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
 				btnScan.setVisibility(View.GONE);
 				progressBar.setVisibility(View.VISIBLE);
 				tvLabel.setText("Scaning for more devices...");
@@ -88,36 +94,19 @@ public class BluetoothDevices extends Activity implements OnItemClickListener {
 	}
 
 	private void initBluetooth() {
-		// TODO Auto-generated method stub
-
-/*		if (mBluetoothAdapter == null) {
-			Toast.makeText(getApplicationContext(), "No Bluetooth Available",
-					Toast.LENGTH_SHORT).show();
-			finish();
-		} else {
-			// Toast.makeText(this, "you have Bluetooth. Ok",
-			// Toast.LENGTH_SHORT).show();
-		}
-
-		if (!mBluetoothAdapter.isEnabled()) {
-			Intent enableBtIntent = new Intent(
-					BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-			// constante para reconocer esta actividadd en onActivityResult()
-		}*/
-
 		pairedDevices = mBluetoothAdapter.getBondedDevices();
 		if (pairedDevices.size() > 0) {
 			for (BluetoothDevice device : pairedDevices) {
 				mArrayAdapter
 						.add(device.getName() + "\n" + device.getAddress());
 			}
+		} else {
+			mArrayAdapter.add(getString(R.string.noDevicePaired));
 		}
 
 		mReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				// TODO Auto-generated method stub
 				String action = intent.getAction();
 
 				if (BluetoothDevice.ACTION_FOUND.equals(action)) {
@@ -126,12 +115,10 @@ public class BluetoothDevices extends Activity implements OnItemClickListener {
 
 					String str = device.getName() + "\n" + device.getAddress();
 					for (int i = 0; i < mArrayAdapter.getCount(); i++) {
-
 						if (mArrayAdapter.getItem(i).equals(str)) {
 							break;
 						} else if (i == mArrayAdapter.getCount() - 1) {
 							mArrayAdapter.add(str);
-
 						}
 					}
 
@@ -180,29 +167,32 @@ public class BluetoothDevices extends Activity implements OnItemClickListener {
 
 	@Override
 	protected void onPause() {
-		// TODO Auto-generated method stub
 		super.onPause();
 		if (mBluetoothAdapter.isDiscovering()) {
 			mBluetoothAdapter.cancelDiscovery();
-
 		}
 		if (mReceiver != null) {
 			unregisterReceiver(mReceiver);
-
 		}
 	}
 
 	@Override
 	protected void onStop() {
-		// TODO Auto-generated method stub
 		super.onStop();
+		// Make sure we're not doing discovery anymore
+		if (mBluetoothAdapter != null) {
+			mBluetoothAdapter.cancelDiscovery();
+		}
+
+		// Unregister broadcast listeners
+		unregisterReceiver(mReceiver);
+
 		Intent data = new Intent();
 		data.putExtra(EXTRA_ADDRESS, address);
 
 		setResult(Activity.RESULT_CANCELED, data);
 
 		finish();
-
 	}
 
 	@Override
@@ -242,13 +232,12 @@ public class BluetoothDevices extends Activity implements OnItemClickListener {
 			// Toast.makeText(this, "address: "+address,
 			// Toast.LENGTH_SHORT).show();
 
-			Intent data = new Intent();
-			data.putExtra(EXTRA_ADDRESS, address);
+			Intent intentData = new Intent();
+			intentData.putExtra(EXTRA_ADDRESS, address);
 
-			setResult(Activity.RESULT_OK, data);
+			setResult(Activity.RESULT_OK, intentData);
 
 			finish();
-
 		}
 
 	}
