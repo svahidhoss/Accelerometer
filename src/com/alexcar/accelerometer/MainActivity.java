@@ -35,7 +35,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements SensorEventListener {
-	
+
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int GET_ADDRESS = 2;
 
@@ -200,9 +200,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		switch (requestCode) {
 		case REQUEST_ENABLE_BT:
 			if (resultCode == RESULT_CANCELED) {
-				Toast.makeText(this, R.string.bt_required,
-						Toast.LENGTH_SHORT).show();
-				// finish();
+				Toast.makeText(this, R.string.bt_required, Toast.LENGTH_SHORT)
+						.show();
 			}
 			if (resultCode == RESULT_OK) {
 				Toast.makeText(this, "Bluetooth is enabled.",
@@ -212,13 +211,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 			break;
 		case GET_ADDRESS:
 			if (resultCode == RESULT_OK) {
-				String addressPasada = data.getExtras().getString(
+				String passedAddress = data.getExtras().getString(
 						BluetoothDevicesActivity.EXTRA_ADDRESS);
 
-				connect(addressPasada);
+				connect(passedAddress);
 			} else {
 				notConnected();
 			}
+			break;
 
 		default:
 			break;
@@ -238,8 +238,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}
 		});
 
-//		Toast.makeText(getApplicationContext(), "Not connected",
-//				Toast.LENGTH_SHORT).show();
+		// Toast.makeText(getApplicationContext(), "Not connected",
+		// Toast.LENGTH_SHORT).show();
 		setStatus(R.string.title_not_connected);
 
 		if (mBluetoothAdapter == null) {
@@ -261,13 +261,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private void getDeviceAddressAndConnect() {
 		// TODO Auto-generated method stub
-		startActivityForResult(new Intent(this, BluetoothDevicesActivity.class),
-				GET_ADDRESS);
+		startActivityForResult(
+				new Intent(this, BluetoothDevicesActivity.class), GET_ADDRESS);
 	}
 
 	private void connect(String address) {
-		// TODO Auto-generated method stub
-
 		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
 
 		ct = new ConnectThread(device, mHandler);
@@ -281,8 +279,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void connected() {
-		// TODO Auto-generated method stub
-
 		Toast.makeText(getApplicationContext(),
 				"Connected with " + nameDevice + "!", Toast.LENGTH_SHORT)
 				.show();
@@ -760,19 +756,22 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}
 		}, 2000);
 	}
-	
+
 	/**
 	 * Method used for setting up status title of the action bar.
+	 * 
 	 * @param subTitle
 	 */
 	private final void setStatus(CharSequence subTitle) {
 		final ActionBar actionBar = getActionBar();
 		actionBar.setSubtitle(subTitle);
 	}
-	
+
 	/**
 	 * Method used for setting up status title of the action bar.
-	 * @param resource Id
+	 * 
+	 * @param resource
+	 *            Id
 	 */
 	private final void setStatus(int resourceId) {
 		final ActionBar actionBar = getActionBar();

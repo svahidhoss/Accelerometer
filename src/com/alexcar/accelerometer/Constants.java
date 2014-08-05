@@ -8,6 +8,8 @@ public class Constants {
 	public static boolean DEBUG = true;
 	public static String TAG = "Debugging Tag";
 	
+	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
+	
 	public static float precision = (float) 0.9;
 	public static long marginMilliseconds = 300;
 	public static double gravity = SensorManager.STANDARD_GRAVITY;
