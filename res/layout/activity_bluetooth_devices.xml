@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:background="#666"
         android:paddingLeft="5dp"
-        android:text="Paired Biopeak Devices:"
+        android:text="Paired Devices:"
         android:textColor="#fff" />
 
     <ListView
@@ -32,7 +32,7 @@
         android:layout_height="wrap_content"
         android:background="#666"
         android:paddingLeft="5dp"
-        android:text="Found Biopeak Devices:"
+        android:text="Found Devices:"
         android:textColor="#fff"
         android:visibility="gone" />
 

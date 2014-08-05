@@ -21,7 +21,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -154,7 +153,7 @@ public class BluetoothDevicesActivity extends Activity implements
 				// TODO this was creating a loop!
 				// mBluetoothAdapter.cancelDiscovery();
 				if (bluetoothDevicesArrayAdapter.isEmpty()) {
-					bluetoothDevicesArrayAdapter.add("No Device was found.");
+					bluetoothDevicesArrayAdapter.add(getString(R.string.noDeviceFound));
 				}
 				// Indicate scanning in the title
 				setProgressBarIndeterminateVisibility(false);

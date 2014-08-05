@@ -268,7 +268,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private void connect(String address) {
 		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
 
-		ct = new ConnectThread(device, mHandler);
+		ct = new ConnectThread(device, mHandler, getApplicationContext());
 		ct.start();
 
 		nameDevice = device.getName();
