@@ -265,6 +265,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 				new Intent(this, BluetoothDevicesActivity.class), GET_ADDRESS);
 	}
 
+	/**
+	 * Establishes the bluetooth connection with the passed device address.
+	 * 
+	 * @param address
+	 */
 	private void connect(String address) {
 		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
 

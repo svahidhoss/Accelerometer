@@ -16,7 +16,6 @@ public class ConnectThread extends Thread {
     private final BluetoothDevice mmDevice;
     Handler mHandler;
     BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    UUID MY_UUID = UUID.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
  
     public ConnectThread(BluetoothDevice device, Handler handler, Context context) {
         // Use a temporary object that is later assigned to mmSocket,
@@ -27,10 +26,9 @@ public class ConnectThread extends Thread {
  
         // Get a BluetoothSocket to connect with the given BluetoothDevice
         try {
-        	DeviceUuidFactory newDeviceUuidFactory = new DeviceUuidFactory(context);
-            // MY_UUID is the app's UUID string, also used by the server code
-//            tmp = device.createRfcommSocketToServiceRecord( newDeviceUuidFactory.getDeviceUuid());
-        	tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+//        	DeviceUuidFactory newDeviceUuidFactory = new DeviceUuidFactory(context);
+//          tmp = device.createRfcommSocketToServiceRecord(newDeviceUuidFactory.getDeviceUuid());
+        	tmp = device.createRfcommSocketToServiceRecord(Constants.MY_UUID);
         } catch (IOException e) {
         	Message msgException = new Message();
         	msgException.setTarget(mHandler);

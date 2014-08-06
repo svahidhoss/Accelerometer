@@ -1,6 +1,7 @@
 package com.alexcar.accelerometer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,6 +41,9 @@ public class BluetoothDevicesActivity extends Activity implements
 
 	private Button btnScan;
 	private TextView tvPairedDevicesLabel, tvFoundDevicesLabel;
+	
+	// temporary list used to remove duplicates from foundDevicesAdapter
+	private Set<BluetoothDevice> tmpFoundDevicesList = new HashSet<BluetoothDevice>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -131,19 +135,18 @@ public class BluetoothDevicesActivity extends Activity implements
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			
-			final List<String> tmpFoundDevicesList = new ArrayList<String>();
 			if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
 				tmpFoundDevicesList.clear();
 			} else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 				BluetoothDevice device = intent
 						.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				String deviceInfo = device.getName() + "\n"
-						+ device.getAddress();
 
 				if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
 					// Checks to not insert duplicates into adapter
-					if (!tmpFoundDevicesList.contains(deviceInfo)) {
-						tmpFoundDevicesList.add(deviceInfo);
+					if (!tmpFoundDevicesList.contains(device)) {
+						tmpFoundDevicesList.add(device);
+						String deviceInfo = device.getName() + "\n"
+								+ device.getAddress();
 						bluetoothDevicesArrayAdapter.add(deviceInfo);
 					}
 				}

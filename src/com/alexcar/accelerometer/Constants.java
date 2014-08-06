@@ -19,10 +19,17 @@ public class Constants {
 												// braking or accelerating) (=0
 												// by the moment)
 
-	// ******bluetooth****
+	// ****** Bluetooth ****
+    // MY_UUID is the app's UUID string, also used by the server code?
+//	public static final UUID MY_UUID = UUID
+//			.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
+
 	// Unique UUID for this application
 	public static final UUID MY_UUID = UUID
-			.fromString("00001101-0000-1000-8000-00805F9B34FB"); 
+			.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+//	public static final UUID MY_UUID = UUID
+//			.fromString("04c6093b-0000-1000-8000-00805f9b34fb");
 	
 	// ----handler
 	public static int CONNECTING_HANDLER = 1;
