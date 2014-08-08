@@ -194,7 +194,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// TODO Auto-generated method stub
 		super.onActivityResult(requestCode, resultCode, data);
 
 		switch (requestCode) {
@@ -667,9 +666,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			// TODO Auto-generated method stub
-			// super.handleMessage(msg);
-
 			if (msg.what == Constants.CONNECTED_HANDLER) {
 				// Toast.makeText(getApplicationContext(),
 				// "Connected! (handler info)", Toast.LENGTH_SHORT).show();
