@@ -8,12 +8,6 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
-
-    <TextView
-        android:id="@+id/textViewConnected"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Connected" />
     
     <Button
         android:id="@+id/buttonCheck"
@@ -42,5 +36,15 @@
         android:layout_below="@+id/buttonCheck"
         android:layout_marginTop="60dp"
         android:max="5" />
+
+    <TextView
+        android:id="@+id/textViewConnected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonCheck"
+        android:layout_alignTop="@+id/textViewMain"
+        android:text="Connected"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="18sp" />
 
 </RelativeLayout>

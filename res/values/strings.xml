@@ -16,4 +16,12 @@
     <string name="noDevicePaired">No paired device was found.</string>
     <string name="noDeviceFound">No device was found.</string>
 
+    <!-- Main Activity Layout -->
+    <string name="imageView1Desc">bluetooth image</string>
+    <string name="imageViewWrong">wrong image</string>
+    <string name="buttonConnectTitle">Connect Now!</string>
+    
+     <!-- Main Activity -->
+    <string name="msgUnableToConnect">Unable to connect</string>
+
 </resources>
