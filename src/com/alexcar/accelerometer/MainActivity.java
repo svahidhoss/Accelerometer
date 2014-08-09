@@ -37,7 +37,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements SensorEventListener {
 
 	private static final int REQUEST_ENABLE_BT = 1;
-	private static final int GET_ADDRESS = 2;
+	private static final int REQUEST_CONNECT_DEVICE = 2;
 
 	// used for exiting on pressing back double
 	private boolean doubleBackToExitIsPressedOnce = false;
@@ -48,11 +48,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 	// *****end references*****
 
 	// ********bluetooth*****
-	BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-	BroadcastReceiver mReceiver;
-	ConnectThread ct = null;
-	ConnectedThread connected = null;
-	String nameDevice = "";
+	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
+			.getDefaultAdapter();
+	private BroadcastReceiver mReceiver;
+
+	private ConnectThread connectThread = null;
+	private ConnectedThread connectedThread = null;
+	private String deviceName = "";
 
 	// Defining view elements
 	private Button btnConnect;
@@ -105,7 +107,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// setContentView(R.layout.not_connected);
 
 		// include setContentView, listener for the button, state, etc
-		notConnected();
+		initViewsNotConnected();
 
 		// include turn on, find devices with BluetoothDevices.class,
 		// registerReceivers
@@ -118,21 +120,21 @@ public class MainActivity extends Activity implements SensorEventListener {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		notConnected(); // #check, ... I put this here because when the
-						// orientation changes, the Activity is destroyed, so
-						// the
-						// device is disconnecting automatically
-						// (cancelAll())...
+		initViewsNotConnected(); // #check, ... I put this here because when the
+		// orientation changes, the Activity is destroyed, so
+		// the
+		// device is disconnecting automatically
+		// (cancelAll())...
 		unregisterSensores();
 		finilizeAll();
 	}
 
 	private void initializeBluetooth() {
 		if (mBluetoothAdapter == null) {
-			noBtDetected();
+			noBluetoothDetected();
 			return;
 		} else if (!mBluetoothAdapter.isEnabled()) {
-			enableBtDialog();
+			enableBluetoothDialog();
 		} else {
 			getDeviceAddressAndConnect();
 		}
@@ -140,7 +142,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		mReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				// TODO Auto-generated method stub
 				String action = intent.getAction();
 				if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
 
@@ -149,13 +150,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 						Toast.makeText(getApplicationContext(),
 								"Bluetooth turned off", Toast.LENGTH_SHORT)
 								.show();
-						notConnected();
+						initViewsNotConnected();
 					}
 					if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0) == BluetoothAdapter.STATE_ON) {
 						Toast.makeText(getApplicationContext(),
 								"Bluetooth turned ON", Toast.LENGTH_SHORT)
 								.show();
-						notConnected();
+						initViewsNotConnected();
 					}
 
 				} else if (BluetoothDevice.ACTION_ACL_DISCONNECTED
@@ -208,14 +209,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 				getDeviceAddressAndConnect();
 			}
 			break;
-		case GET_ADDRESS:
+		case REQUEST_CONNECT_DEVICE:
 			if (resultCode == RESULT_OK) {
 				String passedAddress = data.getExtras().getString(
 						BluetoothDevicesActivity.EXTRA_ADDRESS);
 
-				connect(passedAddress);
+				connectBluetoothDevice(passedAddress);
 			} else {
-				notConnected();
+				initViewsNotConnected();
 			}
 			break;
 
@@ -224,7 +225,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 		}
 	}
 
-	private void notConnected() {
+	/**
+	 * 1st Important function of this activity.
+	 * Initializes the views of this activity when no device is connected.
+	 */
+	private void initViewsNotConnected() {
 		setContentView(R.layout.activity_main_not_connected);
 
 		btnConnect = (Button) findViewById(R.id.buttonConnectFromNoConnected);
@@ -242,7 +247,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		setStatus(R.string.title_not_connected);
 
 		if (mBluetoothAdapter == null) {
-			noBtDetected();
+			noBluetoothDetected();
 		} else {
 			btnConnect.setVisibility(View.VISIBLE);
 
@@ -258,75 +263,72 @@ public class MainActivity extends Activity implements SensorEventListener {
 		unregisterSensores();
 	}
 
-	private void getDeviceAddressAndConnect() {
-		// TODO Auto-generated method stub
-		startActivityForResult(
-				new Intent(this, BluetoothDevicesActivity.class), GET_ADDRESS);
-	}
-
 	/**
-	 * Establishes the bluetooth connection with the passed device address.
-	 * 
-	 * @param address
+	 * 2nd Important function of this activity.
+	 * Initializes the views of this activity when a device gets connected.
 	 */
-	private void connect(String address) {
-		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+	private void initViewsConnected() {
 
-		ct = new ConnectThread(device, mHandler, getApplicationContext());
-		ct.start();
-
-		nameDevice = device.getName();
-		// the receiver (mReceiver) is waiting for the signal of
-		// "device connected" to use the connection, and call connected().
-		// connected() initialize also the ConnectedThread instance (- connected
-		// = new ConnectedThread(BleutoothSocket) -)
-	}
-
-	private void connected() {
 		Toast.makeText(getApplicationContext(),
-				"Connected with " + nameDevice + "!", Toast.LENGTH_SHORT)
+				getString(R.string.title_connected) + deviceName, Toast.LENGTH_SHORT)
 				.show();
 
+		setStatus(getString(R.string.title_connected) + deviceName);
 		setContentView(R.layout.activity_main);
 
-		// *******
-		BluetoothSocket mSocket = ct.getBTSocket();
-		connected = new ConnectedThread(mSocket, mHandler); // this instance of
-															// ConnectedThread
-															// is the one that
-															// we are going to
-															// use to write()
-															// we don't need to
-															// start the Thread,
-															// because we are
-															// going to write,
-															// not to read()
-															// [write is not a
-															// blocking method]
-		// *******
+		// This instance of ConnectedThread is the one that we are going to
+		// use write(). We don't need to start the Thread, because we are not
+		// going to use read(). [write is not a blocking method].
+		BluetoothSocket mSocket = connectThread.getBluetoothSocket();
+		connectedThread = new ConnectedThread(mSocket, mHandler);
 
-		/**
-		 * we are ready to use the sensor and send the information of the
-		 * brakings, so...
-		 */
-		// ******SENSORS***********
+		// we are ready to use the sensor and send the information of the
+		// brakes, so...
 		initializeSensors();
-		// ******END SENSORS*******
 
 		// ******example temp**********
-		Button b = (Button) findViewById(R.id.button1);
+		Button button = (Button) findViewById(R.id.buttonCheck);
 
-		b.setOnClickListener(new OnClickListener() {
+		button.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				connected.write(mmath.toByteArray(60));
-
+				connectedThread.write(mmath.toByteArray(60));
 			}
 		});
 
 		// ********end**example******
 
+	}
+
+	/**
+	 * Starts Bluetooth Devices Activity so that the user can look for and
+	 * select the device it wants to connect to.
+	 */
+	private void getDeviceAddressAndConnect() {
+		// If requestCode >= 0, it will be returned in onActivityResult() when
+		// the activity exits.
+		startActivityForResult(
+				new Intent(this, BluetoothDevicesActivity.class),
+				REQUEST_CONNECT_DEVICE);
+	}
+
+	/**
+	 * Establishes the Bluetooth connection with the passed device address.
+	 * 
+	 * @param address
+	 */
+	private void connectBluetoothDevice(String address) {
+		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+
+		connectThread = new ConnectThread(device, mHandler);
+		connectThread.start();
+
+		deviceName = device.getName();
+		// the receiver (mReceiver) is waiting for the signal of
+		// "device connected" to use the connection, and call connected().
+		// connected() initialize also the ConnectedThread instance (- connected
+		// = new ConnectedThread(BleutoothSocket) -)
 	}
 
 	private void initializeSensors() {
@@ -372,7 +374,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		unregisterSensores();
 		try {
-			ct.cancel();
+			connectThread.cancel();
 			// Toast.makeText(getApplicationContext(),
 			// "ct.cancel() (cancelAll())", Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
@@ -382,7 +384,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		}
 
 		try {
-			connected.cancel();
+			connectedThread.cancel();
 			// Toast.makeText(getApplicationContext(),
 			// "connected.cancel() (cancelAll())", Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
@@ -560,7 +562,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 				byte[] all = new byte[8 * 4 + 8];
 				all = mmath.concatenateBytes(xyz_and_Mod, moduleRealByte);
 
-				connected.write(all);
+				connectedThread.write(all);
 				// ********write angles
 				/*
 				 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[]
@@ -669,7 +671,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			if (msg.what == Constants.CONNECTED_HANDLER) {
 				// Toast.makeText(getApplicationContext(),
 				// "Connected! (handler info)", Toast.LENGTH_SHORT).show();
-				connected();
+				initViewsConnected();
 			} else if (msg.what == Constants.CONNECTING_HANDLER) {
 				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
 				tvState.setText(R.string.title_connecting);
@@ -677,7 +679,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			} else if (msg.what == Constants.DISCONNECTED_HANDLER) {
 				Toast.makeText(getApplicationContext(), "Unable to connect!",
 						Toast.LENGTH_SHORT).show();
-				notConnected();
+				initViewsNotConnected();
 			}
 		}
 	};
@@ -688,7 +690,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	 * Dialog that is displayed when no bluetooth is found on the device. The
 	 * app then closes.
 	 */
-	private void noBtDetected() {
+	private void noBluetoothDetected() {
 		btnConnect.setVisibility(View.GONE);
 		tvState.setText("Device does not support Bluetooth");
 		ImageView ivError = (ImageView) findViewById(R.id.imageViewWrong);
@@ -698,7 +700,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	/**
 	 * Dialog that asks from the user to enable the bluetooth.
 	 */
-	private void enableBtDialog() {
+	private void enableBluetoothDialog() {
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(
 				MainActivity.this);
 
@@ -771,8 +773,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	/**
 	 * Method used for setting up status title of the action bar.
 	 * 
-	 * @param resource
-	 *            Id
+	 * @param resourceId
 	 */
 	private final void setStatus(int resourceId) {
 		final ActionBar actionBar = getActionBar();

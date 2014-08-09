@@ -1,42 +1,37 @@
 package com.alexcar.accelerometer;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 public class ConnectThread extends Thread {
-	private final BluetoothSocket mmSocket;
-	private final BluetoothDevice mmDevice;
-	Handler mHandler;
-	BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+	private final BluetoothSocket bluetoothSocket;
+	// private final BluetoothDevice mmDevice;
+	private Handler mHandler;
+	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-	public ConnectThread(BluetoothDevice device, Handler handler,
-			Context context) {
-		// Use a temporary object that is later assigned to mmSocket,
-		// because mmSocket is final
+	public ConnectThread(BluetoothDevice device, Handler handler) {
+		// Use a temporary object that is later assigned to bluetoothSocket because bluetoothSocket is final
 		BluetoothSocket tmpSocket = null;
-		mmDevice = device;
+		// mmDevice = device;
 		mHandler = handler;
 
-		// Get a BluetoothSocket to connect with the given BluetoothDevice
+		// Get a BluetoothSocket to connect with the given Bluetooth Device
 		try {
-//			DeviceUuidFactory newDeviceUuidFactory = new DeviceUuidFactory(
-//					context);
-//			tmpSocket = device.createRfcommSocketToServiceRecord(newDeviceUuidFactory.getDeviceUuid());
-			tmpSocket = device.createRfcommSocketToServiceRecord(Constants.MY_UUID);
+			tmpSocket = device
+					.createRfcommSocketToServiceRecord(Constants.MY_UUID);
 		} catch (IOException e) {
 			Message msgException = new Message();
 			msgException.setTarget(mHandler);
 			msgException.what = Constants.DISCONNECTED_HANDLER;
 			msgException.sendToTarget();
 		}
-		mmSocket = tmpSocket;
+		bluetoothSocket = tmpSocket;
 
 	}
 
@@ -44,8 +39,8 @@ public class ConnectThread extends Thread {
 		// Cancel discovery because it will slow down the connection
 		mBluetoothAdapter.cancelDiscovery();
 
-		Message msg1 = new Message(); // handler. we use it to know when de
-										// device has been connected or
+		Message msg1 = new Message(); // handler. we use it to know when device
+										// has been connected or
 										// disconnected in the UI activity
 		msg1.setTarget(mHandler);
 
@@ -55,7 +50,7 @@ public class ConnectThread extends Thread {
 		try {
 			// Connect the device through the socket. This will block
 			// until it succeeds or throws an exception
-			mmSocket.connect();
+			bluetoothSocket.connect();
 
 			// handler
 			Message msg2 = new Message();
@@ -65,36 +60,39 @@ public class ConnectThread extends Thread {
 			msg2.sendToTarget();
 
 			// ********handler***
-			System.out.println("alex - connected");
+			if (Constants.DEBUG) 
+				Log.d(Constants.TAG, "Application is connected");
 
 		} catch (IOException connectException) {
 			// Unable to connect; close the socket and get out
-			System.out.println("alex - NO connected");
+			if (Constants.DEBUG) 
+				Log.d(Constants.TAG, "Application is not connected");
+			
 			Message msgException = new Message();
 			msgException.setTarget(mHandler);
 			msgException.what = Constants.DISCONNECTED_HANDLER;
 			msgException.sendToTarget();
 
 			try {
-				mmSocket.close();
+				bluetoothSocket.close();
 			} catch (IOException closeException) {
 			}
 			return;
 		}
 
 		// Do work to manage the connection (in a separate thread)
-		// manageConnectedSocket(mmSocket);
+		// manageConnectedSocket(bluetoothSocket);
 	}
 
 	/** Will cancel an in-progress connection, and close the socket */
 	public void cancel() {
 		try {
-			mmSocket.close();
+			bluetoothSocket.close();
 		} catch (IOException e) {
 		}
 	}
 
-	public BluetoothSocket getBTSocket() {
-		return mmSocket;
+	public BluetoothSocket getBluetoothSocket() {
+		return bluetoothSocket;
 	}
 }

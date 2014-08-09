@@ -13,7 +13,7 @@ public class Constants {
 	public static float precision = (float) 0.9;
 	public static long marginMilliseconds = 300;
 	public static double gravity = SensorManager.STANDARD_GRAVITY;
-	static boolean manualGravity = false;
+	public static boolean manualGravity = false;
 	public static float precisionPitch = 0f; // pitch defines design of the
 												// acceleration (if it is
 												// braking or accelerating) (=0
@@ -27,9 +27,9 @@ public class Constants {
 //	public static final UUID MY_UUID = UUID
 //			.fromString("00001105-0000-1000-8000-00805F9B34FB");
 
-	// ----handler
+	/**handler**/
+	
 	// Constants that indicate the current connection state
-
 	public static int CONNECTING_HANDLER = 1;// initiating an outgoing connection
 	public static int CONNECTED_HANDLER = 2; // connected to a remote device
 	public static int DISCONNECTED_HANDLER = 3; // we're doing nothing
