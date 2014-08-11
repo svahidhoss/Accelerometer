@@ -62,13 +62,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	// Sensor related attributes
 	private SensorManager mSensorManager;
-	private Sensor mAccelerometer, mOrientation;
+	private Sensor mAccelerometer, mOrientation, mLinearAcceleration;
 
 	// ---- Values ---
 
 	// it's important to initialize the values.
 	float[] acceleromterValues = new float[] { 0, 0, 0 };
 	float[] orientationValues = new float[] { 0, 0, 0 };
+	float[] linearAccelerationValues = new float[] { 0, 0, 0 };
 
 	// --- Filters ---
 
@@ -238,8 +239,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	/**
 	 * Method that checks if the device supports Bluetooth, asks for enabling it
-	 * if not already, find devices with BluetoothDevices.class and registers the
-	 * required Receivers.
+	 * if not already, find devices with BluetoothDevices.class and registers
+	 * the required Receivers.
 	 */
 	private void initializeBluetooth() {
 		if (mBluetoothAdapter == null) {
@@ -327,26 +328,32 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// = new ConnectedThread(BleutoothSocket) -)
 	}
 
+	/**
+	 * Method that initializes the sensors, after we're connected to the server.
+	 */
 	private void initializeSensors() {
 
-		// ******sensors*****/
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		mAccelerometer = mSensorManager
-				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		// it is deprecated, but it works.
-		mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-		if (Constants.DEBUG)
-			Log.d(Constants.TAG, "sensors created");
+		/*
+		 * mAccelerometer = mSensorManager
+		 * .getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // it is deprecated,
+		 * but it works. mOrientation =
+		 * mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+		 */
+		mLinearAcceleration = mSensorManager
+				.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 
 		// Register the sensors to the listener.
-		mSensorManager.registerListener(this, mAccelerometer,
-				SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(this, mOrientation,
+		/*
+		 * mSensorManager.registerListener(this, mAccelerometer,
+		 * SensorManager.SENSOR_DELAY_NORMAL);
+		 * mSensorManager.registerListener(this, mOrientation,
+		 * SensorManager.SENSOR_DELAY_NORMAL);
+		 */
+		mSensorManager.registerListener(this, mLinearAcceleration,
 				SensorManager.SENSOR_DELAY_NORMAL);
 		if (Constants.DEBUG)
 			Log.d(Constants.TAG, "sensors registered");
-
-		// *****sensors (accelerometer, orientation)*******/
 
 	}
 
@@ -405,251 +412,25 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		// TODO Auto-generated method stub
-		synchronized (this) {
+		// synchronized (this) {
+		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+			getAccelerometer(event);
+		}// end case Accelerometer (if)
 
-			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-
-				acceleromterValues = mmath.cancelGravity(event.values,
-						orientationValues); // the sensor doesn't erase the
-											// gravity by itself
-											// for that exists other sensor:
-											// LINEAR_ACCELERATION, but is not
-											// very typical to have it.
-
-				/*
-				 * we dont need to cancel the gravity, because we are going to
-				 * use the axes x0,y0,z0, in which angles the gravity are all it
-				 * in z0
-				 */// but we do... the results appears to be better.
-
-				// **acceleromterValues = event.values.clone();
-				acceleromterValues = mmath.convertReference2(
-						acceleromterValues, orientationValues); // **
-
-				// ***/ double module = mmath.module(acceleromterValues[0],
-				// acceleromterValues[1],
-				// acceleromterValues[2]-SensorManager.GRAVITY_EARTH);
-				// double module = mmath.module(acceleromterValues[0],
-				// acceleromterValues[1],
-				// event.values[2]-SensorManager.GRAVITY_EARTH);
-
-				double module = mmath.module(acceleromterValues[0],
-						acceleromterValues[1], 0);
-
-				// *******first filter to brakings.
-
-				// *********braking????*********
-				boolean braking = false;
-				if (acceleromterValues[1] > 0
-						&& Math.abs(orientationValues[1]) < 90 + Constants.precisionPitch) {
-					braking = true;
-				} else if (acceleromterValues[1] < 0
-						&& Math.abs(orientationValues[1]) > 90 + Constants.precisionPitch) {
-					braking = true;
-				}
-
-				boolean accelerating = false;
-				if (acceleromterValues[1] < 0
-						&& Math.abs(orientationValues[1]) < 90) {
-					accelerating = true;
-				} else if (acceleromterValues[1] > 0
-						&& Math.abs(orientationValues[1]) > 90) {
-					accelerating = true;
-				}
-				// ******end***braking?????****
-
-				// if (module>Constant.precision && acceleromterValues[1]>0){
-				if (module > Constants.precision && braking) { // braking is the
-																// boolean
-																// variable that
-																// defines the
-																// brake and the
-																// acceleration
-																// with the sign
-																// of y
-					RelativeLayout background = (RelativeLayout) findViewById(R.id.connectedLayout);
-					background.setBackgroundResource(R.color.dark_red);
-
-					if (brOn == false) {
-						brOn = true;
-						brReal = false;
-						brTimeIni = Calendar.getInstance();
-
-					} else {
-						if (Calendar.getInstance().getTimeInMillis()
-								- brTimeIni.getTimeInMillis() > Constants.marginMilliseconds) {
-							brReal = true;
-							try {
-								// connected.write((int) (10*module));
-								// connected.write(mmath.toByteArray(module));
-
-							} catch (Exception e) {
-								Toast.makeText(getApplicationContext(),
-										"error writting", Toast.LENGTH_SHORT)
-										.show();
-							}
-							TextView tvaux = (TextView) findViewById(R.id.textViewMain);
-							tvaux.setText("" + mmath.redondeo(module, 1));
-							ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
-							progress.setProgress((int) module);
-
-						} else {
-							brReal = false;
-						}
-
-					}
-
-				}// end br starts
-				else {
-					// *****
-					TextView tvaux = (TextView) findViewById(R.id.textViewMain);
-					tvaux.setText("");
-					// --
-					ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
-					progress.setProgress((int) (0));
-					// *****
-					brReal = false;
-					brOn = false;
-					RelativeLayout backg = (RelativeLayout) findViewById(R.id.connectedLayout);
-					// if (acceleromterValues[1]<0 &&
-					// module>Constant.precision){
-					if (accelerating && module > Constants.precision) {
-						backg.setBackgroundResource(R.color.dark_green);
-					} else {
-						backg.setBackgroundColor(Color.WHITE);
-
-					}
-
-				}// end 'end brake'
-
-				// ******end the first filter to brakings
-
-				/**
-				 * ******WRITE TO DE BLUETOOTH DEVICE*********
-				 */
-
-				// ****writing also the module when brake is real.
-				double moduleReal;
-				if (brReal) {
-					moduleReal = module;
-				} else {
-					moduleReal = 0;
-
-				}
-
-				// ---with the idea of write this data and send by bluetooth,
-				// first it's necessary to pass them to byte...
-				byte[] x = mmath.toByteArray(acceleromterValues[0]);
-				byte[] y = mmath.toByteArray(acceleromterValues[1]);
-				byte[] z = mmath.toByteArray(acceleromterValues[2]);
-				byte[] mod_byte = mmath.toByteArray(module);
-				byte[] xyz_and_Mod = new byte[8 * 4];
-
-				xyz_and_Mod = mmath
-						.concatenateBytes(
-								mmath.concatenateBytes(
-										mmath.concatenateBytes(x, y), z),
-								mod_byte);
-				// ---
-
-				byte[] moduleRealByte = mmath.toByteArray(moduleReal);
-				byte[] all = new byte[8 * 4 + 8];
-				all = mmath.concatenateBytes(xyz_and_Mod, moduleRealByte);
-
-				connectedThread.write(all);
-				// ********write angles
-				/*
-				 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[]
-				 * pitch = mmath.toByteArray(orientationValues[1]); byte[] roll
-				 * = mmath.toByteArray(orientationValues[2]); byte[] anglesByte
-				 * = mmath.concatenateBytes(mmath.concatenateBytes(az, pitch),
-				 * roll);
-				 * 
-				 * connected.write(mmath.concatenateBytes(anglesByte,
-				 * mod_byte));
-				 */
-				// /****end write angles
-
-				// *****end***writing also the module when brake is real.
-
-				/**
-				 * ******
-				 */
-
-			}// end case Accelerometer (if)
-
-			else if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
-				if (Constants.DEBUG) {
-					Log.d(Constants.TAG, "copy Orientation");
-				}
-				String angles = "azimuth: "
-						+ mmath.redondeo(event.values[0], 3) + "\npitch: "
-						+ mmath.redondeo(event.values[1], 3) + "\nroll: "
-						+ mmath.redondeo(event.values[2], 3);
-				TextView tv = (TextView) findViewById(R.id.textViewConnected);
-				tv.setText(angles); // see in the phone screen (debug)
-
-				if (onAngles == false) {
-					orientationValues = event.values.clone();
-					orientationValuesAnterior = event.values.clone();
-					onAngles = true;
-				}
-				orientationValues[0] = event.values[0];
-
-				// ****calculate angles average
-
-				float delta1 = event.values[1] - orientationValuesAnterior[1];
-				float delta2 = event.values[2] - orientationValuesAnterior[2];
-				float delta = Math.max(delta1, delta2);
-
-				// .1
-				if (delta < Constants.delta && noise == false) {
-					sum_angles1 = sum_angles1 + event.values[1];
-					sum_angles2 = sum_angles2 + event.values[2];
-					n++;
-					orientationValues[1] = (float) sum_angles1 / n;
-					orientationValues[2] = (float) sum_angles2 / n;
-					if (n == Constants.nIter) {
-
-						sum_angles1 = event.values[1];
-						sum_angles2 = event.values[2];
-						n = 1;
-					}
-				} else if (delta > Constants.delta) {
-
-					noise = true;
-					sum_angles1_aux = 0;
-					n = 0;
-				} else if (delta < Constants.delta && noise == true) {
-					sum_angles1_aux = sum_angles1_aux + event.values[1];
-					sum_angles2_aux = sum_angles2_aux + event.values[2];
-					n++;
-					if (n == Constants.nIter) {
-						orientationValues[1] = (float) sum_angles1_aux / n;
-						orientationValues[2] = (float) sum_angles2_aux / n;
-
-						sum_angles1 = event.values[1];
-						sum_angles2 = event.values[2];
-						n = 1;
-						noise = false;
-					}
-				}
-
-				// .2
-				// ****end***calculate angles average
-				orientationValuesAnterior = event.values.clone();
-			}// end case sensor Orientation
-
+		else if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+			getOrientation(event);
+		} else if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+			getLinearAcceleration(event);
 		}
 
-	}// fin del syncronized this. //#check
+		// } //fin del syncronized this. //#check?
+
+	}
 
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -780,5 +561,269 @@ public class MainActivity extends Activity implements SensorEventListener {
 		final ActionBar actionBar = getActionBar();
 		actionBar.setSubtitle(resourceId);
 	}
+
+	/**
+
+	 * 
+	 * @param event
+	 */
+	private void getLinearAcceleration(SensorEvent event) {
+//		A three dimensional vector indicating acceleration along each device
+//		axis, not including gravity. All values have units of m/s^2. The
+//		coordinate system is the same as is used by the acceleration sensor. The
+//		output of the accelerometer, gravity and linear-acceleration sensors must
+//		obey the following relation:
+//		
+//		
+//		acceleration = gravity + linear-acceleration
+		linearAccelerationValues = event.values;
+	    // Movement
+	    float x = linearAccelerationValues[0];
+	    float y = linearAccelerationValues[1];
+	    float z = linearAccelerationValues[2];
+
+	    float accelationSquareRoot = (x * x + y * y + z * z)
+	        / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
+	    long actualTime = event.timestamp;
+	    if (accelationSquareRoot >= 2) //
+	    {
+	      if (actualTime - lastUpdate < 200) {
+	        return;
+	      }
+	      lastUpdate = actualTime;
+	      Toast.makeText(this, "Device was shuffed", Toast.LENGTH_SHORT)
+	          .show();
+	      if (color) {
+	        view.setBackgroundColor(Color.GREEN);
+	      } else {
+	        view.setBackgroundColor(Color.RED);
+	      }
+	      color = !color;
+	    }
+		
+	}
+
+	private void getAccelerometer(SensorEvent event) {
+		acceleromterValues = mmath.cancelGravity(event.values,
+				orientationValues); // the sensor doesn't erase the
+									// gravity by itself
+									// for that exists other sensor:
+									// LINEAR_ACCELERATION, but is not
+									// very typical to have it.
+
+		/*
+		 * we dont need to cancel the gravity, because we are going to use the
+		 * axes x0,y0,z0, in which angles the gravity are all it in z0
+		 */// but we do... the results appears to be better.
+
+		// **acceleromterValues = event.values.clone();
+		acceleromterValues = mmath.convertReference2(acceleromterValues,
+				orientationValues); // **
+
+		// ***/ double module = mmath.module(acceleromterValues[0],
+		// acceleromterValues[1],
+		// acceleromterValues[2]-SensorManager.GRAVITY_EARTH);
+		// double module = mmath.module(acceleromterValues[0],
+		// acceleromterValues[1],
+		// event.values[2]-SensorManager.GRAVITY_EARTH);
+
+		double module = mmath.module(acceleromterValues[0],
+				acceleromterValues[1], 0);
+
+		// *******first filter to brakings.
+
+		// *********braking????*********
+		boolean braking = false;
+		if (acceleromterValues[1] > 0
+				&& Math.abs(orientationValues[1]) < 90 + Constants.precisionPitch) {
+			braking = true;
+		} else if (acceleromterValues[1] < 0
+				&& Math.abs(orientationValues[1]) > 90 + Constants.precisionPitch) {
+			braking = true;
+		}
+
+		boolean accelerating = false;
+		if (acceleromterValues[1] < 0 && Math.abs(orientationValues[1]) < 90) {
+			accelerating = true;
+		} else if (acceleromterValues[1] > 0
+				&& Math.abs(orientationValues[1]) > 90) {
+			accelerating = true;
+		}
+		// ******end***braking?????****
+
+		// if (module>Constant.precision && acceleromterValues[1]>0){
+		if (module > Constants.precision && braking) { // braking is the
+														// boolean
+														// variable that
+														// defines the
+														// brake and the
+														// acceleration
+														// with the sign
+														// of y
+			RelativeLayout background = (RelativeLayout) findViewById(R.id.connectedLayout);
+			background.setBackgroundResource(R.color.dark_red);
+
+			if (brOn == false) {
+				brOn = true;
+				brReal = false;
+				brTimeIni = Calendar.getInstance();
+
+			} else {
+				if (Calendar.getInstance().getTimeInMillis()
+						- brTimeIni.getTimeInMillis() > Constants.marginMilliseconds) {
+					brReal = true;
+					try {
+						// connected.write((int) (10*module));
+						// connected.write(mmath.toByteArray(module));
+
+					} catch (Exception e) {
+						Toast.makeText(getApplicationContext(),
+								"error writting", Toast.LENGTH_SHORT).show();
+					}
+					TextView tvaux = (TextView) findViewById(R.id.textViewMain);
+					tvaux.setText("" + mmath.redondeo(module, 1));
+					ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
+					progress.setProgress((int) module);
+
+				} else {
+					brReal = false;
+				}
+
+			}
+
+		}// end br starts
+		else {
+			// *****
+			TextView tvaux = (TextView) findViewById(R.id.textViewMain);
+			tvaux.setText("");
+			// --
+			ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
+			progress.setProgress((int) (0));
+			// *****
+			brReal = false;
+			brOn = false;
+			RelativeLayout backg = (RelativeLayout) findViewById(R.id.connectedLayout);
+			// if (acceleromterValues[1]<0 &&
+			// module>Constant.precision){
+			if (accelerating && module > Constants.precision) {
+				backg.setBackgroundResource(R.color.dark_green);
+			} else {
+				backg.setBackgroundColor(Color.WHITE);
+
+			}
+
+		}// end 'end brake'
+
+		// ******end the first filter to brakings
+
+		/**
+		 * ******WRITE TO DE BLUETOOTH DEVICE*********
+		 */
+
+		// ****writing also the module when brake is real.
+		double moduleReal;
+		if (brReal) {
+			moduleReal = module;
+		} else {
+			moduleReal = 0;
+
+		}
+
+		// ---with the idea of write this data and send by bluetooth,
+		// first it's necessary to pass them to byte...
+		byte[] x = mmath.toByteArray(acceleromterValues[0]);
+		byte[] y = mmath.toByteArray(acceleromterValues[1]);
+		byte[] z = mmath.toByteArray(acceleromterValues[2]);
+		byte[] mod_byte = mmath.toByteArray(module);
+		byte[] xyz_and_Mod = new byte[8 * 4];
+
+		xyz_and_Mod = mmath.concatenateBytes(
+				mmath.concatenateBytes(mmath.concatenateBytes(x, y), z),
+				mod_byte);
+		// ---
+
+		byte[] moduleRealByte = mmath.toByteArray(moduleReal);
+		byte[] all = new byte[8 * 4 + 8];
+		all = mmath.concatenateBytes(xyz_and_Mod, moduleRealByte);
+
+		connectedThread.write(all);
+		// ********write angles
+		/*
+		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =
+		 * mmath.toByteArray(orientationValues[1]); byte[] roll =
+		 * mmath.toByteArray(orientationValues[2]); byte[] anglesByte =
+		 * mmath.concatenateBytes(mmath.concatenateBytes(az, pitch), roll);
+		 * 
+		 * connected.write(mmath.concatenateBytes(anglesByte, mod_byte));
+		 */
+		// /****end write angles
+
+		// *****end***writing also the module when brake is real.
+
+		/**
+		 * ******
+		 */
+	}
+
+	private void getOrientation(SensorEvent event) {
+		if (Constants.DEBUG) {
+			Log.d(Constants.TAG, "copy Orientation");
+		}
+		String angles = "azimuth: " + mmath.redondeo(event.values[0], 3)
+				+ "\npitch: " + mmath.redondeo(event.values[1], 3) + "\nroll: "
+				+ mmath.redondeo(event.values[2], 3);
+		TextView tv = (TextView) findViewById(R.id.textViewConnected);
+		tv.setText(angles); // see in the phone screen (debug)
+
+		if (onAngles == false) {
+			orientationValues = event.values.clone();
+			orientationValuesAnterior = event.values.clone();
+			onAngles = true;
+		}
+		orientationValues[0] = event.values[0];
+
+		// ****calculate angles average
+
+		float delta1 = event.values[1] - orientationValuesAnterior[1];
+		float delta2 = event.values[2] - orientationValuesAnterior[2];
+		float delta = Math.max(delta1, delta2);
+
+		// .1
+		if (delta < Constants.delta && noise == false) {
+			sum_angles1 = sum_angles1 + event.values[1];
+			sum_angles2 = sum_angles2 + event.values[2];
+			n++;
+			orientationValues[1] = (float) sum_angles1 / n;
+			orientationValues[2] = (float) sum_angles2 / n;
+			if (n == Constants.nIter) {
+
+				sum_angles1 = event.values[1];
+				sum_angles2 = event.values[2];
+				n = 1;
+			}
+		} else if (delta > Constants.delta) {
+
+			noise = true;
+			sum_angles1_aux = 0;
+			n = 0;
+		} else if (delta < Constants.delta && noise == true) {
+			sum_angles1_aux = sum_angles1_aux + event.values[1];
+			sum_angles2_aux = sum_angles2_aux + event.values[2];
+			n++;
+			if (n == Constants.nIter) {
+				orientationValues[1] = (float) sum_angles1_aux / n;
+				orientationValues[2] = (float) sum_angles2_aux / n;
+
+				sum_angles1 = event.values[1];
+				sum_angles2 = event.values[2];
+				n = 1;
+				noise = false;
+			}
+		}
+
+		// .2
+		// ****end***calculate angles average
+		orientationValuesAnterior = event.values.clone();
+	}// end case sensor Orientation
 
 }
