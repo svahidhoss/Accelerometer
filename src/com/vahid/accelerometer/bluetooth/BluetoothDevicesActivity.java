@@ -1,9 +1,16 @@
-package com.alexcar.accelerometer;
+package com.vahid.accelerometer.bluetooth;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.alexcar.accelerometer.R;
+import com.alexcar.accelerometer.R.id;
+import com.alexcar.accelerometer.R.layout;
+import com.alexcar.accelerometer.R.menu;
+import com.alexcar.accelerometer.R.string;
+import com.vahid.accelerometer.util.Constants;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -31,7 +38,7 @@ public class BluetoothDevicesActivity extends Activity implements
 	private static final int REQUEST_ENABLE_BT = 1;
 
 	// TODO what's this?
-	static final String EXTRA_ADDRESS = "resultActivityExtraAddress";
+	public static final String EXTRA_ADDRESS = "resultActivityExtraAddress";
 
 	private BluetoothAdapter mBluetoothAdapter;
 	private Set<BluetoothDevice> pairedDevices;

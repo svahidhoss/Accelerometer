@@ -1,6 +1,12 @@
-package com.alexcar.accelerometer;
+package com.vahid.accelerometer;
 
 import java.util.Calendar;
+
+import com.alexcar.accelerometer.R;
+import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
+import com.vahid.accelerometer.bluetooth.ConnectThread;
+import com.vahid.accelerometer.bluetooth.ConnectedThread;
+import com.vahid.accelerometer.util.Constants;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -582,24 +588,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	    float y = linearAccelerationValues[1];
 	    float z = linearAccelerationValues[2];
 
-	    float accelationSquareRoot = (x * x + y * y + z * z)
-	        / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
-	    long actualTime = event.timestamp;
-	    if (accelationSquareRoot >= 2) //
-	    {
-	      if (actualTime - lastUpdate < 200) {
-	        return;
-	      }
-	      lastUpdate = actualTime;
-	      Toast.makeText(this, "Device was shuffed", Toast.LENGTH_SHORT)
-	          .show();
-	      if (color) {
-	        view.setBackgroundColor(Color.GREEN);
-	      } else {
-	        view.setBackgroundColor(Color.RED);
-	      }
-	      color = !color;
-	    }
 		
 	}
 

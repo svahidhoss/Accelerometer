@@ -1,6 +1,8 @@
-package com.alexcar.accelerometer;
+package com.vahid.accelerometer;
 
 import java.nio.ByteBuffer;
+
+import com.vahid.accelerometer.util.Constants;
 
 public class mMath {
 

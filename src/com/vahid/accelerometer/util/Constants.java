@@ -1,4 +1,4 @@
-package com.alexcar.accelerometer;
+package com.vahid.accelerometer.util;
 
 import java.util.UUID;
 

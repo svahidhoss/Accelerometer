@@ -18,7 +18,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.alexcar.accelerometer.MainActivity"
+            android:name="com.vahid.accelerometer.MainActivity"
             android:label="@string/activity_main_title"
             android:screenOrientation="portrait" >
             <intent-filter>
@@ -27,13 +27,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.alexcar.accelerometer.BluetoothDevicesActivity"
+            android:name="com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity"
             android:label="@string/activity_bluetooth_devices_title"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.DeviceDefault.Dialog" >
         </activity>
         <activity
-            android:name="com.alexcar.accelerometer.Settings_m"
+            android:name="com.vahid.accelerometer.Settings_m"
             android:label="@string/activity_settings_m_title"
             android:theme="@android:style/Theme.DeviceDefault.Dialog" >
         </activity>

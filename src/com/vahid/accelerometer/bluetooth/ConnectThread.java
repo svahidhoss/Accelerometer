@@ -1,6 +1,8 @@
-package com.alexcar.accelerometer;
+package com.vahid.accelerometer.bluetooth;
 
 import java.io.IOException;
+
+import com.vahid.accelerometer.util.Constants;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
