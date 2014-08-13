@@ -63,12 +63,12 @@ public class ConnectThread extends Thread {
 
 			// ********handler***
 			if (Constants.DEBUG) 
-				Log.d(Constants.TAG, "Application is connected");
+				Log.d(Constants.LOG_TAG, "Application is connected");
 
 		} catch (IOException connectException) {
 			// Unable to connect; close the socket and get out
 			if (Constants.DEBUG) 
-				Log.d(Constants.TAG, "Application is not connected");
+				Log.d(Constants.LOG_TAG, "Application is not connected");
 			
 			Message msgException = new Message();
 			msgException.setTarget(mHandler);

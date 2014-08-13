@@ -24,6 +24,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -37,6 +38,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,19 +65,23 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private String deviceName = "";
 
 	// Defining view elements
-	private Button btnConnect;
-	private TextView tvState;
+	private Button btnConnect, buttonCheck;
+	private TextView tvState, tvLASCapturedState;
+	// Connected view
+	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
+	private TextView xAxisValue, yAxisValue, zAxisValue;
 
 	// Sensor related attributes
 	private SensorManager mSensorManager;
-	private Sensor mAccelerometer, mOrientation, mLinearAcceleration;
+	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
+			mMagneticField;
 
 	// ---- Values ---
 
 	// it's important to initialize the values.
 	float[] acceleromterValues = new float[] { 0, 0, 0 };
 	float[] orientationValues = new float[] { 0, 0, 0 };
-	float[] linearAccelerationValues = new float[] { 0, 0, 0 };
+	float[] linearAcceleration = new float[] { 0, 0, 0 };
 
 	// --- Filters ---
 
@@ -216,7 +222,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 				Toast.LENGTH_SHORT).show();
 
 		setStatus(getString(R.string.title_connected) + deviceName);
-		setContentView(R.layout.activity_main);
+		// TODO temp change here
+		// setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_main_las);
 
 		// This instance of ConnectedThread is the one that we are going to
 		// use write(). We don't need to start the Thread, because we are not
@@ -228,19 +236,23 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// brakes, so...
 		initializeSensors();
 
-		// ******example temp**********
-		Button button = (Button) findViewById(R.id.buttonCheck);
+		// tvLASCapturedState = (TextView)
+		// findViewById(R.id.textViewLASCapturedstate);
 
-		button.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				connectedThread.write(mmath.toByteArray(60));
-			}
-		});
-
-		// ********end**example******
-
+		// retrieve all the needed components
+		xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar);
+		yAxisSeekBar = (SeekBar) findViewById(R.id.yAxisBar);
+		zAxisSeekBar = (SeekBar) findViewById(R.id.zAxisBar);
+		xAxisValue = (TextView) findViewById(R.id.xAxisValue);
+		yAxisValue = (TextView) findViewById(R.id.yAxisValue);
+		zAxisValue = (TextView) findViewById(R.id.zAxisValue);
+		/*
+		 * buttonCheck = (Button) findViewById(R.id.buttonCheck);
+		 * buttonCheck.setOnClickListener(new OnClickListener() {
+		 * 
+		 * @Override public void onClick(View v) {
+		 * connectedThread.write(mmath.toByteArray(60)); } });
+		 */
 	}
 
 	/**
@@ -348,6 +360,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 		 */
 		mLinearAcceleration = mSensorManager
 				.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+		mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+		mMagneticField = mSensorManager
+				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
 		// Register the sensors to the listener.
 		/*
@@ -359,7 +374,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		mSensorManager.registerListener(this, mLinearAcceleration,
 				SensorManager.SENSOR_DELAY_NORMAL);
 		if (Constants.DEBUG)
-			Log.d(Constants.TAG, "sensors registered");
+			Log.d(Constants.LOG_TAG, "sensors registered");
 
 	}
 
@@ -376,7 +391,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			// Toast.makeText(getApplicationContext(), "sensor unregistered",
 			// Toast.LENGTH_SHORT).show();
 			if (Constants.DEBUG)
-				Log.d(Constants.TAG, "sensor unregistered");
+				Log.d(Constants.LOG_TAG, "sensor unregistered");
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -392,7 +407,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			// Toast.makeText(getApplicationContext(),
 			// "ct.cancel() (cancelAll())", Toast.LENGTH_SHORT).show();
 			if (Constants.DEBUG)
-				Log.d(Constants.TAG, "sensors created");
+				Log.d(Constants.LOG_TAG, "sensors created");
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -424,14 +439,28 @@ public class MainActivity extends Activity implements SensorEventListener {
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		// synchronized (this) {
-		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+		switch (event.sensor.getType()) {
+		case Sensor.TYPE_ACCELEROMETER:
 			getAccelerometer(event);
-		}// end case Accelerometer (if)
-
-		else if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+			break;
+		case Sensor.TYPE_ORIENTATION:
 			getOrientation(event);
-		} else if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+
+			break;
+		case Sensor.TYPE_LINEAR_ACCELERATION:
 			getLinearAcceleration(event);
+
+			break;
+		case Sensor.TYPE_GRAVITY:
+			getLinearAcceleration(event);
+
+			break;
+		case Sensor.TYPE_MAGNETIC_FIELD:
+			getLinearAcceleration(event);
+
+			break;
+		default:
+			break;
 		}
 
 		// } //fin del syncronized this. //#check?
@@ -569,26 +598,64 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	/**
-
 	 * 
-	 * @param event
+	 * 
+	 * @param linearAccelerationEvent
 	 */
-	private void getLinearAcceleration(SensorEvent event) {
-//		A three dimensional vector indicating acceleration along each device
-//		axis, not including gravity. All values have units of m/s^2. The
-//		coordinate system is the same as is used by the acceleration sensor. The
-//		output of the accelerometer, gravity and linear-acceleration sensors must
-//		obey the following relation:
-//		
-//		
-//		acceleration = gravity + linear-acceleration
-		linearAccelerationValues = event.values;
-	    // Movement
-	    float x = linearAccelerationValues[0];
-	    float y = linearAccelerationValues[1];
-	    float z = linearAccelerationValues[2];
+	private void getLinearAcceleration(SensorEvent linearAccelerationEvent) {
+		// A three dimensional vector indicating acceleration along each device
+		// axis, not including gravity. All values have units of m/s^2. The
+		// coordinate system is the same as is used by the acceleration sensor.
+		// The
+		// output of the accelerometer, gravity and linear-acceleration sensors
+		// must
+		// obey the following relation:
+		//
+		//
+		// acceleration = gravity + linear-acceleration
+		 linearAcceleration = linearAccelerationEvent.values;
+		// Movement
+		// float x = linearAccelerationValues[0];
+		// float y = linearAccelerationValues[1];
+		// float z = linearAccelerationValues[2];
 
-		
+		/*
+		 * String linearAccelerations = "Linear Acceleration on the x-axis: " +
+		 * linearAccelerationEvent.values[0] +
+		 * "\nLinear Acceleration on the y-axis  " +
+		 * linearAccelerationEvent.values[1] +
+		 * "\nLinear Acceleration on the z-axis " +
+		 * linearAccelerationEvent.values[2];
+		 * 
+		 * tvLASCapturedState.setText(linearAccelerations);
+		 */
+
+		// set the value as the text of every TextView
+		xAxisValue.setText(Float.toString(linearAccelerationEvent.values[0]));
+		yAxisValue.setText(Float.toString(linearAccelerationEvent.values[1]));
+		zAxisValue.setText(Float.toString(linearAccelerationEvent.values[2]));
+		// set the value on to the SeekBar
+		xAxisSeekBar
+				.setProgress((int) (linearAccelerationEvent.values[0] + 10f));
+		yAxisSeekBar
+				.setProgress((int) (linearAccelerationEvent.values[1] + 10f));
+		zAxisSeekBar
+				.setProgress((int) (linearAccelerationEvent.values[2] + 10f));
+
+		float[] trueAcceleration = new float[4];
+		float[] inclinationMatrix;
+		float[] rotationMatrix = new float[16];
+		float[] rotationMatrixInverse = new float[16];
+
+		// Computes the inclination matrix as well as the rotation matrix
+		// transforming a vector from the device coordinate system to the
+		// world's coordinate system
+//		SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
+//				GRAVITY, geomagnetic);
+		Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
+		Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse, 0,
+				linearAcceleration, 0);
+
 	}
 
 	private void getAccelerometer(SensorEvent event) {
@@ -755,7 +822,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private void getOrientation(SensorEvent event) {
 		if (Constants.DEBUG) {
-			Log.d(Constants.TAG, "copy Orientation");
+			Log.d(Constants.LOG_TAG, "copy Orientation");
 		}
 		String angles = "azimuth: " + mmath.redondeo(event.values[0], 3)
 				+ "\npitch: " + mmath.redondeo(event.values[1], 3) + "\nroll: "

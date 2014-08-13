@@ -6,7 +6,7 @@ import android.hardware.SensorManager;
 
 public class Constants {
 	public static boolean DEBUG = true;
-	public static String TAG = "Debugging Tag";
+	public static String LOG_TAG = "Debugging Tag";
 
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
 
