@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.alexcar.accelerometer"
+    package="com.vahid.accelerometer"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -34,7 +34,7 @@
         </activity>
         <activity
             android:name="com.vahid.accelerometer.Settings_m"
-            android:label="@string/activity_settings_m_title"
+            android:label="@string/settings"
             android:theme="@android:style/Theme.DeviceDefault.Dialog" >
         </activity>
     </application>

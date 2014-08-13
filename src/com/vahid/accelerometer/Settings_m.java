@@ -2,7 +2,7 @@ package com.vahid.accelerometer;
 
 
 
-import com.alexcar.accelerometer.R;
+import com.vahid.accelerometer.R;
 import com.vahid.accelerometer.util.Constants;
 
 import android.app.Activity;

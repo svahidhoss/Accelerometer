@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.alexcar.accelerometer.R;
-import com.alexcar.accelerometer.R.id;
-import com.alexcar.accelerometer.R.layout;
-import com.alexcar.accelerometer.R.menu;
-import com.alexcar.accelerometer.R.string;
+import com.vahid.accelerometer.R;
+import com.vahid.accelerometer.R.id;
+import com.vahid.accelerometer.R.layout;
+import com.vahid.accelerometer.R.menu;
+import com.vahid.accelerometer.R.string;
 import com.vahid.accelerometer.util.Constants;
 
 import android.app.Activity;

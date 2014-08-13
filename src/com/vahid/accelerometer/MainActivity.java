@@ -2,7 +2,6 @@ package com.vahid.accelerometer;
 
 import java.util.Calendar;
 
-import com.alexcar.accelerometer.R;
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
@@ -138,7 +137,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-
 	}
 
 	@Override
@@ -229,8 +227,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// This instance of ConnectedThread is the one that we are going to
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
-		BluetoothSocket mSocket = connectThread.getBluetoothSocket();
-		connectedThread = new ConnectedThread(mSocket, mHandler);
+
+		if (Constants.BT_MODULE_EXISTS) {
+			BluetoothSocket mSocket = connectThread.getBluetoothSocket();
+			connectedThread = new ConnectedThread(mSocket, mHandler);
+		}
 
 		// we are ready to use the sensor and send the information of the
 		// brakes, so...
@@ -452,11 +453,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			break;
 		case Sensor.TYPE_GRAVITY:
-			getLinearAcceleration(event);
+			getGravity(event);
 
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			getLinearAcceleration(event);
+			getMagneticField(event);
 
 			break;
 		default:
@@ -467,13 +468,25 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	}
 
+
+
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-
 		case R.id.action_settings:
 			Intent intentSettings = new Intent(this, Settings_m.class);
 			startActivity(intentSettings);
 			return true;
+		case R.id.search_option:
+			initializeBluetooth();
+			return (true);
+		case R.id.about_option:
+			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
+					Toast.LENGTH_SHORT).show();
+			if (!Constants.BT_MODULE_EXISTS) {
+				initViewsConnected();
+			}
+
+			return (true);
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -522,14 +535,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 				MainActivity.this);
 
 		// Setting Dialog Title
-		alertDialog.setTitle("Warning!");
+		alertDialog.setTitle("Info!");
 		// Setting Dialog Message
 		alertDialog
 				.setMessage("Bluetooth must be enabled on the phone!\n\nDo you wish to continue?");
-		// disable canceling button on pressing back
-		alertDialog.setCancelable(false);
 		// Setting Icon to Dialog
-		alertDialog.setIcon(R.drawable.warning);
+		alertDialog.setIcon(R.drawable.ic_warning);
 		// Setting OK Button
 		alertDialog.setPositiveButton("Yes",
 				new DialogInterface.OnClickListener() {
@@ -613,7 +624,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		//
 		//
 		// acceleration = gravity + linear-acceleration
-		 linearAcceleration = linearAccelerationEvent.values;
+		linearAcceleration = linearAccelerationEvent.values;
 		// Movement
 		// float x = linearAccelerationValues[0];
 		// float y = linearAccelerationValues[1];
@@ -650,14 +661,25 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// Computes the inclination matrix as well as the rotation matrix
 		// transforming a vector from the device coordinate system to the
 		// world's coordinate system
-//		SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
-//				GRAVITY, geomagnetic);
+//		 SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
+//		 GRAVITY, geomagnetic);
 		Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
 		Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse, 0,
 				linearAcceleration, 0);
 
 	}
 
+	
+	private void getMagneticField(SensorEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void getGravity(SensorEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	private void getAccelerometer(SensorEvent event) {
 		acceleromterValues = mmath.cancelGravity(event.values,
 				orientationValues); // the sensor doesn't erase the
