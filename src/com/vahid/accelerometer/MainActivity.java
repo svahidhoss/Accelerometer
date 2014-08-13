@@ -75,12 +75,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
 			mMagneticField;
 
-	// ---- Values ---
 
 	// it's important to initialize the values.
-	float[] acceleromterValues = new float[] { 0, 0, 0 };
-	float[] orientationValues = new float[] { 0, 0, 0 };
-	float[] linearAcceleration = new float[] { 0, 0, 0 };
+	private float[] acceleromterValues = new float[] { 0, 0, 0 };
+	private float[] orientationValues = new float[] { 0, 0, 0 };
+	private float[] linearAccelerationValues = new float[] { 0, 0, 0 };
+	private float[] geomagneticValues = new float[] { 0, 0, 0 };
+	private float[] gravityValues = new float[] { 0, 0, 0 };
+	
+	
+	// Rotation Matrix Calculation
+	private float[] trueAcceleration = new float[4];
+	private float[] inclinationMatrix;
+	private float[] rotationMatrix = new float[16];
+	private float[] rotationMatrixInverse = new float[16];
 
 	// --- Filters ---
 
@@ -624,7 +632,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		//
 		//
 		// acceleration = gravity + linear-acceleration
-		linearAcceleration = linearAccelerationEvent.values;
+		linearAccelerationValues = linearAccelerationEvent.values;
 		// Movement
 		// float x = linearAccelerationValues[0];
 		// float y = linearAccelerationValues[1];
@@ -653,19 +661,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 		zAxisSeekBar
 				.setProgress((int) (linearAccelerationEvent.values[2] + 10f));
 
-		float[] trueAcceleration = new float[4];
-		float[] inclinationMatrix;
-		float[] rotationMatrix = new float[16];
-		float[] rotationMatrixInverse = new float[16];
+
 
 		// Computes the inclination matrix as well as the rotation matrix
 		// transforming a vector from the device coordinate system to the
 		// world's coordinate system
-//		 SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
-//		 GRAVITY, geomagnetic);
+		 SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
+				gravityValues, geomagneticValues);
 		Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
 		Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse, 0,
-				linearAcceleration, 0);
+				linearAccelerationValues, 0);
 
 	}
 
@@ -676,8 +681,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void getGravity(SensorEvent event) {
-		// TODO Auto-generated method stub
-		
+		gravityValues = event.values;
 	}
 	
 	private void getAccelerometer(SensorEvent event) {
