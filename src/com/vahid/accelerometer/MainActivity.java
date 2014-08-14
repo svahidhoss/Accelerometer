@@ -28,18 +28,23 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AdapterView.OnItemSelectedListener;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
@@ -63,18 +68,29 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private ConnectedThread connectedThread = null;
 	private String deviceName = "";
 
+	
 	// Defining view elements
 	private Button btnConnect, buttonCheck;
 	private TextView tvState, tvLASCapturedState;
+	private MenuItem miSearchOption;
 	// Connected view
 	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
 	private TextView xAxisValue, yAxisValue, zAxisValue;
+	/* the Spinner component for delay rate */
+	private Spinner delayRateChooser;
 
+	
 	// Sensor related attributes
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
 			mMagneticField;
-
+	/* Sensor Accelerometer Rates */
+	private static final int delayRates[] = {
+			SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
+			SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_FASTEST };
+	private static final String delayRatesDescription[] = { "Normal", "UI",
+			"Game", "Fastest" };
+	private int curDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
 	// it's important to initialize the values.
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
@@ -82,22 +98,23 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private float[] linearAccelerationValues = new float[] { 0, 0, 0 };
 	private float[] geomagneticValues = new float[] { 0, 0, 0 };
 	private float[] gravityValues = new float[] { 0, 0, 0 };
-	
-	
+
 	// Rotation Matrix Calculation
 	private float[] trueAcceleration = new float[4];
 	private float[] inclinationMatrix;
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
 
+	
+	
 	// --- Filters ---
-
 	boolean brOn = false; // on when is more than one minimum defined
 							// (Constant.precision)
 	boolean brReal = false; // when the braking is more long than
 							// (Constant.marginMilliseconds)
 	Calendar brTimeIni = null;
 
+	
 	// ****calculate angles average
 	boolean noise = false;
 	boolean onAngles = false;
@@ -136,7 +153,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// the
 		// device is disconnecting automatically
 		// (cancelAll())...
-		unregisterSensores();
+		unregisterSensors();
 		finilizeAll();
 	}
 
@@ -144,6 +161,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
+		miSearchOption = menu.getItem(1);
 		return true;
 	}
 
@@ -214,7 +232,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}
 		}
 
-		unregisterSensores();
+		unregisterSensors();
 	}
 
 	/**
@@ -226,8 +244,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		Toast.makeText(getApplicationContext(),
 				getString(R.string.title_connected) + deviceName,
 				Toast.LENGTH_SHORT).show();
-
-		setStatus(getString(R.string.title_connected) + deviceName);
 		// TODO temp change here
 		// setContentView(R.layout.activity_main);
 		setContentView(R.layout.activity_main_las);
@@ -244,6 +260,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// we are ready to use the sensor and send the information of the
 		// brakes, so...
 		initializeSensors();
+		registerSensors();
 
 		// tvLASCapturedState = (TextView)
 		// findViewById(R.id.textViewLASCapturedstate);
@@ -262,6 +279,42 @@ public class MainActivity extends Activity implements SensorEventListener {
 		 * @Override public void onClick(View v) {
 		 * connectedThread.write(mmath.toByteArray(60)); } });
 		 */
+
+		// populate the spinner
+		delayRateChooser = (Spinner) findViewById(R.id.delayRateChooser);
+		ArrayAdapter adapter = ArrayAdapter.createFromResource(this,
+				R.array.delay_rates, android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		delayRateChooser.setAdapter(adapter);
+
+		// set the action to perform when an item is selected
+		delayRateChooser
+				.setOnItemSelectedListener(new OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> parentView,
+							View selectedItemView, int position, long id) {
+						if (curDelayRate != position) {
+							curDelayRate = position;
+							registerSensors();
+
+							// show a toast message
+/*							toastObject = Toast.makeText(
+									AccelerometerInfoActivity.this,
+									"Delay rate changed to '"
+											+ delayRatesDescription[position]
+											+ "' mode", Toast.LENGTH_SHORT);
+							toastObject.setGravity(Gravity.CENTER_VERTICAL
+									| Gravity.BOTTOM, 0, 0);
+							toastObject.show();*/
+						}
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> parentView) {
+						// DO NOTHING
+					}
+				});
+
 	}
 
 	/**
@@ -373,6 +426,18 @@ public class MainActivity extends Activity implements SensorEventListener {
 		mMagneticField = mSensorManager
 				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
+
+		if (Constants.DEBUG)
+			Log.d(Constants.LOG_TAG, "sensors initialized");
+
+	}
+
+	/**
+	 * Register this class as sensor listener with the current delay rate.
+	 */
+	public void registerSensors() {
+		mSensorManager.unregisterListener(this);
+		
 		// Register the sensors to the listener.
 		/*
 		 * mSensorManager.registerListener(this, mAccelerometer,
@@ -380,17 +445,17 @@ public class MainActivity extends Activity implements SensorEventListener {
 		 * mSensorManager.registerListener(this, mOrientation,
 		 * SensorManager.SENSOR_DELAY_NORMAL);
 		 */
+		
 		mSensorManager.registerListener(this, mLinearAcceleration,
-				SensorManager.SENSOR_DELAY_NORMAL);
+				delayRates[curDelayRate]);
 		if (Constants.DEBUG)
 			Log.d(Constants.LOG_TAG, "sensors registered");
-
 	}
 
 	/**
 	 * Unregisters the sensors on this activity.
 	 */
-	private void unregisterSensores() {
+	private void unregisterSensors() {
 		try {
 			mSensorManager.unregisterListener(this); // check!!! be sure that
 														// this work in
@@ -410,7 +475,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	 * Method that stops everything.
 	 */
 	private void finilizeAll() {
-		unregisterSensores();
+		unregisterSensors();
 		try {
 			connectThread.cancel();
 			// Toast.makeText(getApplicationContext(),
@@ -476,8 +541,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	}
 
-
-
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_settings:
@@ -507,13 +570,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			if (msg.what == Constants.CONNECTED_HANDLER) {
+			if (msg.what == Constants.STATE_CONNECTED) {
 				initViewsConnected();
-			} else if (msg.what == Constants.CONNECTING_HANDLER) {
+				setStatus(getString(R.string.title_connected) + deviceName);
+				// change the connect icon on the activity.
+				if (miSearchOption != null) {
+					// miSearchOption.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
+					miSearchOption.setIcon(R.drawable.option_menu_close);
+					miSearchOption.setTitle(R.string.disconnect);
+				}
+			} else if (msg.what == Constants.STATE_CONNECTING) {
 				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
 				tvState.setText(R.string.title_connecting);
 				setStatus(R.string.title_connecting);
-			} else if (msg.what == Constants.DISCONNECTED_HANDLER) {
+			} else if (msg.what == Constants.STATE_DISCONNECTED) {
 				Toast.makeText(getApplicationContext(),
 						getString(R.string.msgUnableToConnect),
 						Toast.LENGTH_SHORT).show();
@@ -661,29 +731,28 @@ public class MainActivity extends Activity implements SensorEventListener {
 		zAxisSeekBar
 				.setProgress((int) (linearAccelerationEvent.values[2] + 10f));
 
-
-
 		// Computes the inclination matrix as well as the rotation matrix
 		// transforming a vector from the device coordinate system to the
 		// world's coordinate system
-		 SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
-				gravityValues, geomagneticValues);
-		Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
-		Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse, 0,
-				linearAccelerationValues, 0);
+		/*
+		 * SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
+		 * gravityValues, geomagneticValues);
+		 * Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
+		 * Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse, 0,
+		 * linearAccelerationValues, 0);
+		 */
 
 	}
 
-	
 	private void getMagneticField(SensorEvent event) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private void getGravity(SensorEvent event) {
 		gravityValues = event.values;
 	}
-	
+
 	private void getAccelerometer(SensorEvent event) {
 		acceleromterValues = mmath.cancelGravity(event.values,
 				orientationValues); // the sensor doesn't erase the

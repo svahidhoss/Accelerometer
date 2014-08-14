@@ -16,10 +16,7 @@
         android:layout_height="70dp"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="check" />
-    -->
-
-    <!--
+        android:text="check" /> 
         <TextView
         android:id="@+id/textViewMain2"
         android:layout_width="wrap_content"
@@ -29,14 +26,13 @@
         android:textSize="90sp"
         android:textColor="@android:color/white"
         android:text="#"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-    -->
+        android:textAppearance="?android:attr/textAppearanceLarge" /> -->
 
     <LinearLayout
         android:id="@+id/xAxisLinearLayout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="0dp">
+        android:layout_marginTop="0dp" >
 
         <TextView
             android:id="@+id/xAxisTitle"
@@ -110,11 +106,28 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="20" />
+
     <CheckBox
         android:id="@+id/checkBoxSaveToFile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:text="Start Saving to file" />
+
+    <TextView
+        android:id="@+id/textView5"
+        style="@style/littleTitle"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Delay Rate:" >
+    </TextView>
+
+    <Spinner
+        android:id="@+id/delayRateChooser"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:prompt="@string/delay_rate_spinner_prompt" >
+    </Spinner>
 
 </LinearLayout>

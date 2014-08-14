@@ -30,7 +30,7 @@ public class ConnectThread extends Thread {
 		} catch (IOException e) {
 			Message msgException = new Message();
 			msgException.setTarget(mHandler);
-			msgException.what = Constants.DISCONNECTED_HANDLER;
+			msgException.what = Constants.STATE_DISCONNECTED;
 			msgException.sendToTarget();
 		}
 		bluetoothSocket = tmpSocket;
@@ -46,7 +46,7 @@ public class ConnectThread extends Thread {
 										// disconnected in the UI activity
 		msg1.setTarget(mHandler);
 
-		msg1.what = Constants.CONNECTING_HANDLER;
+		msg1.what = Constants.STATE_CONNECTING;
 		msg1.sendToTarget();
 
 		try {
@@ -57,7 +57,7 @@ public class ConnectThread extends Thread {
 			// handler
 			Message msg2 = new Message();
 			msg2.setTarget(mHandler);
-			msg2.what = Constants.CONNECTED_HANDLER;
+			msg2.what = Constants.STATE_CONNECTED;
 			msg2.setTarget(mHandler);
 			msg2.sendToTarget();
 
@@ -72,7 +72,7 @@ public class ConnectThread extends Thread {
 			
 			Message msgException = new Message();
 			msgException.setTarget(mHandler);
-			msgException.what = Constants.DISCONNECTED_HANDLER;
+			msgException.what = Constants.STATE_DISCONNECTED;
 			msgException.sendToTarget();
 
 			try {

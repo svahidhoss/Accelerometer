@@ -7,6 +7,7 @@
     <!-- Main Activity -->
     <string name="msgUnableToConnect">Unable to connect</string>
     <string name="bt_required">Bluetooth is required to continue.</string>
+    <string name="disconnect">Disconnect</string>
 
     <!-- BluetoothChat -->
     <string name="activity_bluetooth_devices_title">Select a device to connect</string>
@@ -25,5 +26,6 @@
     <string name="settings">Settings</string>
     <string name="connect">Find Devices</string>
     <string name="about">About Us</string>
+    <string name="delay_rate_spinner_prompt">Choose a delay rate</string>
 
 </resources>
