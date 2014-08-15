@@ -62,9 +62,7 @@ public class ConnectedThread extends Thread {
 		} catch (IOException e) {
 			// when error have occurred trying to write, it's because we are not
 			// connected any more.
-			Message msgException = new Message();
-			msgException.setTarget(mHandler);
-			msgException.what = Constants.STATE_DISCONNECTED;
+			sendMessageToHandler(Constants.STATE_DISCONNECTED);
 		}
 	}
 
@@ -87,7 +85,21 @@ public class ConnectedThread extends Thread {
 	public void cancel() {
 		try {
 			mmSocket.close();
+			sendMessageToHandler(Constants.STATE_DISCONNECTED);
 		} catch (IOException e) {
 		}
+	}
+
+	/**
+	 * Method that sends back the current status of connection back to the
+	 * handler (on Main Activity)
+	 * 
+	 * @param messageNumber
+	 */
+	private void sendMessageToHandler(int messageNumber) {
+		Message msgException = new Message();
+		msgException.setTarget(mHandler);
+		msgException.what = messageNumber;
+		msgException.sendToTarget();
 	}
 }

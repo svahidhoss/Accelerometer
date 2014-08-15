@@ -59,7 +59,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	Constants constants = new Constants();
 	// *****end references*****
 
-	// ********bluetooth*****
+	/* Bluethooth related fields */
 	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
 			.getDefaultAdapter();
 	private BroadcastReceiver mReceiver;
@@ -67,24 +67,24 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private ConnectThread connectThread = null;
 	private ConnectedThread connectedThread = null;
 	private String deviceName = "";
-
 	
+	private static int currentState = Constants.STATE_DISCONNECTED;
+
 	// Defining view elements
 	private Button btnConnect, buttonCheck;
 	private TextView tvState, tvLASCapturedState;
 	private MenuItem miSearchOption;
 	// Connected view
-	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
-	private TextView xAxisValue, yAxisValue, zAxisValue;
+	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar, finalSeekBar;
+	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 
-	
 	// Sensor related attributes
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
 			mMagneticField;
-	/* Sensor Accelerometer Rates */
+	// Sensor Accelerometer Rates
 	private static final int delayRates[] = {
 			SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
 			SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_FASTEST };
@@ -99,14 +99,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private float[] geomagneticValues = new float[] { 0, 0, 0 };
 	private float[] gravityValues = new float[] { 0, 0, 0 };
 
+	private double finalLinearAcceleration;
+
 	// Rotation Matrix Calculation
 	private float[] trueAcceleration = new float[4];
 	private float[] inclinationMatrix;
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
 
-	
-	
 	// --- Filters ---
 	boolean brOn = false; // on when is more than one minimum defined
 							// (Constant.precision)
@@ -114,7 +114,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 							// (Constant.marginMilliseconds)
 	Calendar brTimeIni = null;
 
-	
 	// ****calculate angles average
 	boolean noise = false;
 	boolean onAngles = false;
@@ -150,11 +149,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 		super.onStop();
 		initViewsNotConnected(); // #check, ... I put this here because when the
 		// orientation changes, the Activity is destroyed, so
-		// the
-		// device is disconnecting automatically
-		// (cancelAll())...
+		// the device is disconnecting automatically
 		unregisterSensors();
-		finilizeAll();
+		finilizeAll();;
 	}
 
 	@Override
@@ -255,6 +252,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		if (Constants.BT_MODULE_EXISTS) {
 			BluetoothSocket mSocket = connectThread.getBluetoothSocket();
 			connectedThread = new ConnectedThread(mSocket, mHandler);
+			
 		}
 
 		// we are ready to use the sensor and send the information of the
@@ -269,9 +267,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 		xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar);
 		yAxisSeekBar = (SeekBar) findViewById(R.id.yAxisBar);
 		zAxisSeekBar = (SeekBar) findViewById(R.id.zAxisBar);
-		xAxisValue = (TextView) findViewById(R.id.xAxisValue);
-		yAxisValue = (TextView) findViewById(R.id.yAxisValue);
-		zAxisValue = (TextView) findViewById(R.id.zAxisValue);
+		finalSeekBar = (SeekBar) findViewById(R.id.finalBar);
+
+		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
+		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
+		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
+		tvFinalValue = (TextView) findViewById(R.id.finalValue);
+
 		/*
 		 * buttonCheck = (Button) findViewById(R.id.buttonCheck);
 		 * buttonCheck.setOnClickListener(new OnClickListener() {
@@ -296,16 +298,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 						if (curDelayRate != position) {
 							curDelayRate = position;
 							registerSensors();
-
 							// show a toast message
-/*							toastObject = Toast.makeText(
-									AccelerometerInfoActivity.this,
-									"Delay rate changed to '"
-											+ delayRatesDescription[position]
-											+ "' mode", Toast.LENGTH_SHORT);
-							toastObject.setGravity(Gravity.CENTER_VERTICAL
-									| Gravity.BOTTOM, 0, 0);
-							toastObject.show();*/
+							/*
+							 * toastObject = Toast.makeText(
+							 * AccelerometerInfoActivity.this,
+							 * "Delay rate changed to '" +
+							 * delayRatesDescription[position] + "' mode",
+							 * Toast.LENGTH_SHORT);
+							 * toastObject.setGravity(Gravity.CENTER_VERTICAL |
+							 * Gravity.BOTTOM, 0, 0); toastObject.show();
+							 */
 						}
 					}
 
@@ -426,7 +428,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		mMagneticField = mSensorManager
 				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-
 		if (Constants.DEBUG)
 			Log.d(Constants.LOG_TAG, "sensors initialized");
 
@@ -437,7 +438,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	 */
 	public void registerSensors() {
 		mSensorManager.unregisterListener(this);
-		
+
 		// Register the sensors to the listener.
 		/*
 		 * mSensorManager.registerListener(this, mAccelerometer,
@@ -445,7 +446,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		 * mSensorManager.registerListener(this, mOrientation,
 		 * SensorManager.SENSOR_DELAY_NORMAL);
 		 */
-		
+
 		mSensorManager.registerListener(this, mLinearAcceleration,
 				delayRates[curDelayRate]);
 		if (Constants.DEBUG)
@@ -478,18 +479,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		unregisterSensors();
 		try {
 			connectThread.cancel();
-			// Toast.makeText(getApplicationContext(),
-			// "ct.cancel() (cancelAll())", Toast.LENGTH_SHORT).show();
 			if (Constants.DEBUG)
 				Log.d(Constants.LOG_TAG, "sensors created");
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-
-		try {
-			connectedThread.cancel();
-			// Toast.makeText(getApplicationContext(),
-			// "connected.cancel() (cancelAll())", Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -538,7 +529,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		}
 
 		// } //fin del syncronized this. //#check?
-
 	}
 
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -547,17 +537,25 @@ public class MainActivity extends Activity implements SensorEventListener {
 			Intent intentSettings = new Intent(this, Settings_m.class);
 			startActivity(intentSettings);
 			return true;
+			// TODO
 		case R.id.search_option:
-			initializeBluetooth();
-			return (true);
+			if (currentState == Constants.STATE_DISCONNECTED) {
+				initializeBluetooth();
+				return true;
+			} else {
+				if (connectedThread != null) {
+					connectedThread.cancel();
+				}
+				return true;
+			}
+
 		case R.id.about_option:
 			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
 					Toast.LENGTH_SHORT).show();
 			if (!Constants.BT_MODULE_EXISTS) {
 				initViewsConnected();
 			}
-
-			return (true);
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -570,13 +568,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
+			currentState = msg.what;
 			if (msg.what == Constants.STATE_CONNECTED) {
 				initViewsConnected();
 				setStatus(getString(R.string.title_connected) + deviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
 					// miSearchOption.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
-					miSearchOption.setIcon(R.drawable.option_menu_close);
+					miSearchOption.setIcon(R.drawable.menu_disconnect_icon);
 					miSearchOption.setTitle(R.string.disconnect);
 				}
 			} else if (msg.what == Constants.STATE_CONNECTING) {
@@ -588,11 +587,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 						getString(R.string.msgUnableToConnect),
 						Toast.LENGTH_SHORT).show();
 				initViewsNotConnected();
+				miSearchOption.setIcon(R.drawable.menu_connect_icon);
+				miSearchOption.setTitle(R.string.connect);
 			}
 		}
 	};
 
-	// *****end HANDLER********************
 
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
@@ -718,11 +718,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 		 * 
 		 * tvLASCapturedState.setText(linearAccelerations);
 		 */
+		// its is enough because you all the acceleration on phone is due to
+		// car.If possible apply low pass filter to remove changes due to road
+		// bumps .
+		finalLinearAcceleration = Math.sqrt(linearAccelerationValues[0]
+				* linearAccelerationValues[0] + linearAccelerationValues[1]
+				* linearAccelerationValues[1] + linearAccelerationValues[2]
+				* linearAccelerationValues[2]);
 
 		// set the value as the text of every TextView
-		xAxisValue.setText(Float.toString(linearAccelerationEvent.values[0]));
-		yAxisValue.setText(Float.toString(linearAccelerationEvent.values[1]));
-		zAxisValue.setText(Float.toString(linearAccelerationEvent.values[2]));
+		tvXAxisValue.setText(Float.toString(linearAccelerationEvent.values[0]));
+		tvYAxisValue.setText(Float.toString(linearAccelerationEvent.values[1]));
+		tvZAxisValue.setText(Float.toString(linearAccelerationEvent.values[2]));
+		tvFinalValue.setText(Double.toString(finalLinearAcceleration));
+
 		// set the value on to the SeekBar
 		xAxisSeekBar
 				.setProgress((int) (linearAccelerationEvent.values[0] + 10f));
@@ -730,6 +739,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 				.setProgress((int) (linearAccelerationEvent.values[1] + 10f));
 		zAxisSeekBar
 				.setProgress((int) (linearAccelerationEvent.values[2] + 10f));
+		
+		finalSeekBar
+				.setProgress((int) (linearAccelerationEvent.values[2]));
 
 		// Computes the inclination matrix as well as the rotation matrix
 		// transforming a vector from the device coordinate system to the

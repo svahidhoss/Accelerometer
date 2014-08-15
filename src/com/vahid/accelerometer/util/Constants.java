@@ -27,11 +27,11 @@ public class Constants {
 	// public static final UUID MY_UUID = UUID
 	// .fromString("00001105-0000-1000-8000-00805F9B34FB");
 
-	/** handler section **
-	 */// Constants that indicate the current connection state
-	public static int STATE_DISCONNECTED = 0; // we're doing nothing
-	public static int STATE_CONNECTING = 1;// initiating an outgoing connection
-	public static int STATE_CONNECTED = 2; // connected to a remote device
+	/**** handler section ****/
+	// Constants that indicate the current connection state
+	public static final int STATE_DISCONNECTED = 0; // we're doing nothing
+	public static final int STATE_CONNECTING = 1;// initiating an outgoing connection
+	public static final int STATE_CONNECTED = 2; // connected to a remote device
 
 	
 	// ******end bluetooth***

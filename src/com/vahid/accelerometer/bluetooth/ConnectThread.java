@@ -15,10 +15,12 @@ public class ConnectThread extends Thread {
 	private final BluetoothSocket bluetoothSocket;
 	// private final BluetoothDevice mmDevice;
 	private Handler mHandler;
-	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
+			.getDefaultAdapter();
 
 	public ConnectThread(BluetoothDevice device, Handler handler) {
-		// Use a temporary object that is later assigned to bluetoothSocket because bluetoothSocket is final
+		// Use a temporary object that is later assigned to bluetoothSocket
+		// because bluetoothSocket is final
 		BluetoothSocket tmpSocket = null;
 		// mmDevice = device;
 		mHandler = handler;
@@ -28,10 +30,7 @@ public class ConnectThread extends Thread {
 			tmpSocket = device
 					.createRfcommSocketToServiceRecord(Constants.MY_UUID);
 		} catch (IOException e) {
-			Message msgException = new Message();
-			msgException.setTarget(mHandler);
-			msgException.what = Constants.STATE_DISCONNECTED;
-			msgException.sendToTarget();
+			sendMessageToHandler(Constants.STATE_DISCONNECTED);
 		}
 		bluetoothSocket = tmpSocket;
 
@@ -41,13 +40,9 @@ public class ConnectThread extends Thread {
 		// Cancel discovery because it will slow down the connection
 		mBluetoothAdapter.cancelDiscovery();
 
-		Message msg1 = new Message(); // handler. we use it to know when device
-										// has been connected or
-										// disconnected in the UI activity
-		msg1.setTarget(mHandler);
-
-		msg1.what = Constants.STATE_CONNECTING;
-		msg1.sendToTarget();
+		// handler. we use it to know when device has been connected or
+		// disconnected in the UI activity.
+		sendMessageToHandler(Constants.STATE_CONNECTING);
 
 		try {
 			// Connect the device through the socket. This will block
@@ -55,26 +50,17 @@ public class ConnectThread extends Thread {
 			bluetoothSocket.connect();
 
 			// handler
-			Message msg2 = new Message();
-			msg2.setTarget(mHandler);
-			msg2.what = Constants.STATE_CONNECTED;
-			msg2.setTarget(mHandler);
-			msg2.sendToTarget();
+			sendMessageToHandler(Constants.STATE_CONNECTED);
 
 			// ********handler***
-			if (Constants.DEBUG) 
+			if (Constants.DEBUG)
 				Log.d(Constants.LOG_TAG, "Application is connected");
 
 		} catch (IOException connectException) {
 			// Unable to connect; close the socket and get out
-			if (Constants.DEBUG) 
+			if (Constants.DEBUG)
 				Log.d(Constants.LOG_TAG, "Application is not connected");
-			
-			Message msgException = new Message();
-			msgException.setTarget(mHandler);
-			msgException.what = Constants.STATE_DISCONNECTED;
-			msgException.sendToTarget();
-
+			sendMessageToHandler(Constants.STATE_DISCONNECTED);
 			try {
 				bluetoothSocket.close();
 			} catch (IOException closeException) {
@@ -90,11 +76,25 @@ public class ConnectThread extends Thread {
 	public void cancel() {
 		try {
 			bluetoothSocket.close();
+			sendMessageToHandler(Constants.STATE_DISCONNECTED);
 		} catch (IOException e) {
 		}
 	}
 
 	public BluetoothSocket getBluetoothSocket() {
 		return bluetoothSocket;
+	}
+
+	/**
+	 * Method that sends back the current status of connection back to the
+	 * handler (on Main Activity)
+	 * 
+	 * @param messageNumber
+	 */
+	private void sendMessageToHandler(int messageNumber) {
+		Message msgException = new Message();
+		msgException.setTarget(mHandler);
+		msgException.what = messageNumber;
+		msgException.sendToTarget();
 	}
 }
