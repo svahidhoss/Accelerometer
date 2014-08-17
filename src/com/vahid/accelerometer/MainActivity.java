@@ -55,7 +55,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private boolean doubleBackToExitIsPressedOnce = false;
 
 	// *****references********
-	mMath mmath = new mMath();
+	AlexMath alexMath = new AlexMath();
 	Constants constants = new Constants();
 	// *****end references*****
 
@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private ConnectThread connectThread = null;
 	private ConnectedThread connectedThread = null;
 	private String deviceName = "";
-	
+
 	private static int currentState = Constants.STATE_DISCONNECTED;
 
 	// Defining view elements
@@ -96,7 +96,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
 	private float[] orientationValues = new float[] { 0, 0, 0 };
 	private float[] linearAccelerationValues = new float[] { 0, 0, 0 };
-	private float[] geomagneticValues = new float[] { 0, 0, 0 };
+	private float[] magneticValues = new float[] { 0, 0, 0 };
 	private float[] gravityValues = new float[] { 0, 0, 0 };
 
 	private double finalLinearAcceleration;
@@ -151,7 +151,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// orientation changes, the Activity is destroyed, so
 		// the device is disconnecting automatically
 		unregisterSensors();
-		finilizeAll();;
+		finilizeAll();
 	}
 
 	@Override
@@ -241,18 +241,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 		Toast.makeText(getApplicationContext(),
 				getString(R.string.title_connected) + deviceName,
 				Toast.LENGTH_SHORT).show();
-		// TODO temp change here
-		// setContentView(R.layout.activity_main);
-		setContentView(R.layout.activity_main_las);
+		setContentView(R.layout.activity_main);
 
 		// This instance of ConnectedThread is the one that we are going to
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
-
 		if (Constants.BT_MODULE_EXISTS) {
 			BluetoothSocket mSocket = connectThread.getBluetoothSocket();
 			connectedThread = new ConnectedThread(mSocket, mHandler);
-			
 		}
 
 		// we are ready to use the sensor and send the information of the
@@ -262,6 +258,44 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// tvLASCapturedState = (TextView)
 		// findViewById(R.id.textViewLASCapturedstate);
+
+		buttonCheck = (Button) findViewById(R.id.buttonCheck);
+		buttonCheck.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				connectedThread.write(alexMath.toByteArray(60));
+			}
+		});
+
+	}
+
+	/**
+	 * 2nd Important function of this activity. Initializes the views of this
+	 * activity when a device gets connected.
+	 */
+	private void initViewsConnectedLinearAcceleration() {
+
+		Toast.makeText(getApplicationContext(),
+				getString(R.string.title_connected) + deviceName,
+				Toast.LENGTH_SHORT).show();
+
+		setContentView(R.layout.activity_main_las);
+
+		// This instance of ConnectedThread is the one that we are going to
+		// use write(). We don't need to start the Thread, because we are not
+		// going to use read(). [write is not a blocking method].
+
+		if (Constants.BT_MODULE_EXISTS) {
+			BluetoothSocket mSocket = connectThread.getBluetoothSocket();
+			connectedThread = new ConnectedThread(mSocket, mHandler);
+
+		}
+
+		// we are ready to use the sensor and send the information of the
+		// brakes, so...
+		initializeSensors();
+		registerSensors();
 
 		// retrieve all the needed components
 		xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar);
@@ -273,14 +307,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
-
-		/*
-		 * buttonCheck = (Button) findViewById(R.id.buttonCheck);
-		 * buttonCheck.setOnClickListener(new OnClickListener() {
-		 * 
-		 * @Override public void onClick(View v) {
-		 * connectedThread.write(mmath.toByteArray(60)); } });
-		 */
 
 		// populate the spinner
 		delayRateChooser = (Spinner) findViewById(R.id.delayRateChooser);
@@ -416,12 +442,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private void initializeSensors() {
 
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		/*
-		 * mAccelerometer = mSensorManager
-		 * .getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // it is deprecated,
-		 * but it works. mOrientation =
-		 * mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-		 */
+
+		mAccelerometer = mSensorManager
+				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		// it is deprecated, but it works.
+		mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+
 		mLinearAcceleration = mSensorManager
 				.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 		mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -429,7 +455,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
 		if (Constants.DEBUG)
-			Log.d(Constants.LOG_TAG, "sensors initialized");
+			Log.d(Constants.LOG_TAG, "Sensors initialized");
 
 	}
 
@@ -439,13 +465,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 	public void registerSensors() {
 		mSensorManager.unregisterListener(this);
 
-		// Register the sensors to the listener.
-		/*
-		 * mSensorManager.registerListener(this, mAccelerometer,
-		 * SensorManager.SENSOR_DELAY_NORMAL);
-		 * mSensorManager.registerListener(this, mOrientation,
-		 * SensorManager.SENSOR_DELAY_NORMAL);
-		 */
+		mSensorManager.registerListener(this, mAccelerometer,
+				SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(this, mOrientation,
+				SensorManager.SENSOR_DELAY_NORMAL);
 
 		mSensorManager.registerListener(this, mLinearAcceleration,
 				delayRates[curDelayRate]);
@@ -458,13 +481,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 	 */
 	private void unregisterSensors() {
 		try {
-			mSensorManager.unregisterListener(this); // check!!! be sure that
-														// this work in
-														// wake_lock (permission
-														// to work with screen
-														// off)
-			// Toast.makeText(getApplicationContext(), "sensor unregistered",
-			// Toast.LENGTH_SHORT).show();
+			// Be sure that this work in wake_lock (permission to work with
+			// screen off)
+			if (mSensorManager != null)
+				mSensorManager.unregisterListener(this);
 			if (Constants.DEBUG)
 				Log.d(Constants.LOG_TAG, "sensor unregistered");
 		} catch (Exception e) {
@@ -478,6 +498,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private void finilizeAll() {
 		unregisterSensors();
 		try {
+			// disconnect first
 			connectThread.cancel();
 			if (Constants.DEBUG)
 				Log.d(Constants.LOG_TAG, "sensors created");
@@ -487,8 +508,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		try {
 			this.unregisterReceiver(mReceiver);
-			// Toast.makeText(getApplicationContext(), "receiver unregistered",
-			// Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
 			// TODO: handle exception
 
@@ -513,7 +532,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
-			getLinearAcceleration(event);
+			// getLinearAcceleration(event);
 
 			break;
 		case Sensor.TYPE_GRAVITY:
@@ -537,7 +556,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			Intent intentSettings = new Intent(this, Settings_m.class);
 			startActivity(intentSettings);
 			return true;
-			// TODO
+
 		case R.id.search_option:
 			if (currentState == Constants.STATE_DISCONNECTED) {
 				initializeBluetooth();
@@ -553,7 +572,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
 					Toast.LENGTH_SHORT).show();
 			if (!Constants.BT_MODULE_EXISTS) {
-				initViewsConnected();
+				// initViewsConnectedLinearAcceleration();
 			}
 			return true;
 		default:
@@ -570,11 +589,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 		public void handleMessage(Message msg) {
 			currentState = msg.what;
 			if (msg.what == Constants.STATE_CONNECTED) {
+				// TODO change later
+				// initViewsConnectedLinearAcceleration();
 				initViewsConnected();
 				setStatus(getString(R.string.title_connected) + deviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
-					// miSearchOption.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
 					miSearchOption.setIcon(R.drawable.menu_disconnect_icon);
 					miSearchOption.setTitle(R.string.disconnect);
 				}
@@ -593,7 +613,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		}
 	};
 
-
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
 	 * app then closes.
@@ -611,7 +630,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private void enableBluetoothDialog() {
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(
 				MainActivity.this);
-
 		// Setting Dialog Title
 		alertDialog.setTitle("Info!");
 		// Setting Dialog Message
@@ -703,10 +721,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		//
 		// acceleration = gravity + linear-acceleration
 		linearAccelerationValues = linearAccelerationEvent.values;
-		// Movement
-		// float x = linearAccelerationValues[0];
-		// float y = linearAccelerationValues[1];
-		// float z = linearAccelerationValues[2];
 
 		/*
 		 * String linearAccelerations = "Linear Acceleration on the x-axis: " +
@@ -721,10 +735,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// its is enough because you all the acceleration on phone is due to
 		// car.If possible apply low pass filter to remove changes due to road
 		// bumps .
-		finalLinearAcceleration = Math.sqrt(linearAccelerationValues[0]
-				* linearAccelerationValues[0] + linearAccelerationValues[1]
-				* linearAccelerationValues[1] + linearAccelerationValues[2]
-				* linearAccelerationValues[2]);
+		finalLinearAcceleration = Math.sqrt(Math.pow(linearAccelerationValues[0], 2)
+				+ Math.pow(linearAccelerationValues[1], 2) + Math.pow(linearAccelerationValues[2], 2));
 
 		// set the value as the text of every TextView
 		tvXAxisValue.setText(Float.toString(linearAccelerationEvent.values[0]));
@@ -739,9 +751,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 				.setProgress((int) (linearAccelerationEvent.values[1] + 10f));
 		zAxisSeekBar
 				.setProgress((int) (linearAccelerationEvent.values[2] + 10f));
-		
-		finalSeekBar
-				.setProgress((int) (linearAccelerationEvent.values[2]));
+
+		finalSeekBar.setProgress((int) (linearAccelerationEvent.values[2]));
 
 		// Computes the inclination matrix as well as the rotation matrix
 		// transforming a vector from the device coordinate system to the
@@ -757,8 +768,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void getMagneticField(SensorEvent event) {
-		// TODO Auto-generated method stub
-
+		magneticValues = event.values;
 	}
 
 	private void getGravity(SensorEvent event) {
@@ -766,7 +776,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void getAccelerometer(SensorEvent event) {
-		acceleromterValues = mmath.cancelGravity(event.values,
+		acceleromterValues = alexMath.cancelGravity(event.values,
 				orientationValues); // the sensor doesn't erase the
 									// gravity by itself
 									// for that exists other sensor:
@@ -779,7 +789,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		 */// but we do... the results appears to be better.
 
 		// **acceleromterValues = event.values.clone();
-		acceleromterValues = mmath.convertReference2(acceleromterValues,
+		acceleromterValues = alexMath.convertReference2(acceleromterValues,
 				orientationValues); // **
 
 		// ***/ double module = mmath.module(acceleromterValues[0],
@@ -789,7 +799,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// acceleromterValues[1],
 		// event.values[2]-SensorManager.GRAVITY_EARTH);
 
-		double module = mmath.module(acceleromterValues[0],
+		double module = alexMath.module(acceleromterValues[0],
 				acceleromterValues[1], 0);
 
 		// *******first filter to brakings.
@@ -843,7 +853,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 								"error writting", Toast.LENGTH_SHORT).show();
 					}
 					TextView tvaux = (TextView) findViewById(R.id.textViewMain);
-					tvaux.setText("" + mmath.redondeo(module, 1));
+					tvaux.setText("" + alexMath.redondeo(module, 1));
 					ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
 					progress.setProgress((int) module);
 
@@ -893,20 +903,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// ---with the idea of write this data and send by bluetooth,
 		// first it's necessary to pass them to byte...
-		byte[] x = mmath.toByteArray(acceleromterValues[0]);
-		byte[] y = mmath.toByteArray(acceleromterValues[1]);
-		byte[] z = mmath.toByteArray(acceleromterValues[2]);
-		byte[] mod_byte = mmath.toByteArray(module);
+		byte[] x = alexMath.toByteArray(acceleromterValues[0]);
+		byte[] y = alexMath.toByteArray(acceleromterValues[1]);
+		byte[] z = alexMath.toByteArray(acceleromterValues[2]);
+		byte[] mod_byte = alexMath.toByteArray(module);
 		byte[] xyz_and_Mod = new byte[8 * 4];
 
-		xyz_and_Mod = mmath.concatenateBytes(
-				mmath.concatenateBytes(mmath.concatenateBytes(x, y), z),
+		xyz_and_Mod = alexMath.concatenateBytes(
+				alexMath.concatenateBytes(alexMath.concatenateBytes(x, y), z),
 				mod_byte);
 		// ---
 
-		byte[] moduleRealByte = mmath.toByteArray(moduleReal);
+		byte[] moduleRealByte = alexMath.toByteArray(moduleReal);
 		byte[] all = new byte[8 * 4 + 8];
-		all = mmath.concatenateBytes(xyz_and_Mod, moduleRealByte);
+		all = alexMath.concatenateBytes(xyz_and_Mod, moduleRealByte);
 
 		connectedThread.write(all);
 		// ********write angles
@@ -931,9 +941,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 		if (Constants.DEBUG) {
 			Log.d(Constants.LOG_TAG, "copy Orientation");
 		}
-		String angles = "azimuth: " + mmath.redondeo(event.values[0], 3)
-				+ "\npitch: " + mmath.redondeo(event.values[1], 3) + "\nroll: "
-				+ mmath.redondeo(event.values[2], 3);
+		String angles = "azimuth: " + alexMath.redondeo(event.values[0], 3)
+				+ "\npitch: " + alexMath.redondeo(event.values[1], 3) + "\nroll: "
+				+ alexMath.redondeo(event.values[2], 3);
 		TextView tv = (TextView) findViewById(R.id.textViewConnected);
 		tv.setText(angles); // see in the phone screen (debug)
 

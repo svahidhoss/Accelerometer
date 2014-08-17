@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 import com.vahid.accelerometer.util.Constants;
 
-public class mMath {
+public class AlexMath {
 
 	public double module(double a, double b, double c) {
 		double mod = (Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2)
