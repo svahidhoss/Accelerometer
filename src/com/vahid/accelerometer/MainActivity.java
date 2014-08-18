@@ -99,7 +99,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private float[] magneticValues = new float[] { 0, 0, 0 };
 	private float[] gravityValues = new float[] { 0, 0, 0 };
 
-	private double finalLinearAcceleration;
+	private double linearAccelerationMagnitude;
 
 	// Rotation Matrix Calculation
 	private float[] trueAcceleration = new float[4];
@@ -147,10 +147,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		initViewsNotConnected(); // #check, ... I put this here because when the
-		// orientation changes, the Activity is destroyed, so
-		// the device is disconnecting automatically
-		unregisterSensors();
 		finilizeAll();
 	}
 
@@ -275,7 +271,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	 * activity when a device gets connected.
 	 */
 	private void initViewsConnectedLinearAcceleration() {
-
 		Toast.makeText(getApplicationContext(),
 				getString(R.string.title_connected) + deviceName,
 				Toast.LENGTH_SHORT).show();
@@ -310,7 +305,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// populate the spinner
 		delayRateChooser = (Spinner) findViewById(R.id.delayRateChooser);
-		ArrayAdapter adapter = ArrayAdapter.createFromResource(this,
+		ArrayAdapter<?> adapter = ArrayAdapter.createFromResource(this,
 				R.array.delay_rates, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		delayRateChooser.setAdapter(adapter);
@@ -496,21 +491,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 	 * Method that stops everything.
 	 */
 	private void finilizeAll() {
+		initViewsNotConnected(); // #check, ... I put this here because when the
+		// orientation changes, the Activity is destroyed, so
+		// the device is disconnecting automatically
 		unregisterSensors();
-		try {
-			// disconnect first
+		// disconnect first
+		if (connectedThread != null) {
 			connectThread.cancel();
-			if (Constants.DEBUG)
-				Log.d(Constants.LOG_TAG, "sensors created");
-		} catch (Exception e) {
-			// TODO: handle exception
 		}
+		// TODO ?
+		if (Constants.DEBUG)
+			Log.d(Constants.LOG_TAG, "sensors created");
 
-		try {
+		if (mReceiver != null) {
 			this.unregisterReceiver(mReceiver);
-		} catch (Exception e) {
-			// TODO: handle exception
-
 		}
 
 	}
@@ -735,14 +729,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// its is enough because you all the acceleration on phone is due to
 		// car.If possible apply low pass filter to remove changes due to road
 		// bumps .
-		finalLinearAcceleration = Math.sqrt(Math.pow(linearAccelerationValues[0], 2)
-				+ Math.pow(linearAccelerationValues[1], 2) + Math.pow(linearAccelerationValues[2], 2));
+		linearAccelerationMagnitude = AlexMath
+				.getVectorMagnitude(linearAccelerationValues);
 
 		// set the value as the text of every TextView
 		tvXAxisValue.setText(Float.toString(linearAccelerationEvent.values[0]));
 		tvYAxisValue.setText(Float.toString(linearAccelerationEvent.values[1]));
 		tvZAxisValue.setText(Float.toString(linearAccelerationEvent.values[2]));
-		tvFinalValue.setText(Double.toString(finalLinearAcceleration));
+		tvFinalValue.setText(Double.toString(linearAccelerationMagnitude));
 
 		// set the value on to the SeekBar
 		xAxisSeekBar
@@ -784,25 +778,18 @@ public class MainActivity extends Activity implements SensorEventListener {
 									// very typical to have it.
 
 		/*
-		 * we dont need to cancel the gravity, because we are going to use the
+		 * we don't need to cancel the gravity, because we are going to use the
 		 * axes x0,y0,z0, in which angles the gravity are all it in z0
 		 */// but we do... the results appears to be better.
 
 		// **acceleromterValues = event.values.clone();
-		acceleromterValues = alexMath.convertReference2(acceleromterValues,
+		acceleromterValues = alexMath.convertReference(acceleromterValues,
 				orientationValues); // **
 
-		// ***/ double module = mmath.module(acceleromterValues[0],
-		// acceleromterValues[1],
-		// acceleromterValues[2]-SensorManager.GRAVITY_EARTH);
-		// double module = mmath.module(acceleromterValues[0],
-		// acceleromterValues[1],
-		// event.values[2]-SensorManager.GRAVITY_EARTH);
+		float[] temp = { acceleromterValues[0], acceleromterValues[1], 0 };
+		double magnitude = AlexMath.getVectorMagnitude(temp);
 
-		double module = alexMath.module(acceleromterValues[0],
-				acceleromterValues[1], 0);
-
-		// *******first filter to brakings.
+		// *******first filter of braking.
 
 		// *********braking????*********
 		boolean braking = false;
@@ -824,7 +811,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// ******end***braking?????****
 
 		// if (module>Constant.precision && acceleromterValues[1]>0){
-		if (module > Constants.precision && braking) { // braking is the
+		if (magnitude > Constants.precision && braking) { // braking is the
 														// boolean
 														// variable that
 														// defines the
@@ -853,9 +840,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 								"error writting", Toast.LENGTH_SHORT).show();
 					}
 					TextView tvaux = (TextView) findViewById(R.id.textViewMain);
-					tvaux.setText("" + alexMath.redondeo(module, 1));
+					tvaux.setText("" + AlexMath.round(magnitude, 1));
 					ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
-					progress.setProgress((int) module);
+					progress.setProgress((int) magnitude);
 
 				} else {
 					brReal = false;
@@ -877,7 +864,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			RelativeLayout backg = (RelativeLayout) findViewById(R.id.connectedLayout);
 			// if (acceleromterValues[1]<0 &&
 			// module>Constant.precision){
-			if (accelerating && module > Constants.precision) {
+			if (accelerating && magnitude > Constants.precision) {
 				backg.setBackgroundResource(R.color.dark_green);
 			} else {
 				backg.setBackgroundColor(Color.WHITE);
@@ -895,7 +882,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// ****writing also the module when brake is real.
 		double moduleReal;
 		if (brReal) {
-			moduleReal = module;
+			moduleReal = magnitude;
 		} else {
 			moduleReal = 0;
 
@@ -906,7 +893,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		byte[] x = alexMath.toByteArray(acceleromterValues[0]);
 		byte[] y = alexMath.toByteArray(acceleromterValues[1]);
 		byte[] z = alexMath.toByteArray(acceleromterValues[2]);
-		byte[] mod_byte = alexMath.toByteArray(module);
+		byte[] mod_byte = alexMath.toByteArray(magnitude);
 		byte[] xyz_and_Mod = new byte[8 * 4];
 
 		xyz_and_Mod = alexMath.concatenateBytes(
@@ -938,14 +925,15 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void getOrientation(SensorEvent event) {
-		if (Constants.DEBUG) {
+		if (Constants.DEBUG)
 			Log.d(Constants.LOG_TAG, "copy Orientation");
-		}
-		String angles = "azimuth: " + alexMath.redondeo(event.values[0], 3)
-				+ "\npitch: " + alexMath.redondeo(event.values[1], 3) + "\nroll: "
-				+ alexMath.redondeo(event.values[2], 3);
+
+		// see the values in phone screen (debug)
+		String angles = "azimuth: " + AlexMath.round(event.values[0], 3)
+				+ "\npitch: " + AlexMath.round(event.values[1], 3) + "\nroll: "
+				+ AlexMath.round(event.values[2], 3);
 		TextView tv = (TextView) findViewById(R.id.textViewConnected);
-		tv.setText(angles); // see in the phone screen (debug)
+		tv.setText(angles); 
 
 		if (onAngles == false) {
 			orientationValues = event.values.clone();

@@ -2,8 +2,6 @@ package com.vahid.accelerometer.util;
 
 import java.util.UUID;
 
-import android.hardware.SensorManager;
-
 public class Constants {
 	public static boolean DEBUG = true;
 	public static boolean BT_MODULE_EXISTS = true;
@@ -13,7 +11,6 @@ public class Constants {
 
 	public static float precision = (float) 0.9;
 	public static long marginMilliseconds = 300;
-	public static double gravity = SensorManager.STANDARD_GRAVITY;
 	public static boolean manualGravity = false;
 	public static float precisionPitch = 0f; // pitch defines design of the
 												// acceleration (if it is
@@ -21,6 +18,7 @@ public class Constants {
 												// by the moment)
 
 	// ****** Bluetooth ****
+	
 	// MY_UUID is the app's UUID string, also used by the server code?
 	public static final UUID MY_UUID = UUID
 			.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
@@ -34,7 +32,7 @@ public class Constants {
 	public static final int STATE_CONNECTED = 2; // connected to a remote device
 
 	
-	// ******end bluetooth***
+	// ******end Bluetooth***
 
 	
 	

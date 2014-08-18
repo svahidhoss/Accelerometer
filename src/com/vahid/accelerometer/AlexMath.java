@@ -2,39 +2,21 @@ package com.vahid.accelerometer;
 
 import java.nio.ByteBuffer;
 
-import com.vahid.accelerometer.util.Constants;
+import android.hardware.SensorManager;
 
 public class AlexMath {
 
-	public double module(double a, double b, double c) {
-		double mod = (Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2)
-				+ Math.pow(c, 2)));
-		return mod;
-	}
-
-	public String redondeo(double num, int decimales) {
-		String res;
-		double cifras = Math.pow(10.0, decimales);
-		res = "" + (Math.round(num * cifras) / cifras);
-		return res;
-	}
-
-	public String redondeo(float num, int decimales) {
-		String res;
-		double cifras = Math.pow(10.0, decimales);
-		res = "" + (Math.round(num * cifras) / cifras);
-		return res;
-	}
-
-	public float toRadians(float alpha) {
-		float rad = (float) ((alpha * Math.PI) / 180);
-		return rad;
-	}
-
+	/**
+	 * Cancels the effects of Gravity form accelerometer values by using
+	 * orientation sensor.
+	 * 
+	 * @param acceleromterValues
+	 * @param orientationValues
+	 * @return
+	 */
 	public float[] cancelGravity(float[] acceleromterValues,
 			float[] orientationValues) {
-
-		int signumG = 1;
+		int signumG;
 
 		if (Math.abs(orientationValues[1]) > 90) {
 			signumG = -1;
@@ -44,30 +26,31 @@ public class AlexMath {
 
 		float[] f = new float[3];
 
-		f[0] = (float) (acceleromterValues[0] - Constants.gravity
-				* Math.sin(toRadians(orientationValues[2])));
-		f[1] = (float) (acceleromterValues[1] + Constants.gravity
-				* Math.sin(toRadians(orientationValues[1])));
+		f[0] = (float) (acceleromterValues[0] - SensorManager.STANDARD_GRAVITY
+				* Math.sin(degreesToRadians(orientationValues[2])));
+		f[1] = (float) (acceleromterValues[1] + SensorManager.STANDARD_GRAVITY
+				* Math.sin(degreesToRadians(orientationValues[1])));
 		f[2] = (float) (acceleromterValues[2] - signumG
 				* (Math.sqrt(-Math.pow(
-						Constants.gravity
-								* Math.sin(toRadians(orientationValues[2])), 2)
+						SensorManager.STANDARD_GRAVITY
+								* Math.sin(degreesToRadians(orientationValues[2])),
+						2)
 						- Math.pow(
-								Constants.gravity
-										* Math.sin(toRadians(orientationValues[1])),
-								2) + Math.pow(Constants.gravity, 2))));
-
+								SensorManager.STANDARD_GRAVITY
+										* Math.sin(degreesToRadians(orientationValues[1])),
+								2)
+						+ Math.pow(SensorManager.STANDARD_GRAVITY, 2))));
 		return f;
 	}
 
-	public float[] convertReference2(float[] values, float[] orientationValues) {
+	public float[] convertReference(float[] values, float[] orientationValues) {
 
 		float x = values[0];
 		float y = values[1];
 		float z = values[2];
 		// float azimuth_angle = toRadians(orientationValues[0]); //not used
-		float pitch_angle = toRadians(orientationValues[1]);
-		float roll_angle = toRadians(orientationValues[2]);
+		float pitch_angle = degreesToRadians(orientationValues[1]);
+		float roll_angle = degreesToRadians(orientationValues[2]);
 
 		float b = (float) (Math.sin(roll_angle) * Math.tan(pitch_angle));
 		float a = (float) Math.sqrt(Math.abs((Math.cos(roll_angle))
@@ -90,7 +73,7 @@ public class AlexMath {
 		return bytes;
 	}
 
-	public double toDouble(byte[] bytes) {
+	public double byteToDouble(byte[] bytes) {
 		return ByteBuffer.wrap(bytes).getDouble();
 	}
 
@@ -107,6 +90,46 @@ public class AlexMath {
 			}
 		}
 		return concat;
+	}
+
+	/**
+	 * Rounds the number given based on the decimals value.
+	 * 
+	 * @param number
+	 * @param decimals
+	 * @return
+	 */
+	public static String round(double number, int decimals) {
+		String res;
+		double cifras = Math.pow(10.0, decimals);
+		res = "" + (Math.round(number * cifras) / cifras);
+		return res;
+	}
+
+	/**
+	 * Converts degrees to Radian.
+	 * 
+	 * @param alpha
+	 *            in degrees
+	 * @return alpha in Radian.
+	 */
+	public static float degreesToRadians(float alpha) {
+		float rad = (float) ((alpha * Math.PI) / 180);
+		return rad;
+	}
+
+	/**
+	 * Calculates the magnitude of any vector by using Pythagorean principle.
+	 * 
+	 * @param vectorComponents
+	 * @return The vector magnitude.
+	 */
+	public static double getVectorMagnitude(float[] vectorComponents) {
+		double result = 0;
+		for (double d : vectorComponents) {
+			result += Math.pow(d, 2);
+		}
+		return Math.sqrt(result);
 	}
 
 }
