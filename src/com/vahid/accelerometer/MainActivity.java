@@ -23,6 +23,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -94,8 +95,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
 	private float[] orientationValues = new float[] { 0, 0, 0 };
 	private float[] linearAccelerationValues = new float[] { 0, 0, 0 };
-	private float[] magneticValues = new float[] { 0, 0, 0 };
-	private float[] gravityValues = new float[] { 0, 0, 0 };
+	private float[] magneticValues;
+	private float[] gravityValues;
 
 	private double linearAccelerationMagnitude;
 
@@ -458,11 +459,15 @@ public class MainActivity extends Activity implements SensorEventListener {
 	public void registerSensors() {
 		mSensorManager.unregisterListener(this);
 
-		mSensorManager.registerListener(this, mAccelerometer,
-				SensorManager.SENSOR_DELAY_NORMAL);
+		// TODO change this
+		/*mSensorManager.registerListener(this, mAccelerometer,
+				delayRates[curDelayRate]);
 		mSensorManager.registerListener(this, mOrientation,
-				SensorManager.SENSOR_DELAY_NORMAL);
-
+				delayRates[curDelayRate]);*/
+		mSensorManager.registerListener(this, mMagneticField,
+				delayRates[curDelayRate]);
+		mSensorManager.registerListener(this, mGravity,
+				delayRates[curDelayRate]);
 		mSensorManager.registerListener(this, mLinearAcceleration,
 				delayRates[curDelayRate]);
 		if (Constants.DEBUG)
@@ -515,23 +520,26 @@ public class MainActivity extends Activity implements SensorEventListener {
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		// synchronized (this) {
+		// TODO change later
 		switch (event.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
-			getAccelerometer(event);
+			// getAccelerometer(event);
 			break;
 		case Sensor.TYPE_ORIENTATION:
-			getOrientation(event);
+//			getOrientation(event);
 			break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
+			getLinearAcceleration2(event);
 			// getLinearAcceleration(event);
-
 			break;
 		case Sensor.TYPE_GRAVITY:
-			getGravity(event);
+			getLinearAcceleration2(event);
+			// getGravity(event);
 
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			getMagneticField(event);
+			getLinearAcceleration2(event);
+			// getMagneticField(event);
 
 			break;
 		default:
@@ -581,8 +589,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 			currentState = msg.what;
 			if (msg.what == Constants.STATE_CONNECTED) {
 				// TODO change later
-				// initViewsConnectedLinearAcceleration();
-				initViewsConnected();
+				 initViewsConnectedLinearAcceleration();
+//				initViewsConnected();
 				setStatus(getString(R.string.title_connected) + deviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
@@ -758,6 +766,88 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	}
 
+	private void getLinearAcceleration2(SensorEvent event) {
+		if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION)
+			linearAccelerationValues = event.values;
+
+		if (event.sensor.getType() == Sensor.TYPE_GRAVITY)
+			gravityValues = event.values;
+
+		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+			magneticValues = event.values;
+
+		if (gravityValues != null && magneticValues != null) {
+//			float R[] = new float[9];
+			float I[] = new float[9];
+			
+			float[] R = new float[16];
+			float[] RINV = new float[16]; 
+			
+			boolean allGood = SensorManager.getRotationMatrix(R, I,
+					gravityValues, magneticValues);
+
+			if (allGood && linearAccelerationValues != null) {
+				/*float orientation[] = new float[3];
+				SensorManager.getOrientation(R, orientation);*/
+				
+				float[] linearAccelerationValuesNew = {linearAccelerationValues[0], linearAccelerationValues[1], linearAccelerationValues[2], 0};
+				
+				Matrix.invertM(RINV, 0, R, 0);          
+				Matrix.multiplyMV(trueAcceleration, 0, RINV, 0, linearAccelerationValuesNew, 0);
+
+				// This is Magnetic North in Radians
+				// bearing = orientation[0];
+
+				// ATTENTION: The Bearing will change based on Screen
+				// Orientation!!!
+				// Tilt your device and see what I mean ...see?
+				// Outside the scope of this sample, but easy to compensated
+				// for.
+
+				// Convert to degrees & 360 span (feel like I'm in Trig class
+				// with Radians)
+				// bearing = ((float) Math.toDegrees(bearing) + 360) % 360;
+
+				// if you need True North enable the lines below and you'll need
+				// GPS
+				// Lat, Lng, Alt for it to work though. It will give you a value
+				// in degrees
+				// you'll need to subtract from Magnetic North. And, once again
+				// Modulus to 360.
+				// GeomagneticField geoField = new GeomagneticField(
+				// (float) currentLatLng.latitude,
+				// (float) currentLatLng.longitude,
+				// (float) currentAlt,
+				// System.currentTimeMillis());
+				// trueBearing = bearing - geoField.getDeclination();
+				// trueBearing = (trueBearing + 360) % 360
+
+				// Update GUI (in degrees 0.f-360.f)
+				/*
+				 * currentBearing.setText(Float.toString(bearing)+ "\n" +
+				 * Float.toString(orientation[1]) + "\n" +
+				 * Float.toString(orientation[2]) + "\n");
+				 */
+				
+				  
+				  tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
+					tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
+					tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
+					tvFinalValue.setText(Double.toString(linearAccelerationMagnitude));
+
+					// set the value on to the SeekBar
+					xAxisSeekBar
+							.setProgress((int) (trueAcceleration[0] + 10f));
+					yAxisSeekBar
+							.setProgress((int) (trueAcceleration[1] + 10f));
+					zAxisSeekBar
+							.setProgress((int) (trueAcceleration[2] + 10f));
+
+					finalSeekBar.setProgress((int) (trueAcceleration[2]));
+			}
+		}
+	}
+
 	private void getMagneticField(SensorEvent event) {
 		magneticValues = event.values;
 	}
@@ -783,8 +873,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		acceleromterValues = alexMath.convertReference(acceleromterValues,
 				orientationValues); // **
 
-//		float[] temp = { acceleromterValues[0], acceleromterValues[1], 0 };
-//		double magnitude = AlexMath.getVectorMagnitude(temp);
+		// float[] temp = { acceleromterValues[0], acceleromterValues[1], 0 };
+		// double magnitude = AlexMath.getVectorMagnitude(temp);
 		double magnitude = AlexMath.getVectorMagnitude(acceleromterValues);
 
 		// *******first filter of braking.
@@ -810,13 +900,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// if (module>Constant.precision && acceleromterValues[1]>0){
 		if (magnitude > Constants.precision && braking) { // braking is the
-														// boolean
-														// variable that
-														// defines the
-														// brake and the
-														// acceleration
-														// with the sign
-														// of y
+															// boolean
+															// variable that
+															// defines the
+															// brake and the
+															// acceleration
+															// with the sign
+															// of y
 			RelativeLayout background = (RelativeLayout) findViewById(R.id.connectedLayout);
 			background.setBackgroundResource(R.color.dark_red);
 
@@ -928,10 +1018,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// see the values in phone screen (debug)
 		String angles = "azimuth: " + AlexMath.round(event.values[0], 3)
-				+ "\npitch:     " + AlexMath.round(event.values[1], 3) + "\nroll:       "
-				+ AlexMath.round(event.values[2], 3);
+				+ "\npitch:     " + AlexMath.round(event.values[1], 3)
+				+ "\nroll:       " + AlexMath.round(event.values[2], 3);
 		TextView tv = (TextView) findViewById(R.id.textViewConnected);
-		tv.setText(angles); 
+		tv.setText(angles);
 
 		if (onAngles == false) {
 			orientationValues = event.values.clone();
