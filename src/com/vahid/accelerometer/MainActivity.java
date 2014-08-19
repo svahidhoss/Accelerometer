@@ -23,12 +23,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -523,7 +521,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 			break;
 		case Sensor.TYPE_ORIENTATION:
 			getOrientation(event);
-
 			break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
 			// getLinearAcceleration(event);
@@ -786,8 +783,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 		acceleromterValues = alexMath.convertReference(acceleromterValues,
 				orientationValues); // **
 
-		float[] temp = { acceleromterValues[0], acceleromterValues[1], 0 };
-		double magnitude = AlexMath.getVectorMagnitude(temp);
+//		float[] temp = { acceleromterValues[0], acceleromterValues[1], 0 };
+//		double magnitude = AlexMath.getVectorMagnitude(temp);
+		double magnitude = AlexMath.getVectorMagnitude(acceleromterValues);
 
 		// *******first filter of braking.
 
@@ -930,7 +928,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// see the values in phone screen (debug)
 		String angles = "azimuth: " + AlexMath.round(event.values[0], 3)
-				+ "\npitch: " + AlexMath.round(event.values[1], 3) + "\nroll: "
+				+ "\npitch:     " + AlexMath.round(event.values[1], 3) + "\nroll:       "
 				+ AlexMath.round(event.values[2], 3);
 		TextView tv = (TextView) findViewById(R.id.textViewConnected);
 		tv.setText(angles); 
