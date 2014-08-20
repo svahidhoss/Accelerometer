@@ -5,6 +5,7 @@ import java.util.Calendar;
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
+import com.vahid.accelerometer.util.AlexMath;
 import com.vahid.accelerometer.util.Constants;
 
 import android.app.ActionBar;
@@ -36,6 +37,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -78,6 +80,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
+	private CheckBox checkBoxSaveToFile;
 
 	// Sensor related attributes
 	private SensorManager mSensorManager;
@@ -301,6 +304,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
+		
+		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
 		// populate the spinner
 		delayRateChooser = (Spinner) findViewById(R.id.delayRateChooser);
@@ -529,16 +534,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 //			getOrientation(event);
 			break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
-			getLinearAcceleration2(event);
-			// getLinearAcceleration(event);
+//			getLinearAcceleration2(event);
+			 getLinearAcceleration(event);
 			break;
 		case Sensor.TYPE_GRAVITY:
-			getLinearAcceleration2(event);
+//			getLinearAcceleration2(event);
 			// getGravity(event);
 
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			getLinearAcceleration2(event);
+//			getLinearAcceleration2(event);
 			// getMagneticField(event);
 
 			break;
@@ -828,7 +833,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 				 * Float.toString(orientation[1]) + "\n" +
 				 * Float.toString(orientation[2]) + "\n");
 				 */
-				
+				linearAccelerationMagnitude = AlexMath.getVectorMagnitude(linearAccelerationValues);
 				  
 				  tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
 					tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
@@ -843,7 +848,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 					zAxisSeekBar
 							.setProgress((int) (trueAcceleration[2] + 10f));
 
-					finalSeekBar.setProgress((int) (trueAcceleration[2]));
+					finalSeekBar.setProgress((int) (linearAccelerationMagnitude));
 			}
 		}
 	}

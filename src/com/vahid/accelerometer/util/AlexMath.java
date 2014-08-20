@@ -1,4 +1,4 @@
-package com.vahid.accelerometer;
+package com.vahid.accelerometer.util;
 
 import java.nio.ByteBuffer;
 
