@@ -7,6 +7,7 @@ import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.util.AlexMath;
 import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.CsvFileWriter;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -71,7 +72,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private static int currentState = Constants.STATE_DISCONNECTED;
 
-	// Defining view elements
+	// Defining view attributes
 	private Button btnConnect, buttonCheck;
 	private TextView tvState, tvLASCapturedState;
 	private MenuItem miSearchOption;
@@ -81,6 +82,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
+	
+	// Defining view attributes
+	private boolean saveToFileChecked = false;
+	private CsvFileWriter newCsvFile;
+	
 
 	// Sensor related attributes
 	private SensorManager mSensorManager;
@@ -304,7 +310,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
-		
+
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
 		// populate the spinner
@@ -465,10 +471,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 		mSensorManager.unregisterListener(this);
 
 		// TODO change this
-		/*mSensorManager.registerListener(this, mAccelerometer,
-				delayRates[curDelayRate]);
-		mSensorManager.registerListener(this, mOrientation,
-				delayRates[curDelayRate]);*/
+		/*
+		 * mSensorManager.registerListener(this, mAccelerometer,
+		 * delayRates[curDelayRate]); mSensorManager.registerListener(this,
+		 * mOrientation, delayRates[curDelayRate]);
+		 */
 		mSensorManager.registerListener(this, mMagneticField,
 				delayRates[curDelayRate]);
 		mSensorManager.registerListener(this, mGravity,
@@ -517,6 +524,22 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	}
 
+	public void onCheckboxClicked(View view) {
+		// Is the view now checked?
+		boolean checked = ((CheckBox) view).isChecked();
+
+		// Check which checkbox was clicked
+		switch (view.getId()) {
+		case R.id.checkBoxSaveToFile:
+			saveToFileChecked = checked;
+			if (checked) {
+				newCsvFile = new CsvFileWriter();
+			} else {
+			}
+			break;
+		}
+	}
+
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
@@ -531,19 +554,19 @@ public class MainActivity extends Activity implements SensorEventListener {
 			// getAccelerometer(event);
 			break;
 		case Sensor.TYPE_ORIENTATION:
-//			getOrientation(event);
+			// getOrientation(event);
 			break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
-//			getLinearAcceleration2(event);
-			 getLinearAcceleration(event);
+			// getLinearAcceleration2(event);
+			getLinearAcceleration(event);
 			break;
 		case Sensor.TYPE_GRAVITY:
-//			getLinearAcceleration2(event);
+			// getLinearAcceleration2(event);
 			// getGravity(event);
 
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-//			getLinearAcceleration2(event);
+			// getLinearAcceleration2(event);
 			// getMagneticField(event);
 
 			break;
@@ -594,8 +617,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 			currentState = msg.what;
 			if (msg.what == Constants.STATE_CONNECTED) {
 				// TODO change later
-				 initViewsConnectedLinearAcceleration();
-//				initViewsConnected();
+				initViewsConnectedLinearAcceleration();
+				// initViewsConnected();
 				setStatus(getString(R.string.title_connected) + deviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
@@ -743,20 +766,26 @@ public class MainActivity extends Activity implements SensorEventListener {
 				.getVectorMagnitude(linearAccelerationValues);
 
 		// set the value as the text of every TextView
-		tvXAxisValue.setText(Float.toString(linearAccelerationEvent.values[0]));
-		tvYAxisValue.setText(Float.toString(linearAccelerationEvent.values[1]));
-		tvZAxisValue.setText(Float.toString(linearAccelerationEvent.values[2]));
+		tvXAxisValue.setText(Float.toString(linearAccelerationValues[0]));
+		tvYAxisValue.setText(Float.toString(linearAccelerationValues[1]));
+		tvZAxisValue.setText(Float.toString(linearAccelerationValues[2]));
 		tvFinalValue.setText(Double.toString(linearAccelerationMagnitude));
 
+		// If check box for saving the file has been checked.
+		if (saveToFileChecked) {
+			newCsvFile.writeToFile(linearAccelerationValues);
+			newCsvFile.writeToFile((float) linearAccelerationMagnitude);
+		}
+		
 		// set the value on to the SeekBar
 		xAxisSeekBar
-				.setProgress((int) (linearAccelerationEvent.values[0] + 10f));
+				.setProgress((int) (linearAccelerationValues[0] + 10f));
 		yAxisSeekBar
-				.setProgress((int) (linearAccelerationEvent.values[1] + 10f));
+				.setProgress((int) (linearAccelerationValues[1] + 10f));
 		zAxisSeekBar
-				.setProgress((int) (linearAccelerationEvent.values[2] + 10f));
+				.setProgress((int) (linearAccelerationValues[2] + 10f));
 
-		finalSeekBar.setProgress((int) (linearAccelerationEvent.values[2]));
+		finalSeekBar.setProgress((int) (linearAccelerationValues[2]));
 
 		// Computes the inclination matrix as well as the rotation matrix
 		// transforming a vector from the device coordinate system to the
@@ -782,23 +811,29 @@ public class MainActivity extends Activity implements SensorEventListener {
 			magneticValues = event.values;
 
 		if (gravityValues != null && magneticValues != null) {
-//			float R[] = new float[9];
+			// float R[] = new float[9];
 			float I[] = new float[9];
-			
+
 			float[] R = new float[16];
-			float[] RINV = new float[16]; 
-			
+			float[] RINV = new float[16];
+
 			boolean allGood = SensorManager.getRotationMatrix(R, I,
 					gravityValues, magneticValues);
 
 			if (allGood && linearAccelerationValues != null) {
-				/*float orientation[] = new float[3];
-				SensorManager.getOrientation(R, orientation);*/
-				
-				float[] linearAccelerationValuesNew = {linearAccelerationValues[0], linearAccelerationValues[1], linearAccelerationValues[2], 0};
-				
-				Matrix.invertM(RINV, 0, R, 0);          
-				Matrix.multiplyMV(trueAcceleration, 0, RINV, 0, linearAccelerationValuesNew, 0);
+				/*
+				 * float orientation[] = new float[3];
+				 * SensorManager.getOrientation(R, orientation);
+				 */
+
+				float[] linearAccelerationValuesNew = {
+						linearAccelerationValues[0],
+						linearAccelerationValues[1],
+						linearAccelerationValues[2], 0 };
+
+				Matrix.invertM(RINV, 0, R, 0);
+				Matrix.multiplyMV(trueAcceleration, 0, RINV, 0,
+						linearAccelerationValuesNew, 0);
 
 				// This is Magnetic North in Radians
 				// bearing = orientation[0];
@@ -833,22 +868,21 @@ public class MainActivity extends Activity implements SensorEventListener {
 				 * Float.toString(orientation[1]) + "\n" +
 				 * Float.toString(orientation[2]) + "\n");
 				 */
-				linearAccelerationMagnitude = AlexMath.getVectorMagnitude(linearAccelerationValues);
-				  
-				  tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
-					tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
-					tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
-					tvFinalValue.setText(Double.toString(linearAccelerationMagnitude));
+				linearAccelerationMagnitude = AlexMath
+						.getVectorMagnitude(linearAccelerationValues);
 
-					// set the value on to the SeekBar
-					xAxisSeekBar
-							.setProgress((int) (trueAcceleration[0] + 10f));
-					yAxisSeekBar
-							.setProgress((int) (trueAcceleration[1] + 10f));
-					zAxisSeekBar
-							.setProgress((int) (trueAcceleration[2] + 10f));
+				tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
+				tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
+				tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
+				tvFinalValue.setText(Double
+						.toString(linearAccelerationMagnitude));
 
-					finalSeekBar.setProgress((int) (linearAccelerationMagnitude));
+				// set the value on to the SeekBar
+				xAxisSeekBar.setProgress((int) (trueAcceleration[0] + 10f));
+				yAxisSeekBar.setProgress((int) (trueAcceleration[1] + 10f));
+				zAxisSeekBar.setProgress((int) (trueAcceleration[2] + 10f));
+
+				finalSeekBar.setProgress((int) (linearAccelerationMagnitude));
 			}
 		}
 	}
