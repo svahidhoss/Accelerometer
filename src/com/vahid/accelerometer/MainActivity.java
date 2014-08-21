@@ -1,6 +1,5 @@
 package com.vahid.accelerometer;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -58,12 +57,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 	// used for exiting on pressing back double
 	private boolean doubleBackToExitIsPressedOnce = false;
 
-	// *****references********
-	AlexMath alexMath = new AlexMath();
-	Constants constants = new Constants();
-	// *****end references*****
-
-	/* Bluethooth related fields */
+	
+	/**** Bluethooth related fields ****/
 	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
 			.getDefaultAdapter();
 	private BroadcastReceiver mReceiver;
@@ -74,7 +69,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private static int currentState = Constants.STATE_DISCONNECTED;
 
-	// Defining view attributes
+	
+	/**** Defining view fields ****/
 	private Button btnConnect, buttonCheck;
 	private TextView tvState, tvLASCapturedState;
 	private MenuItem miSearchOption;
@@ -85,11 +81,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
 
-	// Defining view attributes
+	// save to file view fields
 	private boolean saveToFileChecked = false;
 	private CsvFileWriter csvFile;
-
-	// Sensor related attributes
+	
+	
+	/**** Sensor related Fields ****/
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
 			mMagneticField;
@@ -101,6 +98,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 			"Game", "Fastest" };
 	private int curDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
+	
 	// it's important to initialize the values.
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
 	private float[] orientationValues = new float[] { 0, 0, 0 };
@@ -110,10 +108,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private double linearAccelerationMagnitude;
 
+	
 	/**** Rotation Matrix Calculation ****/
-	// float R[] = new float[9];
-	// float I[] = new float[9];
-
 	private float[] trueAcceleration = new float[4];
 	private float[] inclinationMatrix = new float[16];
 	private float[] rotationMatrix = new float[16];
@@ -143,7 +139,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	// -end--filters--
 
-	// *****end sensors*****
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -151,8 +146,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// keeps the screen on
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-		// setContentView(R.layout.not_connected);
 
 		// include setContentView, listener for the button, state, etc
 		initViewsNotConnected();
@@ -274,7 +267,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			@Override
 			public void onClick(View v) {
-				connectedThread.write(alexMath.toByteArray(60));
+				connectedThread.write(AlexMath.toByteArray(60));
 			}
 		});
 
@@ -910,7 +903,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	private void getAccelerometer(SensorEvent event) {
-		acceleromterValues = alexMath.cancelGravity(event.values,
+		acceleromterValues = AlexMath.cancelGravity(event.values,
 				orientationValues); // the sensor doesn't erase the
 									// gravity by itself
 									// for that exists other sensor:
@@ -923,7 +916,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		 */// but we do... the results appears to be better.
 
 		// **acceleromterValues = event.values.clone();
-		acceleromterValues = alexMath.convertReference(acceleromterValues,
+		acceleromterValues = AlexMath.convertReference(acceleromterValues,
 				orientationValues); // **
 
 		// float[] temp = { acceleromterValues[0], acceleromterValues[1], 0 };
@@ -1031,20 +1024,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// ---with the idea of write this data and send by bluetooth,
 		// first it's necessary to pass them to byte...
-		byte[] x = alexMath.toByteArray(acceleromterValues[0]);
-		byte[] y = alexMath.toByteArray(acceleromterValues[1]);
-		byte[] z = alexMath.toByteArray(acceleromterValues[2]);
-		byte[] mod_byte = alexMath.toByteArray(magnitude);
+		byte[] x = AlexMath.toByteArray(acceleromterValues[0]);
+		byte[] y = AlexMath.toByteArray(acceleromterValues[1]);
+		byte[] z = AlexMath.toByteArray(acceleromterValues[2]);
+		byte[] mod_byte = AlexMath.toByteArray(magnitude);
 		byte[] xyz_and_Mod = new byte[8 * 4];
 
-		xyz_and_Mod = alexMath.concatenateBytes(
-				alexMath.concatenateBytes(alexMath.concatenateBytes(x, y), z),
+		xyz_and_Mod = AlexMath.concatenateBytes(
+				AlexMath.concatenateBytes(AlexMath.concatenateBytes(x, y), z),
 				mod_byte);
 		// ---
 
-		byte[] moduleRealByte = alexMath.toByteArray(moduleReal);
+		byte[] moduleRealByte = AlexMath.toByteArray(moduleReal);
 		byte[] all = new byte[8 * 4 + 8];
-		all = alexMath.concatenateBytes(xyz_and_Mod, moduleRealByte);
+		all = AlexMath.concatenateBytes(xyz_and_Mod, moduleRealByte);
 
 		connectedThread.write(all);
 		// ********write angles

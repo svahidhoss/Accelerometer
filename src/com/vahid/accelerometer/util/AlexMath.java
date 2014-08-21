@@ -14,7 +14,7 @@ public class AlexMath {
 	 * @param orientationValues
 	 * @return
 	 */
-	public float[] cancelGravity(float[] acceleromterValues,
+	public static float[] cancelGravity(float[] acceleromterValues,
 			float[] orientationValues) {
 		int signumG;
 
@@ -43,7 +43,7 @@ public class AlexMath {
 		return f;
 	}
 
-	public float[] convertReference(float[] values, float[] orientationValues) {
+	public static float[] convertReference(float[] values, float[] orientationValues) {
 
 		float x = values[0];
 		float y = values[1];
@@ -67,17 +67,17 @@ public class AlexMath {
 		return values;
 	}
 
-	public byte[] toByteArray(double value) {
+	public static byte[] toByteArray(double value) {
 		byte[] bytes = new byte[8];
 		ByteBuffer.wrap(bytes).putDouble(value);
 		return bytes;
 	}
 
-	public double byteToDouble(byte[] bytes) {
+	public static double byteToDouble(byte[] bytes) {
 		return ByteBuffer.wrap(bytes).getDouble();
 	}
 
-	public byte[] concatenateBytes(byte[] b1, byte[] b2) {
+	public static byte[] concatenateBytes(byte[] b1, byte[] b2) {
 		int le = b1.length + b2.length;
 		byte[] concat = new byte[le];
 
