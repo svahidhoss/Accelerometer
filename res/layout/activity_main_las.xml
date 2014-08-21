@@ -117,7 +117,7 @@
             android:id="@+id/finalTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Linear Acceleration Magnitude: " >
+            android:text="Linear Acceleration Mag. " >
         </TextView>
 
         <TextView
@@ -139,7 +139,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:text="Start Saving to file"
+        android:text="@string/checkBoxSaveToFileInitialMsg"
         android:onClick="onCheckboxClicked"/>
         
 

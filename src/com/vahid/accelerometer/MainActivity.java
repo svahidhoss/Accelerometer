@@ -110,7 +110,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private double linearAccelerationMagnitude;
 
-	// Rotation Matrix Calculation
+	/**** Rotation Matrix Calculation ****/
 	// float R[] = new float[9];
 	// float I[] = new float[9];
 
@@ -118,6 +118,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private float[] inclinationMatrix = new float[16];
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
+
+	private double trueAccelerationMagnitude;
 
 	// --- Filters ---
 	boolean brOn = false; // on when is more than one minimum defined
@@ -525,8 +527,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 		}
 
 		// close the captured file if not already
-		if (csvFile != null)
+		if (csvFile != null) {
 			csvFile.closeCaptureFile();
+			checkBoxSaveToFile.setText(R.string.checkBoxSaveToFileInitialMsg);
+		}
+
 	}
 
 	public void onCheckboxClicked(View view) {
@@ -540,10 +545,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 			// open the file if set true, otherwise close it.
 			if (checked) {
 				csvFile = new CsvFileWriter();
+				checkBoxSaveToFile
+						.setText(R.string.checkBoxSaveToFileSavingMsg);
 			} else {
 				if (csvFile != null) {
 					// Closing the captured file is as important as creating it.
 					csvFile.closeCaptureFile();
+					checkBoxSaveToFile
+							.setText(R.string.checkBoxSaveToFileInitialMsg);
 				}
 			}
 			break;
@@ -558,7 +567,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		// synchronized (this) {
-		// TODO change later
 		switch (event.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
 			// getAccelerometer(event);
@@ -860,18 +868,22 @@ public class MainActivity extends Activity implements SensorEventListener {
 				 */
 				linearAccelerationMagnitude = AlexMath
 						.getVectorMagnitude(linearAccelerationValues);
+				trueAccelerationMagnitude = AlexMath
+						.getVectorMagnitude(trueAcceleration);
+
 				tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
 				tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
 				tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
 				tvFinalValue.setText(Double
-						.toString(linearAccelerationMagnitude));
+						.toString((float)trueAccelerationMagnitude));
 
 				// set the value on to the SeekBar
 				xAxisSeekBar.setProgress((int) (trueAcceleration[0] + 10f));
 				yAxisSeekBar.setProgress((int) (trueAcceleration[1] + 10f));
 				zAxisSeekBar.setProgress((int) (trueAcceleration[2] + 10f));
 
-				finalSeekBar.setProgress((int) (linearAccelerationMagnitude));
+				finalSeekBar
+						.setProgress((int) (trueAccelerationMagnitude));
 
 				// If check box for saving the file has been checked.
 				if (saveToFileChecked) {
@@ -882,8 +894,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 					// write the values of the true acceleration
 					csvFile.writeToFile(Arrays.copyOfRange(trueAcceleration, 0,
 							trueAcceleration.length - 1));
-					csvFile.writeToFile((float) AlexMath
-							.getVectorMagnitude(trueAcceleration), true);
+					csvFile.writeToFile((float) trueAccelerationMagnitude, true);
 				}
 
 			}
