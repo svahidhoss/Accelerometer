@@ -82,11 +82,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
-	
+
 	// Defining view attributes
 	private boolean saveToFileChecked = false;
 	private CsvFileWriter newCsvFile;
-	
 
 	// Sensor related attributes
 	private SensorManager mSensorManager;
@@ -521,6 +520,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 		if (mReceiver != null) {
 			this.unregisterReceiver(mReceiver);
 		}
+		
+		if (newCsvFile != null) {
+			// Closing the captured file is as important as creating it.
+			newCsvFile.closeCaptureFile();
+		}
 
 	}
 
@@ -535,6 +539,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 			if (checked) {
 				newCsvFile = new CsvFileWriter();
 			} else {
+				if (newCsvFile != null) {
+					// Closing the captured file is as important as creating it.
+					newCsvFile.closeCaptureFile();
+				}
 			}
 			break;
 		}
@@ -776,14 +784,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 			newCsvFile.writeToFile(linearAccelerationValues);
 			newCsvFile.writeToFile((float) linearAccelerationMagnitude);
 		}
-		
+
 		// set the value on to the SeekBar
-		xAxisSeekBar
-				.setProgress((int) (linearAccelerationValues[0] + 10f));
-		yAxisSeekBar
-				.setProgress((int) (linearAccelerationValues[1] + 10f));
-		zAxisSeekBar
-				.setProgress((int) (linearAccelerationValues[2] + 10f));
+		xAxisSeekBar.setProgress((int) (linearAccelerationValues[0] + 10f));
+		yAxisSeekBar.setProgress((int) (linearAccelerationValues[1] + 10f));
+		zAxisSeekBar.setProgress((int) (linearAccelerationValues[2] + 10f));
 
 		finalSeekBar.setProgress((int) (linearAccelerationValues[2]));
 

@@ -43,14 +43,12 @@ public class CsvFileWriter {
 	 */
 	public boolean writeToFile(float values[]) {
 
-/*		StringBuilder b = new StringBuilder();
-		for (int i = 0; i < values.length; ++i) {
-			if (i > 0)
-				b.append(" , ");
-			b.append(Float.toString(values[i]));
-		}
-		if (Constants.DEBUG)
-			Log.d(Constants.LOG_TAG, "onSensorChanged: [" + b + "]");*/
+		/*
+		 * StringBuilder b = new StringBuilder(); for (int i = 0; i <
+		 * values.length; ++i) { if (i > 0) b.append(" , ");
+		 * b.append(Float.toString(values[i])); } if (Constants.DEBUG)
+		 * Log.d(Constants.LOG_TAG, "onSensorChanged: [" + b + "]");
+		 */
 
 		if (captureFile != null) {
 			for (int i = 0; i < values.length; ++i) {
@@ -127,6 +125,16 @@ public class CsvFileWriter {
 
 	public void setCaptureStateText(String captureStateText) {
 		this.captureStateText = captureStateText;
+	}
+
+	/**
+	 * Closes the CaptureFile print writer. Flushes the writer and then closes the target.
+	 * If an I/O error occurs, this writer's error flag is set to true.
+	 */
+	public void closeCaptureFile() {
+		if (captureFile != null) {
+			captureFile.close();
+		}
 	}
 
 }
