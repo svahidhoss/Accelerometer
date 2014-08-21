@@ -117,7 +117,7 @@
             android:id="@+id/finalTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Final Linear Acceleration: " >
+            android:text="Linear Acceleration Magnitude: " >
         </TextView>
 
         <TextView

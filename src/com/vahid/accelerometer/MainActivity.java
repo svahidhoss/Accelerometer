@@ -1,5 +1,7 @@
 package com.vahid.accelerometer;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Calendar;
 
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
@@ -85,7 +87,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	// Defining view attributes
 	private boolean saveToFileChecked = false;
-	private CsvFileWriter newCsvFile;
+	private CsvFileWriter csvFile;
 
 	// Sensor related attributes
 	private SensorManager mSensorManager;
@@ -109,8 +111,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private double linearAccelerationMagnitude;
 
 	// Rotation Matrix Calculation
+	// float R[] = new float[9];
+	// float I[] = new float[9];
+
 	private float[] trueAcceleration = new float[4];
-	private float[] inclinationMatrix;
+	private float[] inclinationMatrix = new float[16];
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
 
@@ -509,23 +514,19 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// orientation changes, the Activity is destroyed, so
 		// the device is disconnecting automatically
 		unregisterSensors();
-		// disconnect first
+		// disconnect the thread first
 		if (connectedThread != null) {
 			connectThread.cancel();
 		}
-		// TODO ?
-		if (Constants.DEBUG)
-			Log.d(Constants.LOG_TAG, "sensors created");
 
+		// unregister the receivers
 		if (mReceiver != null) {
 			this.unregisterReceiver(mReceiver);
 		}
-		
-		if (newCsvFile != null) {
-			// Closing the captured file is as important as creating it.
-			newCsvFile.closeCaptureFile();
-		}
 
+		// close the captured file if not already
+		if (csvFile != null)
+			csvFile.closeCaptureFile();
 	}
 
 	public void onCheckboxClicked(View view) {
@@ -536,12 +537,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 		switch (view.getId()) {
 		case R.id.checkBoxSaveToFile:
 			saveToFileChecked = checked;
+			// open the file if set true, otherwise close it.
 			if (checked) {
-				newCsvFile = new CsvFileWriter();
+				csvFile = new CsvFileWriter();
 			} else {
-				if (newCsvFile != null) {
+				if (csvFile != null) {
 					// Closing the captured file is as important as creating it.
-					newCsvFile.closeCaptureFile();
+					csvFile.closeCaptureFile();
 				}
 			}
 			break;
@@ -565,16 +567,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 			// getOrientation(event);
 			break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
-			// getLinearAcceleration2(event);
-			getLinearAcceleration(event);
+			getLinearAcceleration2(event);
+			// getLinearAcceleration(event);
 			break;
 		case Sensor.TYPE_GRAVITY:
-			// getLinearAcceleration2(event);
+			getLinearAcceleration2(event);
 			// getGravity(event);
 
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			// getLinearAcceleration2(event);
+			getLinearAcceleration2(event);
 			// getMagneticField(event);
 
 			break;
@@ -781,8 +783,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// If check box for saving the file has been checked.
 		if (saveToFileChecked) {
-			newCsvFile.writeToFile(linearAccelerationValues);
-			newCsvFile.writeToFile((float) linearAccelerationMagnitude);
+			csvFile.writeToFile(linearAccelerationValues);
+			csvFile.writeToFile((float) linearAccelerationMagnitude, true);
 		}
 
 		// set the value on to the SeekBar
@@ -791,17 +793,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		zAxisSeekBar.setProgress((int) (linearAccelerationValues[2] + 10f));
 
 		finalSeekBar.setProgress((int) (linearAccelerationValues[2]));
-
-		// Computes the inclination matrix as well as the rotation matrix
-		// transforming a vector from the device coordinate system to the
-		// world's coordinate system
-		/*
-		 * SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix,
-		 * gravityValues, geomagneticValues);
-		 * Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
-		 * Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse, 0,
-		 * linearAccelerationValues, 0);
-		 */
 
 	}
 
@@ -816,14 +807,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 			magneticValues = event.values;
 
 		if (gravityValues != null && magneticValues != null) {
-			// float R[] = new float[9];
-			float I[] = new float[9];
-
-			float[] R = new float[16];
-			float[] RINV = new float[16];
-
-			boolean allGood = SensorManager.getRotationMatrix(R, I,
-					gravityValues, magneticValues);
+			boolean allGood = SensorManager.getRotationMatrix(rotationMatrix,
+					inclinationMatrix, gravityValues, magneticValues);
 
 			if (allGood && linearAccelerationValues != null) {
 				/*
@@ -836,9 +821,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 						linearAccelerationValues[1],
 						linearAccelerationValues[2], 0 };
 
-				Matrix.invertM(RINV, 0, R, 0);
-				Matrix.multiplyMV(trueAcceleration, 0, RINV, 0,
-						linearAccelerationValuesNew, 0);
+				Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
+				Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse,
+						0, linearAccelerationValuesNew, 0);
 
 				// This is Magnetic North in Radians
 				// bearing = orientation[0];
@@ -875,7 +860,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 				 */
 				linearAccelerationMagnitude = AlexMath
 						.getVectorMagnitude(linearAccelerationValues);
-
 				tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
 				tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
 				tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
@@ -888,6 +872,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 				zAxisSeekBar.setProgress((int) (trueAcceleration[2] + 10f));
 
 				finalSeekBar.setProgress((int) (linearAccelerationMagnitude));
+
+				// If check box for saving the file has been checked.
+				if (saveToFileChecked) {
+					// write the values of the linear acceleration
+					csvFile.writeToFile(linearAccelerationValues);
+					csvFile.writeToFile((float) linearAccelerationMagnitude,
+							false);
+					// write the values of the true acceleration
+					csvFile.writeToFile(Arrays.copyOfRange(trueAcceleration, 0,
+							trueAcceleration.length - 1));
+					csvFile.writeToFile((float) AlexMath
+							.getVectorMagnitude(trueAcceleration), true);
+				}
+
 			}
 		}
 	}

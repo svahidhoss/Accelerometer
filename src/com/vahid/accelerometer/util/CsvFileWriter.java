@@ -65,19 +65,17 @@ public class CsvFileWriter {
 	 * Method that writes the value of a sensor passed with constructor to the
 	 * file that has been created.
 	 * 
-	 * @param values
+	 * @param value float value to be written to the end of file.
+	 * @param endOfLine write an eol to the end of file if true.
+	 * @return
 	 */
-	public boolean writeToFile(float value) {
-		/*
-		 * StringBuilder b = new StringBuilder(); for (int i = 0; i <
-		 * values.length; ++i) { if (i > 0) b.append(" , ");
-		 * b.append(Float.toString(values[i])); } if (Constants.DEBUG)
-		 * Log.d(Constants.LOG_TAG, "onSensorChanged: [" + b + "]");
-		 */
+	public boolean writeToFile(float value, boolean endOfLine) {
 		if (captureFile != null) {
 			captureFile.print(",");
 			captureFile.print(Float.toString(value));
-			captureFile.println();
+			if (endOfLine) {
+				captureFile.println();
+			}
 			return true;
 		}
 		return false;
@@ -128,8 +126,9 @@ public class CsvFileWriter {
 	}
 
 	/**
-	 * Closes the CaptureFile print writer. Flushes the writer and then closes the target.
-	 * If an I/O error occurs, this writer's error flag is set to true.
+	 * Closes the CaptureFile print writer. Flushes the writer and then closes
+	 * the target. If an I/O error occurs, this writer's error flag is set to
+	 * true.
 	 */
 	public void closeCaptureFile() {
 		if (captureFile != null) {
