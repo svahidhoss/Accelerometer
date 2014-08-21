@@ -76,6 +76,9 @@ public class CsvFileWriter {
 			if (endOfLine) {
 				captureFile.println();
 			}
+			else {
+				captureFile.print(",");
+			}
 			return true;
 		}
 		return false;
