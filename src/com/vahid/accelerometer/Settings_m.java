@@ -37,7 +37,7 @@ public class Settings_m extends Activity {
 		
 
 		EditText precisionET = (EditText) findViewById(R.id.editTextPrecisionID);
-		precisionET.setText(""+Constants.precision);
+		precisionET.setText(""+Constants.accelerationPrecision);
 		
 		
 		EditText delayET = (EditText) findViewById(R.id.editTextDelayID);
@@ -60,10 +60,10 @@ public class Settings_m extends Activity {
 		EditText delayET = (EditText) findViewById(R.id.editTextDelayID);
 		
 		try {
-			Constants.precision = Float.parseFloat(precisionET.getText().toString());	
+			Constants.accelerationPrecision = Float.parseFloat(precisionET.getText().toString());	
 		} catch (Exception e) {
 			// TODO: handle exception
-			Constants.precision = 0;
+			Constants.accelerationPrecision = 0;
 			//Toast.makeText(getApplicationContext(), "Error saving, try again", Toast.LENGTH_SHORT).show();
 		}
 		try {
@@ -75,7 +75,7 @@ public class Settings_m extends Activity {
 			//Toast.makeText(getApplicationContext(), "Error saving, try again", Toast.LENGTH_SHORT).show();
 		}
 		
-		Toast.makeText(getApplicationContext(), "Saved!\n  *precision = "+Constants.precision+"\n  *delay = "+Constants.marginMilliseconds, Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), "Saved!\n  *precision = "+Constants.accelerationPrecision+"\n  *delay = "+Constants.marginMilliseconds, Toast.LENGTH_SHORT).show();
 		
 	}
 	

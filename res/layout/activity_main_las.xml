@@ -9,26 +9,6 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin" >
 
-    <!--
-        <Button
-        android:id="@+id/buttonCheck"
-        android:layout_width="fill_parent"
-        android:layout_height="70dp"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="check" /> 
-        <TextView
-        android:id="@+id/textViewMain2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:textSize="90sp"
-        android:textColor="@android:color/white"
-        android:text="#"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-    -->
-
     <LinearLayout
         android:id="@+id/xAxisLinearLayout"
         android:layout_width="fill_parent"
@@ -117,14 +97,18 @@
             android:id="@+id/finalTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Linear Acceleration Mag. " >
+            android:text="Acceleration Mag.: "
+            android:textColor="@android:color/holo_blue_dark"
+            android:textSize="18sp" >
         </TextView>
 
         <TextView
             android:id="@+id/finalValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.0" >
+            android:text="0.0"
+            android:textColor="@android:color/holo_blue_dark"
+            android:textSize="18sp" >
         </TextView>
     </LinearLayout>
 
@@ -132,16 +116,15 @@
         android:id="@+id/finalBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:max="10" />
+        android:max="20" />
 
     <CheckBox
         android:id="@+id/checkBoxSaveToFile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:text="@string/checkBoxSaveToFileInitialMsg"
-        android:onClick="onCheckboxClicked"/>
-        
+        android:onClick="onCheckboxClicked"
+        android:text="@string/checkBoxSaveToFileInitialMsg" />
 
     <TextView
         android:id="@+id/textView5"

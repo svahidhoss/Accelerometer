@@ -11,16 +11,15 @@ public class Constants {
 
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
 	
-	// Settings related constants
-	public static float precision = (float) 0.9;
+	/****  Settings related constants ****/
 	public static long marginMilliseconds = 300;
-	public static boolean manualGravity = false;
-	public static float precisionPitch = 0f; // pitch defines design of the
+	public static float accelerationPrecision = (float) 0.9;
+	public static float pitchPrecision = 0f; // pitch defines design of the
 												// acceleration (if it is
 												// braking or accelerating) (=0
 												// by the moment)
 
-	/****  Bluetooth related fields  ****/
+	/****  Bluetooth related fields ****/
 	// MY_UUID is the app's UUID string, also used by the server code?
 	public static final UUID MY_UUID = UUID
 			.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
