@@ -15,7 +15,8 @@ public class CsvFileWriter {
 			.getExternalStorageDirectory().getPath() + "/Sensors Capture";
 	private boolean captureState = true;
 	private String captureStateText = null;
-	private PrintWriter captureFile = null;
+	private PrintWriter captureFileWriter = null;
+	private String captureFileName;
 
 	/**
 	 * Default constructor that creates a new CSV file based on the current time
@@ -23,11 +24,12 @@ public class CsvFileWriter {
 	 */
 	public CsvFileWriter() {
 		checkDirectoryToCreate(DIRECTORY_PATH);
-		File captureFileName = new File(DIRECTORY_PATH, getFileNameByDate());
-		captureStateText = "Capture: " + captureFileName.getAbsolutePath();
+		captureFileName = getFileNameByDate();
+		File captureFile = new File(DIRECTORY_PATH, captureFileName);
+		captureStateText = "Capture: " + captureFile.getAbsolutePath();
 		try {
-			captureFile = new PrintWriter(
-					new FileWriter(captureFileName, false));
+			captureFileWriter = new PrintWriter(
+					new FileWriter(captureFile, false));
 		} catch (IOException ex) {
 			if (Constants.DEBUG)
 				Log.e(Constants.LOG_TAG, ex.getMessage(), ex);
@@ -42,19 +44,11 @@ public class CsvFileWriter {
 	 * @param values
 	 */
 	public boolean writeToFile(float values[]) {
-
-		/*
-		 * StringBuilder b = new StringBuilder(); for (int i = 0; i <
-		 * values.length; ++i) { if (i > 0) b.append(" , ");
-		 * b.append(Float.toString(values[i])); } if (Constants.DEBUG)
-		 * Log.d(Constants.LOG_TAG, "onSensorChanged: [" + b + "]");
-		 */
-
-		if (captureFile != null) {
+		if (captureFileWriter != null) {
 			for (int i = 0; i < values.length; ++i) {
 				if (i > 0)
-					captureFile.print(",");
-				captureFile.print(Float.toString(values[i]));
+					captureFileWriter.print(",");
+				captureFileWriter.print(Float.toString(values[i]));
 			}
 			return true;
 		}
@@ -70,14 +64,14 @@ public class CsvFileWriter {
 	 * @return
 	 */
 	public boolean writeToFile(float value, boolean endOfLine) {
-		if (captureFile != null) {
-			captureFile.print(",");
-			captureFile.print(Float.toString(value));
+		if (captureFileWriter != null) {
+			captureFileWriter.print(",");
+			captureFileWriter.print(Float.toString(value));
 			if (endOfLine) {
-				captureFile.println();
+				captureFileWriter.println();
 			}
 			else {
-				captureFile.print(",");
+				captureFileWriter.print(",");
 			}
 			return true;
 		}
@@ -127,6 +121,10 @@ public class CsvFileWriter {
 	public void setCaptureStateText(String captureStateText) {
 		this.captureStateText = captureStateText;
 	}
+	
+	public String getCaptureFileName() {
+		return captureFileName;
+	}
 
 	/**
 	 * Closes the CaptureFile print writer. Flushes the writer and then closes
@@ -134,8 +132,8 @@ public class CsvFileWriter {
 	 * true.
 	 */
 	public void closeCaptureFile() {
-		if (captureFile != null) {
-			captureFile.close();
+		if (captureFileWriter != null) {
+			captureFileWriter.close();
 		}
 	}
 

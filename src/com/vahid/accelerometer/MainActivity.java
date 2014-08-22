@@ -57,7 +57,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	// used for exiting on pressing back double
 	private boolean doubleBackToExitIsPressedOnce = false;
 
-	
 	/**** Bluethooth related fields ****/
 	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
 			.getDefaultAdapter();
@@ -69,7 +68,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private static int currentState = Constants.STATE_DISCONNECTED;
 
-	
 	/**** Defining view fields ****/
 	private Button btnConnect, buttonCheck;
 	private TextView tvState, tvLASCapturedState;
@@ -84,8 +82,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	// save to file view fields
 	private boolean saveToFileChecked = false;
 	private CsvFileWriter csvFile;
-	
-	
+
 	/**** Sensor related Fields ****/
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
@@ -98,7 +95,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 			"Game", "Fastest" };
 	private int curDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
-	
 	// it's important to initialize the values.
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
 	private float[] orientationValues = new float[] { 0, 0, 0 };
@@ -108,7 +104,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private double linearAccelerationMagnitude;
 
-	
 	/**** Rotation Matrix Calculation ****/
 	private float[] trueAcceleration = new float[4];
 	private float[] inclinationMatrix = new float[16];
@@ -138,7 +133,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 	// *****end*angles average
 
 	// -end--filters--
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -210,12 +204,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 		btnConnect.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				initializeBluetooth();
+				if (Constants.BT_MODULE_EXISTS)
+					initializeBluetooth();
+				else {
+					initViewsConnectedLinearAcceleration();
+					// no connection needed, end method here
+					return;
+				}
 			}
 		});
 
-		// Toast.makeText(getApplicationContext(), "Not connected",
-		// Toast.LENGTH_SHORT).show();
 		setStatus(R.string.title_not_connected);
 
 		if (mBluetoothAdapter == null) {
@@ -267,7 +265,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			@Override
 			public void onClick(View v) {
-				connectedThread.write(AlexMath.toByteArray(60));
+				if (Constants.BT_MODULE_EXISTS)
+					connectedThread.write(AlexMath.toByteArray(60));
+				else {
+
+				}
 			}
 		});
 
@@ -540,12 +542,22 @@ public class MainActivity extends Activity implements SensorEventListener {
 				csvFile = new CsvFileWriter();
 				checkBoxSaveToFile
 						.setText(R.string.checkBoxSaveToFileSavingMsg);
+				Toast.makeText(
+						this,
+						getString(R.string.checkBoxSaveToFileSavingMsg) + " "
+								+ csvFile.getCaptureFileName(),
+						Toast.LENGTH_SHORT).show();
 			} else {
 				if (csvFile != null) {
 					// Closing the captured file is as important as creating it.
 					csvFile.closeCaptureFile();
 					checkBoxSaveToFile
 							.setText(R.string.checkBoxSaveToFileInitialMsg);
+					Toast.makeText(
+							this,
+							getString(R.string.checkBoxSaveToFileStoppedMsg)
+									+ " " + csvFile.getCaptureFileName(),
+							Toast.LENGTH_SHORT).show();
 				}
 			}
 			break;
@@ -868,15 +880,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 				tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
 				tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
 				tvFinalValue.setText(Double
-						.toString((float)trueAccelerationMagnitude));
+						.toString((float) trueAccelerationMagnitude));
 
 				// set the value on to the SeekBar
 				xAxisSeekBar.setProgress((int) (trueAcceleration[0] + 10f));
 				yAxisSeekBar.setProgress((int) (trueAcceleration[1] + 10f));
 				zAxisSeekBar.setProgress((int) (trueAcceleration[2] + 10f));
 
-				finalSeekBar
-						.setProgress((int) (trueAccelerationMagnitude));
+				finalSeekBar.setProgress((int) (trueAccelerationMagnitude));
 
 				// If check box for saving the file has been checked.
 				if (saveToFileChecked) {

@@ -3,12 +3,15 @@ package com.vahid.accelerometer.util;
 import java.util.UUID;
 
 public class Constants {
+	// Debug related constants
 	public static boolean DEBUG = true;
-	public static boolean BT_MODULE_EXISTS = true;
 	public static String LOG_TAG = "Debugging Tag";
+	// Used in cases of no BT module
+	public static boolean BT_MODULE_EXISTS = false;
 
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
-
+	
+	// Settings related constants
 	public static float precision = (float) 0.9;
 	public static long marginMilliseconds = 300;
 	public static boolean manualGravity = false;
@@ -17,22 +20,18 @@ public class Constants {
 												// braking or accelerating) (=0
 												// by the moment)
 
-	// ****** Bluetooth ****
-	
+	/****  Bluetooth related fields  ****/
 	// MY_UUID is the app's UUID string, also used by the server code?
 	public static final UUID MY_UUID = UUID
 			.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
 	// public static final UUID MY_UUID = UUID
 	// .fromString("00001105-0000-1000-8000-00805F9B34FB");
 
-	/**** handler section ****/
+	/****  Handler Section  ****/
 	// Constants that indicate the current connection state
 	public static final int STATE_DISCONNECTED = 0; // we're doing nothing
 	public static final int STATE_CONNECTING = 1;// initiating an outgoing connection
 	public static final int STATE_CONNECTED = 2; // connected to a remote device
-
-	
-	// ******end Bluetooth***
 
 	
 	
