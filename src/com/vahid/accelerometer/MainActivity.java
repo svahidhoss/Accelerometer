@@ -577,6 +577,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	}
 
+	// Don't block the onSensorChanged() method
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		// synchronized (this) {
