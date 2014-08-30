@@ -258,7 +258,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		initializeSensors();
 		registerSensors();
 
-		// TODO ?
+		// TODO what does it do?
 		buttonCheck = (Button) findViewById(R.id.buttonCheck);
 		buttonCheck.setOnClickListener(new OnClickListener() {
 
@@ -475,14 +475,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// mSensorManager.registerListener(this, mAccelerometer,
 		// delayRates[curDelayRate]);
 
-		 mSensorManager.registerListener(this, mOrientation,
-		 delayRates[curDelayRate]);
+		// mSensorManager.registerListener(this, mOrientation,
+		// delayRates[curDelayRate]);
 
-//		mSensorManager.registerListener(this, mMagneticField,
-//				delayRates[curDelayRate]);
-//		mSensorManager.registerListener(this, mGravity,
-//				delayRates[curDelayRate]);
-
+		mSensorManager.registerListener(this, mMagneticField,
+				delayRates[curDelayRate]);
+		mSensorManager.registerListener(this, mGravity,
+				delayRates[curDelayRate]);
 		mSensorManager.registerListener(this, mLinearAcceleration,
 				delayRates[curDelayRate]);
 
@@ -580,29 +579,31 @@ public class MainActivity extends Activity implements SensorEventListener {
 	// Don't block the onSensorChanged() method
 	@Override
 	public void onSensorChanged(SensorEvent event) {
+		// discard if values are unreliable
+		if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE)
+			return;
 		// synchronized (this) {
 		switch (event.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
 			// getAccelerometer(event);
 			break;
 		case Sensor.TYPE_ORIENTATION:
-			 getOrientation(event);
+			// getOrientation(event);
 			break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
-//			getLinearAcceleration2(event);
+			getLinearAcceleration2(event);
 			// getLinearAcceleration(event);
-			 getAccelerometer(event);
+			// getAccelerometer(event);
 
 			break;
 		case Sensor.TYPE_GRAVITY:
-//			getLinearAcceleration2(event);
+			getLinearAcceleration2(event);
 			// getGravity(event);
 
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-//			getLinearAcceleration2(event);
+			getLinearAcceleration2(event);
 			// getMagneticField(event);
-
 			break;
 		default:
 			break;
@@ -886,11 +887,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 						.getVectorMagnitude(linearAccelerationValues);
 				trueAccelerationMagnitude = AlexMath
 						.getVectorMagnitude(trueAcceleration);
-				
+
 				tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
 				tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
 				tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
-				tvFinalValue.setText((AlexMath.round(trueAccelerationMagnitude, 10)));
+				tvFinalValue.setText((AlexMath.round(trueAccelerationMagnitude,
+						10)));
 
 				// set the value on to the SeekBar
 				xAxisSeekBar.setProgress((int) (trueAcceleration[0] + 10f));
