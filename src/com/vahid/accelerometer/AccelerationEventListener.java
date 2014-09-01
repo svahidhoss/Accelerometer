@@ -48,9 +48,9 @@ public class AccelerationEventListener implements SensorEventListener {
 	private CsvFileWriter csvFile;
 
 
-	public AccelerationEventListener(CsvFileWriter csvFile, Handler mHandler) {
+
+	public AccelerationEventListener(Handler mHandler) {
 		// TODO Auto-generated constructor stub
-		this.csvFile = csvFile;
 		this.mHandler = mHandler;
 	}
 
@@ -275,7 +275,7 @@ public class AccelerationEventListener implements SensorEventListener {
 						.getVectorMagnitude(trueAcceleration);
 				
 				// If check box for saving the file has been checked.
-				if (savingToFile) {
+				if (savingToFile && csvFile != null) {
 					// write the values of the linear acceleration
 					csvFile.writeToFile(linearAccelerationValues);
 					csvFile.writeToFile((float) linearAccelerationMagnitude,
@@ -447,6 +447,10 @@ public class AccelerationEventListener implements SensorEventListener {
 
 	public void disableSaveToFile() {
 		this.savingToFile = false;
+	}
+	
+	public void setCsvFile(CsvFileWriter csvFile) {
+		this.csvFile = csvFile;
 	}
 
 }

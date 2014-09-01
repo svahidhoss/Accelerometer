@@ -250,7 +250,7 @@ public class MainActivity extends Activity {
 		// we are ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		accelerationEventListener = new AccelerationEventListener(csvFile, mHandler);
+		accelerationEventListener = new AccelerationEventListener(mHandler);
 		accelerationEventListener.initializeSensors(mSensorManager);
 		accelerationEventListener.registerSensors(currentDelayRate);
 
@@ -294,7 +294,7 @@ public class MainActivity extends Activity {
 		// we are ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		accelerationEventListener = new AccelerationEventListener(csvFile, mHandler);
+		accelerationEventListener = new AccelerationEventListener(mHandler);
 		accelerationEventListener.initializeSensors(mSensorManager);
 		accelerationEventListener.registerSensors(currentDelayRate);
 
@@ -486,10 +486,11 @@ public class MainActivity extends Activity {
 		// Check which checkbox was clicked
 		switch (view.getId()) {
 		case R.id.checkBoxSaveToFile:
-			accelerationEventListener.enableSaveToFile();
 			// open the file if set true, otherwise close it.
 			if (checked) {
 				csvFile = new CsvFileWriter();
+				accelerationEventListener.enableSaveToFile();
+				accelerationEventListener.setCsvFile(csvFile);
 				checkBoxSaveToFile
 						.setText(R.string.checkBoxSaveToFileSavingMsg);
 				Toast.makeText(
@@ -500,6 +501,7 @@ public class MainActivity extends Activity {
 			} else {
 				if (csvFile != null) {
 					// Closing the captured file is as important as creating it.
+					accelerationEventListener.disableSaveToFile();
 					csvFile.closeCaptureFile();
 					checkBoxSaveToFile
 							.setText(R.string.checkBoxSaveToFileInitialMsg);
