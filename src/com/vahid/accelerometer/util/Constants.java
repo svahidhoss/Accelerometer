@@ -31,7 +31,8 @@ public class Constants {
 	public static final int STATE_DISCONNECTED = 0; // we're doing nothing
 	public static final int STATE_CONNECTING = 1;// initiating an outgoing connection
 	public static final int STATE_CONNECTED = 2; // connected to a remote device
-
+	
+	public static final int ACCEL_VALUE_MSG = 3; // connected to a remote device
 	
 	
 	// ****calculate angles average

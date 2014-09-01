@@ -1,6 +1,5 @@
 package com.vahid.accelerometer;
 
-import java.util.Arrays;
 import java.util.Calendar;
 
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
@@ -21,16 +20,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,15 +34,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class MainActivity extends Activity implements SensorEventListener {
+public class MainActivity extends Activity {
 
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int REQUEST_CONNECT_DEVICE = 2;
@@ -72,7 +63,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private Button btnConnect, buttonCheck;
 	private TextView tvState, tvLASCapturedState;
 	private MenuItem miSearchOption;
-	// Connected view
+	// Connected views
 	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar, finalSeekBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	/* the Spinner component for delay rate */
@@ -80,22 +71,23 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private CheckBox checkBoxSaveToFile;
 
 	// save to file view fields
-	private boolean saveToFileChecked = false;
+	// private boolean saveToFileChecked = false;
 	private CsvFileWriter csvFile;
 
 	/**** Sensor related Fields ****/
-	private SensorManager mSensorManager;
-	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
-			mMagneticField;
+	// private SensorManager mSensorManager;
+	private AccelerationEventListener accelerationEventListener;
+
 	// Sensor Accelerometer Rates
 	private static final int delayRates[] = {
 			SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
 			SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_FASTEST };
-	private static final String delayRatesDescription[] = { "Normal", "UI",
-			"Game", "Fastest" };
-	private int curDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
+	private static final String delayRatesDescription[] = {
+			"Normal 200,000 ms", "UI 60,000 ms", "Game 20,000 ms",
+			"Fastest 0 ms" };
+	private int currentDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
-	// it's important to initialize the values.
+	// Sensor Values: it's important to initialize them.
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
 	private float[] orientationValues = new float[] { 0, 0, 0 };
 	private float[] linearAccelerationValues = new float[] { 0, 0, 0 };
@@ -104,7 +96,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	private double linearAccelerationMagnitude;
 
-	/**** Rotation Matrix Calculation ****/
+	// Rotation Matrix Calculation
 	private float[] trueAcceleration = new float[4];
 	private float[] inclinationMatrix = new float[16];
 	private float[] rotationMatrix = new float[16];
@@ -231,7 +223,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}
 		}
 
-		unregisterSensors();
+		if (accelerationEventListener != null) {
+			accelerationEventListener.unregisterSensors();
+		}
 	}
 
 	/**
@@ -255,10 +249,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// we are ready to use the sensor and send the information of the
 		// brakes, so...
-		initializeSensors();
-		registerSensors();
+		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+		accelerationEventListener = new AccelerationEventListener(csvFile, mHandler);
+		accelerationEventListener.initializeSensors(mSensorManager);
+		accelerationEventListener.registerSensors(currentDelayRate);
 
-		// TODO ?
+		// TODO what is this really doing?
 		buttonCheck = (Button) findViewById(R.id.buttonCheck);
 		buttonCheck.setOnClickListener(new OnClickListener() {
 
@@ -297,8 +293,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		// we are ready to use the sensor and send the information of the
 		// brakes, so...
-		initializeSensors();
-		registerSensors();
+		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+		accelerationEventListener = new AccelerationEventListener(csvFile, mHandler);
+		accelerationEventListener.initializeSensors(mSensorManager);
+		accelerationEventListener.registerSensors(currentDelayRate);
 
 		// retrieve all the needed components
 		xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar);
@@ -313,41 +311,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
-		// populate the spinner
-		delayRateChooser = (Spinner) findViewById(R.id.delayRateChooser);
-		ArrayAdapter<?> adapter = ArrayAdapter.createFromResource(this,
-				R.array.delay_rates, android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		delayRateChooser.setAdapter(adapter);
-
-		// set the action to perform when an item is selected
-		delayRateChooser
-				.setOnItemSelectedListener(new OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> parentView,
-							View selectedItemView, int position, long id) {
-						if (curDelayRate != position) {
-							curDelayRate = position;
-							registerSensors();
-							// show a toast message
-							/*
-							 * toastObject = Toast.makeText(
-							 * AccelerometerInfoActivity.this,
-							 * "Delay rate changed to '" +
-							 * delayRatesDescription[position] + "' mode",
-							 * Toast.LENGTH_SHORT);
-							 * toastObject.setGravity(Gravity.CENTER_VERTICAL |
-							 * Gravity.BOTTOM, 0, 0); toastObject.show();
-							 */
-						}
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> parentView) {
-						// DO NOTHING
-					}
-				});
-
+		// populate the delay rate spinner
+		populateDelayRateSpinner();
 	}
 
 	/**
@@ -442,78 +407,15 @@ public class MainActivity extends Activity implements SensorEventListener {
 	}
 
 	/**
-	 * Method that initializes the sensors, after we're connected to the server.
-	 */
-	private void initializeSensors() {
-
-		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
-		mAccelerometer = mSensorManager
-				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		// it is deprecated, but it works.
-		mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-
-		mLinearAcceleration = mSensorManager
-				.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-		mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
-		mMagneticField = mSensorManager
-				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
-		if (Constants.DEBUG)
-			Log.d(Constants.LOG_TAG, "Sensors initialized");
-
-	}
-
-	/**
-	 * Register this class as sensor listener with the current delay rate.
-	 */
-	public void registerSensors() {
-		mSensorManager.unregisterListener(this);
-
-		// TODO change this
-
-		// mSensorManager.registerListener(this, mAccelerometer,
-		// delayRates[curDelayRate]);
-
-		 mSensorManager.registerListener(this, mOrientation,
-		 delayRates[curDelayRate]);
-
-//		mSensorManager.registerListener(this, mMagneticField,
-//				delayRates[curDelayRate]);
-//		mSensorManager.registerListener(this, mGravity,
-//				delayRates[curDelayRate]);
-
-		mSensorManager.registerListener(this, mLinearAcceleration,
-				delayRates[curDelayRate]);
-
-		if (Constants.DEBUG)
-			Log.d(Constants.LOG_TAG, "sensors registered");
-	}
-
-	/**
-	 * Unregisters the sensors on this activity.
-	 */
-	private void unregisterSensors() {
-		try {
-			// Be sure that this work in wake_lock (permission to work with
-			// screen off)
-			if (mSensorManager != null)
-				mSensorManager.unregisterListener(this);
-			if (Constants.DEBUG)
-				Log.d(Constants.LOG_TAG, "sensor unregistered");
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-	}
-
-	/**
 	 * Method that stops everything.
 	 */
 	private void finilizeAll() {
 		initViewsNotConnected(); // #check, ... I put this here because when the
 		// orientation changes, the Activity is destroyed, so
 		// the device is disconnecting automatically
-		unregisterSensors();
+		if (accelerationEventListener != null) {
+			accelerationEventListener.unregisterSensors();
+		}
 		// disconnect the thread first
 		if (connectedThread != null) {
 			connectThread.cancel();
@@ -532,6 +434,46 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 	}
 
+	private void populateDelayRateSpinner() {
+		delayRateChooser = (Spinner) findViewById(R.id.delayRateChooser);
+		ArrayAdapter<?> adapter = ArrayAdapter.createFromResource(this,
+				R.array.delay_rates, android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		delayRateChooser.setAdapter(adapter);
+
+		// set the action to perform when an item is selected
+		delayRateChooser
+				.setOnItemSelectedListener(new OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> parentView,
+							View selectedItemView, int position, long id) {
+						if (currentDelayRate != position) {
+							currentDelayRate = position;
+							if (accelerationEventListener != null) {
+								accelerationEventListener
+										.registerSensors(currentDelayRate);
+							}
+							// show a toast message
+							/*
+							 * toastObject = Toast.makeText(
+							 * AccelerometerInfoActivity.this,
+							 * "Delay rate changed to '" +
+							 * delayRatesDescription[position] + "' mode",
+							 * Toast.LENGTH_SHORT);
+							 * toastObject.setGravity(Gravity.CENTER_VERTICAL |
+							 * Gravity.BOTTOM, 0, 0); toastObject.show();
+							 */
+						}
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> parentView) {
+						// DO NOTHING
+					}
+				});
+
+	}
+
 	/**
 	 * Manages all the check boxes of this Activity.
 	 * 
@@ -544,7 +486,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		// Check which checkbox was clicked
 		switch (view.getId()) {
 		case R.id.checkBoxSaveToFile:
-			saveToFileChecked = checked;
+			accelerationEventListener.enableSaveToFile();
 			// open the file if set true, otherwise close it.
 			if (checked) {
 				csvFile = new CsvFileWriter();
@@ -570,45 +512,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 			}
 			break;
 		}
-	}
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-	}
-
-	// Don't block the onSensorChanged() method
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		// synchronized (this) {
-		switch (event.sensor.getType()) {
-		case Sensor.TYPE_ACCELEROMETER:
-			// getAccelerometer(event);
-			break;
-		case Sensor.TYPE_ORIENTATION:
-			 getOrientation(event);
-			break;
-		case Sensor.TYPE_LINEAR_ACCELERATION:
-//			getLinearAcceleration2(event);
-			// getLinearAcceleration(event);
-			 getAccelerometer(event);
-
-			break;
-		case Sensor.TYPE_GRAVITY:
-//			getLinearAcceleration2(event);
-			// getGravity(event);
-
-			break;
-		case Sensor.TYPE_MAGNETIC_FIELD:
-//			getLinearAcceleration2(event);
-			// getMagneticField(event);
-
-			break;
-		default:
-			break;
-		}
-
-		// } //fin del syncronized this. //#check?
 	}
 
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -649,7 +552,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 		@Override
 		public void handleMessage(Message msg) {
 			currentState = msg.what;
-			if (msg.what == Constants.STATE_CONNECTED) {
+
+			switch (msg.what) {
+			case Constants.STATE_CONNECTED:
 				// TODO change later
 				initViewsConnectedLinearAcceleration();
 				// initViewsConnected();
@@ -659,17 +564,38 @@ public class MainActivity extends Activity implements SensorEventListener {
 					miSearchOption.setIcon(R.drawable.menu_disconnect_icon);
 					miSearchOption.setTitle(R.string.disconnect);
 				}
-			} else if (msg.what == Constants.STATE_CONNECTING) {
+				break;
+			case Constants.STATE_CONNECTING:
 				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
 				tvState.setText(R.string.title_connecting);
 				setStatus(R.string.title_connecting);
-			} else if (msg.what == Constants.STATE_DISCONNECTED) {
+				break;
+			case Constants.STATE_DISCONNECTED:
 				Toast.makeText(getApplicationContext(),
 						getString(R.string.msgUnableToConnect),
 						Toast.LENGTH_SHORT).show();
 				initViewsNotConnected();
 				miSearchOption.setIcon(R.drawable.menu_connect_icon);
 				miSearchOption.setTitle(R.string.connect);
+				break;
+			case Constants.ACCEL_VALUE_MSG:
+				linearAccelerationValues = (float[]) msg.obj;
+				linearAccelerationMagnitude = AlexMath
+						.getVectorMagnitude(linearAccelerationValues);
+				// set the value as the text of every TextView
+				tvXAxisValue.setText(Float.toString(linearAccelerationValues[0]));
+				tvYAxisValue.setText(Float.toString(linearAccelerationValues[1]));
+				tvZAxisValue.setText(Float.toString(linearAccelerationValues[2]));
+				tvFinalValue.setText(AlexMath.round(linearAccelerationMagnitude,10));
+
+				// set the value on to the SeekBar
+				xAxisSeekBar.setProgress((int) (linearAccelerationValues[0] + 10f));
+				yAxisSeekBar.setProgress((int) (linearAccelerationValues[1] + 10f));
+				zAxisSeekBar.setProgress((int) (linearAccelerationValues[2] + 10f));
+				finalSeekBar.setProgress((int) (trueAccelerationMagnitude + 10f));
+				break;
+			default:
+				break;
 			}
 		}
 	};
@@ -722,6 +648,49 @@ public class MainActivity extends Activity implements SensorEventListener {
 		alertDialog.show();
 	}
 
+	private void writeToBluetoothDevice(double magnitude) {
+		// ****writing also the module when brake is real.
+		double moduleReal;
+		if (breakReal) {
+			moduleReal = magnitude;
+		} else {
+			moduleReal = 0;
+
+		}
+
+		// ---with the idea of write this data and send by bluetooth,
+		// first it's necessary to covert them to byte...
+		byte[] x = AlexMath.toByteArray(acceleromterValues[0]);
+		byte[] y = AlexMath.toByteArray(acceleromterValues[1]);
+		byte[] z = AlexMath.toByteArray(acceleromterValues[2]);
+		byte[] mod_byte = AlexMath.toByteArray(magnitude);
+		byte[] xyz_and_Mod = new byte[8 * 4];
+
+		xyz_and_Mod = AlexMath.concatenateBytes(
+				AlexMath.concatenateBytes(AlexMath.concatenateBytes(x, y), z),
+				mod_byte);
+		// ---
+
+		byte[] moduleRealByte = AlexMath.toByteArray(moduleReal);
+		byte[] all = new byte[8 * 4 + 8];
+		all = AlexMath.concatenateBytes(xyz_and_Mod, moduleRealByte);
+
+		connectedThread.write(all);
+		// ********write angles
+		/*
+		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =
+		 * mmath.toByteArray(orientationValues[1]); byte[] roll =
+		 * mmath.toByteArray(orientationValues[2]); byte[] anglesByte =
+		 * mmath.concatenateBytes(mmath.concatenateBytes(az, pitch), roll);
+		 * 
+		 * connected.write(mmath.concatenateBytes(anglesByte, mod_byte));
+		 */
+		// /****end write angles
+
+		// *****end***writing also the module when brake is real.
+
+	}
+
 	/**
 	 * Using the following function of "clicking TWICE the back button to exit
 	 * app" has been implemented.
@@ -765,381 +734,4 @@ public class MainActivity extends Activity implements SensorEventListener {
 		actionBar.setSubtitle(resourceId);
 	}
 
-	/**
-	 * 
-	 * 
-	 * @param linearAccelerationEvent
-	 */
-	private void getLinearAcceleration(SensorEvent linearAccelerationEvent) {
-		// A three dimensional vector indicating acceleration along each device
-		// axis, not including gravity. All values have units of m/s^2. The
-		// coordinate system is the same as is used by the acceleration sensor.
-		// The
-		// output of the accelerometer, gravity and linear-acceleration sensors
-		// must
-		// obey the following relation:
-		//
-		//
-		// acceleration = gravity + linear-acceleration
-		linearAccelerationValues = linearAccelerationEvent.values;
-
-		/*
-		 * String linearAccelerations = "Linear Acceleration on the x-axis: " +
-		 * linearAccelerationEvent.values[0] +
-		 * "\nLinear Acceleration on the y-axis  " +
-		 * linearAccelerationEvent.values[1] +
-		 * "\nLinear Acceleration on the z-axis " +
-		 * linearAccelerationEvent.values[2];
-		 * 
-		 * tvLASCapturedState.setText(linearAccelerations);
-		 */
-		// its is enough because you all the acceleration on phone is due to
-		// car.If possible apply low pass filter to remove changes due to road
-		// bumps .
-		linearAccelerationMagnitude = AlexMath
-				.getVectorMagnitude(linearAccelerationValues);
-
-		// set the value as the text of every TextView
-		tvXAxisValue.setText(Float.toString(linearAccelerationValues[0]));
-		tvYAxisValue.setText(Float.toString(linearAccelerationValues[1]));
-		tvZAxisValue.setText(Float.toString(linearAccelerationValues[2]));
-		tvFinalValue.setText(Double.toString(linearAccelerationMagnitude));
-
-		// If check box for saving the file has been checked.
-		if (saveToFileChecked) {
-			csvFile.writeToFile(linearAccelerationValues);
-			csvFile.writeToFile((float) linearAccelerationMagnitude, true);
-		}
-
-		// set the value on to the SeekBar
-		xAxisSeekBar.setProgress((int) (linearAccelerationValues[0] + 10f));
-		yAxisSeekBar.setProgress((int) (linearAccelerationValues[1] + 10f));
-		zAxisSeekBar.setProgress((int) (linearAccelerationValues[2] + 10f));
-
-		finalSeekBar.setProgress((int) (linearAccelerationValues[2]));
-
-	}
-
-	private void getLinearAcceleration2(SensorEvent event) {
-		if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION)
-			linearAccelerationValues = event.values;
-
-		if (event.sensor.getType() == Sensor.TYPE_GRAVITY)
-			gravityValues = event.values;
-
-		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
-			magneticValues = event.values;
-
-		if (gravityValues != null && magneticValues != null) {
-			boolean allGood = SensorManager.getRotationMatrix(rotationMatrix,
-					inclinationMatrix, gravityValues, magneticValues);
-
-			if (allGood && linearAccelerationValues != null) {
-				/*
-				 * float orientation[] = new float[3];
-				 * SensorManager.getOrientation(R, orientation);
-				 */
-
-				float[] linearAccelerationValuesNew = {
-						linearAccelerationValues[0],
-						linearAccelerationValues[1],
-						linearAccelerationValues[2], 0 };
-
-				Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
-				Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse,
-						0, linearAccelerationValuesNew, 0);
-
-				// This is Magnetic North in Radians
-				// bearing = orientation[0];
-
-				// ATTENTION: The Bearing will change based on Screen
-				// Orientation!!!
-				// Tilt your device and see what I mean ...see?
-				// Outside the scope of this sample, but easy to compensated
-				// for.
-
-				// Convert to degrees & 360 span (feel like I'm in Trig class
-				// with Radians)
-				// bearing = ((float) Math.toDegrees(bearing) + 360) % 360;
-
-				// if you need True North enable the lines below and you'll need
-				// GPS
-				// Lat, Lng, Alt for it to work though. It will give you a value
-				// in degrees
-				// you'll need to subtract from Magnetic North. And, once again
-				// Modulus to 360.
-				// GeomagneticField geoField = new GeomagneticField(
-				// (float) currentLatLng.latitude,
-				// (float) currentLatLng.longitude,
-				// (float) currentAlt,
-				// System.currentTimeMillis());
-				// trueBearing = bearing - geoField.getDeclination();
-				// trueBearing = (trueBearing + 360) % 360
-
-				// Update GUI (in degrees 0.f-360.f)
-				/*
-				 * currentBearing.setText(Float.toString(bearing)+ "\n" +
-				 * Float.toString(orientation[1]) + "\n" +
-				 * Float.toString(orientation[2]) + "\n");
-				 */
-				linearAccelerationMagnitude = AlexMath
-						.getVectorMagnitude(linearAccelerationValues);
-				trueAccelerationMagnitude = AlexMath
-						.getVectorMagnitude(trueAcceleration);
-				
-				tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
-				tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
-				tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
-				tvFinalValue.setText((AlexMath.round(trueAccelerationMagnitude, 10)));
-
-				// set the value on to the SeekBar
-				xAxisSeekBar.setProgress((int) (trueAcceleration[0] + 10f));
-				yAxisSeekBar.setProgress((int) (trueAcceleration[1] + 10f));
-				zAxisSeekBar.setProgress((int) (trueAcceleration[2] + 10f));
-
-				finalSeekBar
-						.setProgress((int) (trueAccelerationMagnitude + 10f));
-
-				// If check box for saving the file has been checked.
-				if (saveToFileChecked) {
-					// write the values of the linear acceleration
-					csvFile.writeToFile(linearAccelerationValues);
-					csvFile.writeToFile((float) linearAccelerationMagnitude,
-							false);
-					// write the values of the true acceleration
-					csvFile.writeToFile(Arrays.copyOfRange(trueAcceleration, 0,
-							trueAcceleration.length - 1));
-					csvFile.writeToFile((float) trueAccelerationMagnitude, true);
-				}
-
-			}
-		}
-	}
-
-	private void getMagneticField(SensorEvent event) {
-		magneticValues = event.values;
-	}
-
-	private void getGravity(SensorEvent event) {
-		gravityValues = event.values;
-	}
-
-	private void getAccelerometer(SensorEvent event) {
-		acceleromterValues = event.values;
-
-		// not needed if linear acceleration is used.
-		// acceleromterValues = AlexMath.cancelGravity(acceleromterValues,
-		// orientationValues); // the sensor doesn't erase the
-		// gravity by itself
-		// for that exists other sensor:
-		// LINEAR_ACCELERATION, but is not
-		// very typical to have it.
-
-		/*
-		 * we don't need to cancel the gravity, because we are going to use the
-		 * axes x0,y0,z0, in which angles the gravity are all it in z0
-		 */// but we do... the results appears to be better.
-
-		acceleromterValues = AlexMath.convertReference(acceleromterValues,
-				orientationValues);
-
-		linearAccelerationMagnitude = AlexMath
-				.getVectorMagnitude(acceleromterValues);
-
-		// *******first filter of braking.
-
-		// *********braking????*********
-		boolean braking = false;
-		if (acceleromterValues[1] > 0
-				&& Math.abs(orientationValues[1]) < 90 + Constants.pitchPrecision) {
-			braking = true;
-		} else if (acceleromterValues[1] < 0
-				&& Math.abs(orientationValues[1]) > 90 + Constants.pitchPrecision) {
-			braking = true;
-		}
-
-		boolean accelerating = false;
-		if (acceleromterValues[1] < 0 && Math.abs(orientationValues[1]) < 90) {
-			accelerating = true;
-		} else if (acceleromterValues[1] > 0
-				&& Math.abs(orientationValues[1]) > 90) {
-			accelerating = true;
-		}
-		// ******end***braking?????****
-
-		// Braking is the boolean variable that defines the brake and the
-		// acceleration with the sign of y
-		if (linearAccelerationMagnitude > Constants.accelerationPrecision
-				&& braking) {
-			RelativeLayout background = (RelativeLayout) findViewById(R.id.activity_main_connected);
-			background.setBackgroundResource(R.color.dark_red);
-
-			if (breakOn == false) {
-				breakOn = true;
-				breakReal = false;
-				breakInitializedTime = Calendar.getInstance();
-
-			} else {
-				if (Calendar.getInstance().getTimeInMillis()
-						- breakInitializedTime.getTimeInMillis() > Constants.marginMilliseconds) {
-					breakReal = true;
-					try {
-						// connected.write((int) (10*module));
-						// connected.write(mmath.toByteArray(module));
-
-					} catch (Exception e) {
-						Toast.makeText(getApplicationContext(),
-								"error writting", Toast.LENGTH_SHORT).show();
-					}
-					TextView tvaux = (TextView) findViewById(R.id.textViewMain);
-					tvaux.setText(""
-							+ AlexMath.round(linearAccelerationMagnitude, 1));
-					ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
-					progress.setProgress((int) linearAccelerationMagnitude);
-
-				} else {
-					breakReal = false;
-				}
-
-			}
-
-		}// end break starts
-		else {
-			// *****
-			TextView tvaux = (TextView) findViewById(R.id.textViewMain);
-			tvaux.setText("");
-			// --
-			ProgressBar progress = (ProgressBar) findViewById(R.id.seekBar1);
-			progress.setProgress((int) (0));
-			// *****
-			breakReal = false;
-			breakOn = false;
-			RelativeLayout backg = (RelativeLayout) findViewById(R.id.activity_main_connected);
-			// if (acceleromterValues[1]<0 &&
-			// module>Constant.precision){
-			if (accelerating
-					&& linearAccelerationMagnitude > Constants.accelerationPrecision) {
-				backg.setBackgroundResource(R.color.dark_green);
-			} else {
-				backg.setBackgroundColor(Color.WHITE);
-
-			}
-
-		}// end 'end brake'
-
-		// ******end the first filter to brakings
-
-		/**
-		 * ******WRITE TO DE BLUETOOTH DEVICE*********
-		 */
-		if (Constants.BT_MODULE_EXISTS) {
-			writeToBluetoothDevice(linearAccelerationMagnitude);
-		}
-
-	}
-
-	private void getOrientation(SensorEvent event) {
-		if (Constants.DEBUG)
-			Log.d(Constants.LOG_TAG, "copy Orientation");
-
-		// see the values in phone screen (debug)
-		String angles = "azimuth: " + AlexMath.round(event.values[0], 3)
-				+ "\npitch:     " + AlexMath.round(event.values[1], 3)
-				+ "\nroll:       " + AlexMath.round(event.values[2], 3);
-		TextView tv = (TextView) findViewById(R.id.textViewConnected);
-		tv.setText(angles);
-
-		if (onAngles == false) {
-			orientationValues = event.values.clone();
-			orientationValuesEarlier = event.values.clone();
-			onAngles = true;
-		}
-		orientationValues[0] = event.values[0];
-
-		// ****calculate angles average
-
-		float delta1 = event.values[1] - orientationValuesEarlier[1];
-		float delta2 = event.values[2] - orientationValuesEarlier[2];
-		float delta = Math.max(delta1, delta2);
-
-		// .1
-		if (delta < Constants.delta && noise == false) {
-			sum_angles1 = sum_angles1 + event.values[1];
-			sum_angles2 = sum_angles2 + event.values[2];
-			n++;
-			orientationValues[1] = (float) sum_angles1 / n;
-			orientationValues[2] = (float) sum_angles2 / n;
-			if (n == Constants.nIter) {
-
-				sum_angles1 = event.values[1];
-				sum_angles2 = event.values[2];
-				n = 1;
-			}
-		} else if (delta > Constants.delta) {
-
-			noise = true;
-			sum_angles1_aux = 0;
-			n = 0;
-		} else if (delta < Constants.delta && noise == true) {
-			sum_angles1_aux = sum_angles1_aux + event.values[1];
-			sum_angles2_aux = sum_angles2_aux + event.values[2];
-			n++;
-			if (n == Constants.nIter) {
-				orientationValues[1] = (float) sum_angles1_aux / n;
-				orientationValues[2] = (float) sum_angles2_aux / n;
-
-				sum_angles1 = event.values[1];
-				sum_angles2 = event.values[2];
-				n = 1;
-				noise = false;
-			}
-		}
-
-		// .2
-		// ****end***calculate angles average
-		orientationValuesEarlier = event.values.clone();
-	}// end case sensor Orientation
-
-	private void writeToBluetoothDevice(double magnitude) {
-		// ****writing also the module when brake is real.
-		double moduleReal;
-		if (breakReal) {
-			moduleReal = magnitude;
-		} else {
-			moduleReal = 0;
-
-		}
-
-		// ---with the idea of write this data and send by bluetooth,
-		// first it's necessary to covert them to byte...
-		byte[] x = AlexMath.toByteArray(acceleromterValues[0]);
-		byte[] y = AlexMath.toByteArray(acceleromterValues[1]);
-		byte[] z = AlexMath.toByteArray(acceleromterValues[2]);
-		byte[] mod_byte = AlexMath.toByteArray(magnitude);
-		byte[] xyz_and_Mod = new byte[8 * 4];
-
-		xyz_and_Mod = AlexMath.concatenateBytes(
-				AlexMath.concatenateBytes(AlexMath.concatenateBytes(x, y), z),
-				mod_byte);
-		// ---
-
-		byte[] moduleRealByte = AlexMath.toByteArray(moduleReal);
-		byte[] all = new byte[8 * 4 + 8];
-		all = AlexMath.concatenateBytes(xyz_and_Mod, moduleRealByte);
-
-		connectedThread.write(all);
-		// ********write angles
-		/*
-		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =
-		 * mmath.toByteArray(orientationValues[1]); byte[] roll =
-		 * mmath.toByteArray(orientationValues[2]); byte[] anglesByte =
-		 * mmath.concatenateBytes(mmath.concatenateBytes(az, pitch), roll);
-		 * 
-		 * connected.write(mmath.concatenateBytes(anglesByte, mod_byte));
-		 */
-		// /****end write angles
-
-		// *****end***writing also the module when brake is real.
-
-	}
 }

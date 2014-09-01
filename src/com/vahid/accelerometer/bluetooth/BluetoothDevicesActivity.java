@@ -1,15 +1,9 @@
 package com.vahid.accelerometer.bluetooth;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.vahid.accelerometer.R;
-import com.vahid.accelerometer.R.id;
-import com.vahid.accelerometer.R.layout;
-import com.vahid.accelerometer.R.menu;
-import com.vahid.accelerometer.R.string;
 import com.vahid.accelerometer.util.Constants;
 
 import android.app.Activity;
