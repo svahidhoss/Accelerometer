@@ -8,6 +8,7 @@ import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.util.AlexMath;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
+import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -21,6 +22,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -73,6 +77,10 @@ public class MainActivity extends Activity {
 	// save to file view fields
 	// private boolean saveToFileChecked = false;
 	private CsvFileWriter csvFile;
+
+	/**** Location Related fields ****/
+	LocationListener myLocationListener;
+	LocationManager locationManager;
 
 	/**** Sensor related Fields ****/
 	// private SensorManager mSensorManager;
@@ -291,7 +299,17 @@ public class MainActivity extends Activity {
 
 		}
 
-		// we are ready to use the sensor and send the information of the
+		// we are ready
+		myLocationListener = new MyLocationListener(getApplicationContext());
+		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+				10000, 5, myLocationListener);
+		// ?
+		// provider = myLocationManager.getBestProvider(criteria, false);
+		// Location loc = myLocationManager
+		// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+		// we are also ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		accelerationEventListener = new AccelerationEventListener(mHandler);
@@ -585,16 +603,24 @@ public class MainActivity extends Activity {
 				linearAccelerationMagnitude = AlexMath
 						.getVectorMagnitude(linearAccelerationValues);
 				// set the value as the text of every TextView
-				tvXAxisValue.setText(Float.toString(linearAccelerationValues[0]));
-				tvYAxisValue.setText(Float.toString(linearAccelerationValues[1]));
-				tvZAxisValue.setText(Float.toString(linearAccelerationValues[2]));
-				tvFinalValue.setText(AlexMath.round(linearAccelerationMagnitude,10));
+				tvXAxisValue.setText(Float
+						.toString(linearAccelerationValues[0]));
+				tvYAxisValue.setText(Float
+						.toString(linearAccelerationValues[1]));
+				tvZAxisValue.setText(Float
+						.toString(linearAccelerationValues[2]));
+				tvFinalValue.setText(AlexMath.round(
+						linearAccelerationMagnitude, 10));
 
 				// set the value on to the SeekBar
-				xAxisSeekBar.setProgress((int) (linearAccelerationValues[0] + 10f));
-				yAxisSeekBar.setProgress((int) (linearAccelerationValues[1] + 10f));
-				zAxisSeekBar.setProgress((int) (linearAccelerationValues[2] + 10f));
-				finalSeekBar.setProgress((int) (trueAccelerationMagnitude + 10f));
+				xAxisSeekBar
+						.setProgress((int) (linearAccelerationValues[0] + 10f));
+				yAxisSeekBar
+						.setProgress((int) (linearAccelerationValues[1] + 10f));
+				zAxisSeekBar
+						.setProgress((int) (linearAccelerationValues[2] + 10f));
+				finalSeekBar
+						.setProgress((int) (trueAccelerationMagnitude + 10f));
 				break;
 			default:
 				break;
