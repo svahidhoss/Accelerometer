@@ -77,10 +77,12 @@ public class MainActivity extends Activity {
 	// save to file view fields
 	// private boolean saveToFileChecked = false;
 	private CsvFileWriter csvFile;
+	private CsvFileWriter csvLocationFile;
+
 
 	/**** Location Related fields ****/
-	LocationListener myLocationListener;
-	LocationManager locationManager;
+	private MyLocationListener myLocationListener;
+	private LocationManager locationManager;
 
 	/**** Sensor related Fields ****/
 	// private SensorManager mSensorManager;
@@ -450,6 +452,10 @@ public class MainActivity extends Activity {
 			csvFile.closeCaptureFile();
 			checkBoxSaveToFile.setText(R.string.checkBoxSaveToFileInitialMsg);
 		}
+		
+		if (csvLocationFile != null) {
+			csvLocationFile.closeCaptureFile();
+		}
 
 	}
 
@@ -517,6 +523,11 @@ public class MainActivity extends Activity {
 						getString(R.string.checkBoxSaveToFileSavingMsg) + " "
 								+ csvFile.getCaptureFileName(),
 						Toast.LENGTH_SHORT).show();
+				// TODO test saving the bearing.
+				csvLocationFile = new CsvFileWriter();
+				myLocationListener.enableSaveToFile();
+				myLocationListener.setCsvFile(csvLocationFile);
+
 			} else {
 				if (csvFile != null) {
 					// Closing the captured file is as important as creating it.
@@ -529,6 +540,11 @@ public class MainActivity extends Activity {
 							getString(R.string.checkBoxSaveToFileStoppedMsg)
 									+ " " + csvFile.getCaptureFileName(),
 							Toast.LENGTH_SHORT).show();
+				}
+				if (csvLocationFile != null) {
+					// Closing the captured file is as important as creating it.
+					myLocationListener.disableSaveToFile();
+					csvLocationFile.closeCaptureFile();
 				}
 			}
 			break;

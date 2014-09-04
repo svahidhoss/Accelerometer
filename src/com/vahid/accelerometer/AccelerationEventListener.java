@@ -5,6 +5,7 @@ import java.util.Arrays;
 import com.vahid.accelerometer.util.AlexMath;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
+import com.vahid.acceleromter.location.CSVListenerInterface;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -15,7 +16,7 @@ import android.os.Handler;
 import android.util.Log;
 
 
-public class AccelerationEventListener implements SensorEventListener {
+public class AccelerationEventListener implements SensorEventListener,CSVListenerInterface {
 
 	private Handler mHandler;
 	private static final int delayRates[] = {
@@ -183,7 +184,7 @@ public class AccelerationEventListener implements SensorEventListener {
 				.getVectorMagnitude(linearAccelerationValues);
 		
 		// If check box for saving the file has been checked.
-		if (savingToFile) {
+		if (savingToFile && csvFile != null) {
 			csvFile.writeToFile(linearAccelerationValues);
 			csvFile.writeToFile((float) linearAccelerationMagnitude, true);
 		}
@@ -441,14 +442,17 @@ public class AccelerationEventListener implements SensorEventListener {
 	 * // .2 // ****end***calculate angles average orientationValuesEarlier =
 	 * event.values.clone(); }// end case sensor Orientation
 	 */
+	@Override
 	public void enableSaveToFile() {
 		this.savingToFile = true;
 	}
-
+	
+	@Override
 	public void disableSaveToFile() {
 		this.savingToFile = false;
 	}
 	
+	@Override
 	public void setCsvFile(CsvFileWriter csvFile) {
 		this.csvFile = csvFile;
 	}

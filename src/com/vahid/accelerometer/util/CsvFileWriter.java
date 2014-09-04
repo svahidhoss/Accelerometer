@@ -11,6 +11,8 @@ import android.os.Environment;
 import android.util.Log;
 
 public class CsvFileWriter {
+	private static final String ACCEL_SENSOR = "accelerometer";
+	private static final String LOC_SENSOR = "location";
 	private static final String DIRECTORY_PATH = Environment
 			.getExternalStorageDirectory().getPath() + "/Sensors Capture";
 	private boolean captureState = true;
@@ -28,8 +30,8 @@ public class CsvFileWriter {
 		File captureFile = new File(DIRECTORY_PATH, captureFileName);
 		captureStateText = "Capture: " + captureFile.getAbsolutePath();
 		try {
-			captureFileWriter = new PrintWriter(
-					new FileWriter(captureFile, false));
+			captureFileWriter = new PrintWriter(new FileWriter(captureFile,
+					false));
 		} catch (IOException ex) {
 			if (Constants.DEBUG)
 				Log.e(Constants.LOG_TAG, ex.getMessage(), ex);
@@ -59,8 +61,10 @@ public class CsvFileWriter {
 	 * Method that writes the value of a sensor passed with constructor to the
 	 * file that has been created.
 	 * 
-	 * @param value float value to be written to the end of file.
-	 * @param endOfLine write an eol to the end of file if true.
+	 * @param value
+	 *            float value to be written to the end of file.
+	 * @param endOfLine
+	 *            write an eol to the end of file if true.
 	 * @return
 	 */
 	public boolean writeToFile(float value, boolean endOfLine) {
@@ -69,8 +73,30 @@ public class CsvFileWriter {
 			captureFileWriter.print(Float.toString(value));
 			if (endOfLine) {
 				captureFileWriter.println();
+			} else {
+				captureFileWriter.print(",");
 			}
-			else {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Method that writes the string passed to the file that has been created.
+	 * 
+	 * @param value
+	 *            float value to be written to the end of file.
+	 * @param endOfLine
+	 *            write an eol to the end of file if true.
+	 * @return
+	 */
+	public boolean writeToFile(String value, boolean endOfLine) {
+		if (captureFileWriter != null) {
+			captureFileWriter.print(",");
+			captureFileWriter.print(value);
+			if (endOfLine) {
+				captureFileWriter.println();
+			} else {
 				captureFileWriter.print(",");
 			}
 			return true;
@@ -121,7 +147,7 @@ public class CsvFileWriter {
 	public void setCaptureStateText(String captureStateText) {
 		this.captureStateText = captureStateText;
 	}
-	
+
 	public String getCaptureFileName() {
 		return captureFileName;
 	}

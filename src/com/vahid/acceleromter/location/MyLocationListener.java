@@ -1,8 +1,11 @@
 package com.vahid.acceleromter.location;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
 
 import android.content.Context;
@@ -12,7 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
 
-public class MyLocationListener implements LocationListener {
+public class MyLocationListener implements LocationListener,CSVListenerInterface {
 
 	private Context parentContext;
 	private Handler mHandler;
@@ -22,6 +25,10 @@ public class MyLocationListener implements LocationListener {
 	private MovingAverage latMovingAverage = new MovingAverage(5);
 	private MovingAverage longMovingAverage = new MovingAverage(5);
 	private float bearing;
+	
+	// save to file view fields
+	private boolean savingToFile = false;
+	private CsvFileWriter csvLocationFile;
 
 	public MyLocationListener(Context context, Handler mhHandler) {
 		parentContext = context;
@@ -39,6 +46,10 @@ public class MyLocationListener implements LocationListener {
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT)
 				.show();
 		bearing = location.getBearing();
+		if (savingToFile && csvLocationFile != null) {
+			csvLocationFile.writeToFile(bearing, false);
+			csvLocationFile.writeToFile(getDate(), true);
+		}
 		mHandler.obtainMessage(Constants.LOC_VALUE_MSG,
 				bearing).sendToTarget();
 //		latMovingAverage.pushValue(location.);
@@ -71,6 +82,28 @@ public class MyLocationListener implements LocationListener {
 	public void onProviderDisabled(String provider) {
 		Toast.makeText(parentContext, "Gps Disabled", Toast.LENGTH_SHORT)
 				.show();
+	}
+
+	@Override
+	public void enableSaveToFile() {
+		this.savingToFile = true;
+	}
+	
+	@Override
+	public void disableSaveToFile() {
+		this.savingToFile = false;
+	}
+	
+	@Override
+	public void setCsvFile(CsvFileWriter csvFile) {
+		this.csvLocationFile = csvFile;
+	}
+	
+	private String getDate() {
+		SimpleDateFormat formatter = new SimpleDateFormat(
+				"yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+		Date now = new Date();
+		return formatter.format(now);
 	}
 
 }
