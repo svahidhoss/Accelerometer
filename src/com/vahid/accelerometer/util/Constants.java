@@ -33,6 +33,7 @@ public class Constants {
 	public static final int STATE_CONNECTED = 2; // connected to a remote device
 	
 	public static final int ACCEL_VALUE_MSG = 3; // connected to a remote device
+	public static final int LOC_VALUE_MSG = 4; // connected to a remote device
 	
 	
 	// ****calculate angles average

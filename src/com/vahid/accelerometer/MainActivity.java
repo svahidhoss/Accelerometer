@@ -300,7 +300,8 @@ public class MainActivity extends Activity {
 		}
 
 		// we are ready
-		myLocationListener = new MyLocationListener(getApplicationContext());
+		myLocationListener = new MyLocationListener(getApplicationContext(),
+				mHandler);
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
 				10000, 5, myLocationListener);
@@ -569,6 +570,8 @@ public class MainActivity extends Activity {
 	 * This handler is used to enable communication with the threads.
 	 */
 	private final Handler mHandler = new Handler() {
+		private float bearingValue;
+
 		@Override
 		public void handleMessage(Message msg) {
 			currentState = msg.what;
@@ -621,6 +624,9 @@ public class MainActivity extends Activity {
 						.setProgress((int) (linearAccelerationValues[2] + 10f));
 				finalSeekBar
 						.setProgress((int) (trueAccelerationMagnitude + 10f));
+				break;
+			case Constants.LOC_VALUE_MSG:
+				bearingValue = (Float) msg.obj;
 				break;
 			default:
 				break;

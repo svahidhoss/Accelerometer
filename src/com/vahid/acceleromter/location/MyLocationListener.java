@@ -1,17 +1,31 @@
 package com.vahid.acceleromter.location;
 
+import java.util.ArrayList;
+
+import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.MovingAverage;
+
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Toast;
 
 public class MyLocationListener implements LocationListener {
 
 	private Context parentContext;
+	private Handler mHandler;
 
-	public MyLocationListener(Context context) {
+	// calculating the bearing to the north?
+	private ArrayList<Location> locations = new ArrayList<Location>();
+	private MovingAverage latMovingAverage = new MovingAverage(5);
+	private MovingAverage longMovingAverage = new MovingAverage(5);
+	private float bearing;
+
+	public MyLocationListener(Context context, Handler mhHandler) {
 		parentContext = context;
+		this.mHandler = mhHandler;
 	}
 
 	// called when the listener is notified with a location update from the GPS,
@@ -24,7 +38,13 @@ public class MyLocationListener implements LocationListener {
 
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT)
 				.show();
-
+		bearing = location.getBearing();
+		mHandler.obtainMessage(Constants.LOC_VALUE_MSG,
+				bearing).sendToTarget();
+//		latMovingAverage.pushValue(location.);
+//		if (locations.size() >= 10) {
+			
+//		}
 /*		try {
 			sendGPSLocations(location);
 		} catch (JSONException e) {
