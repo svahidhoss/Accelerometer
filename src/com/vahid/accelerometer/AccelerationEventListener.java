@@ -3,9 +3,9 @@ package com.vahid.accelerometer;
 import java.util.Arrays;
 
 import com.vahid.accelerometer.util.AlexMath;
+import com.vahid.accelerometer.util.CsvListenerInterface;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
-import com.vahid.acceleromter.location.CSVListenerInterface;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -15,8 +15,8 @@ import android.opengl.Matrix;
 import android.os.Handler;
 import android.util.Log;
 
-
-public class AccelerationEventListener implements SensorEventListener,CSVListenerInterface {
+public class AccelerationEventListener implements SensorEventListener,
+		CsvListenerInterface {
 
 	private Handler mHandler;
 	private static final int delayRates[] = {
@@ -41,13 +41,17 @@ public class AccelerationEventListener implements SensorEventListener,CSVListene
 	private float[] inclinationMatrix = new float[16];
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
+	
+	// TODO testing the orientation values
+	private float[] orientationValuesRadian = new float[] { 0, 0, 0 };
+	private float[] orientationValuesDegrees = new float[] { 0, 0, 0 };
+	private float[] outRotationMatrix = new float[16];
 
 	private double trueAccelerationMagnitude;
 
 	// save to file view fields
 	private boolean savingToFile = false;
 	private CsvFileWriter csvFile;
-
 
 
 	public AccelerationEventListener(Handler mHandler) {
@@ -182,29 +186,30 @@ public class AccelerationEventListener implements SensorEventListener,CSVListene
 		// bumps .
 		linearAccelerationMagnitude = AlexMath
 				.getVectorMagnitude(linearAccelerationValues);
-		
+
 		// If check box for saving the file has been checked.
 		if (savingToFile && csvFile != null) {
-			csvFile.writeToFile(linearAccelerationValues);
+			csvFile.writeToFile(linearAccelerationValues, false);
 			csvFile.writeToFile((float) linearAccelerationMagnitude, true);
 		}
 
 		// set the value as the text of every TextView
-/*		tvXAxisStringValue = Float.toString(linearAccelerationValues[0]);
-		tvYAxisStringValue = Float.toString(linearAccelerationValues[1]);
-		tvZAxisStringValue = Float.toString(linearAccelerationValues[2]);
-		tvFinalStringValue = Double.toString(linearAccelerationMagnitude);
+		/*
+		 * tvXAxisStringValue = Float.toString(linearAccelerationValues[0]);
+		 * tvYAxisStringValue = Float.toString(linearAccelerationValues[1]);
+		 * tvZAxisStringValue = Float.toString(linearAccelerationValues[2]);
+		 * tvFinalStringValue = Double.toString(linearAccelerationMagnitude);
+		 * 
+		 * 
+		 * xAxisSeekBarIntValue = (int) (linearAccelerationValues[0] + 10f);
+		 * yAxisSeekBarIntValue = (int) (linearAccelerationValues[1] + 10f);
+		 * zAxisSeekBarIntValue = (int) (linearAccelerationValues[2] + 10f);
+		 * 
+		 * finalSeekBarIntValue = (int) (linearAccelerationValues[2]);
+		 */
 
-		
-		xAxisSeekBarIntValue = (int) (linearAccelerationValues[0] + 10f);
-		yAxisSeekBarIntValue = (int) (linearAccelerationValues[1] + 10f);
-		zAxisSeekBarIntValue = (int) (linearAccelerationValues[2] + 10f);
-
-		finalSeekBarIntValue = (int) (linearAccelerationValues[2]);*/
-		
 		mHandler.obtainMessage(Constants.ACCEL_VALUE_MSG,
 				linearAccelerationValues).sendToTarget();
-
 
 	}
 
@@ -236,6 +241,14 @@ public class AccelerationEventListener implements SensorEventListener,CSVListene
 				Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
 				Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse,
 						0, linearAccelerationValuesNew, 0);
+				
+				// TODO testing the orientation
+				SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Y, outRotationMatrix);
+				SensorManager.getOrientation(outRotationMatrix, orientationValuesRadian);
+				
+				orientationValuesDegrees[0] = (float) Math.toDegrees(orientationValuesRadian[0]);
+				orientationValuesDegrees[1] = (float) Math.toDegrees(orientationValuesRadian[1]);
+				orientationValuesDegrees[2] = (float) Math.toDegrees(orientationValuesRadian[2]);
 
 				// This is Magnetic North in Radians
 				// bearing = orientation[0];
@@ -274,33 +287,37 @@ public class AccelerationEventListener implements SensorEventListener,CSVListene
 						.getVectorMagnitude(linearAccelerationValues);
 				trueAccelerationMagnitude = AlexMath
 						.getVectorMagnitude(trueAcceleration);
-				
+
 				// If check box for saving the file has been checked.
 				if (savingToFile && csvFile != null) {
 					// write the values of the linear acceleration
-					csvFile.writeToFile(linearAccelerationValues);
+					csvFile.writeToFile(linearAccelerationValues, false);
 					csvFile.writeToFile((float) linearAccelerationMagnitude,
 							false);
 					// write the values of the true acceleration
 					csvFile.writeToFile(Arrays.copyOfRange(trueAcceleration, 0,
-							trueAcceleration.length - 1));
-					csvFile.writeToFile((float) trueAccelerationMagnitude, true);
+							trueAcceleration.length - 1), false);
+					csvFile.writeToFile((float) trueAccelerationMagnitude, false);
+					csvFile.writeToFile(orientationValuesDegrees, false);
+					csvFile.writeToFile(rotationMatrix, true);
 				}
 
-/*				tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
-				tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
-				tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
-				tvFinalValue.setText((AlexMath.round(trueAccelerationMagnitude,
-						10)));
+				/*
+				 * tvXAxisValue.setText(Float.toString(trueAcceleration[0]));
+				 * tvYAxisValue.setText(Float.toString(trueAcceleration[1]));
+				 * tvZAxisValue.setText(Float.toString(trueAcceleration[2]));
+				 * tvFinalValue
+				 * .setText((AlexMath.round(trueAccelerationMagnitude, 10)));
+				 * 
+				 * // set the value on to the SeekBar
+				 * xAxisSeekBar.setProgress((int) (trueAcceleration[0] + 10f));
+				 * yAxisSeekBar.setProgress((int) (trueAcceleration[1] + 10f));
+				 * zAxisSeekBar.setProgress((int) (trueAcceleration[2] + 10f));
+				 * 
+				 * finalSeekBar .setProgress((int) (trueAccelerationMagnitude +
+				 * 10f));
+				 */
 
-				// set the value on to the SeekBar
-				xAxisSeekBar.setProgress((int) (trueAcceleration[0] + 10f));
-				yAxisSeekBar.setProgress((int) (trueAcceleration[1] + 10f));
-				zAxisSeekBar.setProgress((int) (trueAcceleration[2] + 10f));
-
-				finalSeekBar
-						.setProgress((int) (trueAccelerationMagnitude + 10f));*/
-				
 				mHandler.obtainMessage(Constants.ACCEL_VALUE_MSG,
 						trueAcceleration).sendToTarget();
 
@@ -446,12 +463,12 @@ public class AccelerationEventListener implements SensorEventListener,CSVListene
 	public void enableSaveToFile() {
 		this.savingToFile = true;
 	}
-	
+
 	@Override
 	public void disableSaveToFile() {
 		this.savingToFile = false;
 	}
-	
+
 	@Override
 	public void setCsvFile(CsvFileWriter csvFile) {
 		this.csvFile = csvFile;

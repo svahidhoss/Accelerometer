@@ -22,8 +22,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -76,7 +74,7 @@ public class MainActivity extends Activity {
 
 	// save to file view fields
 	// private boolean saveToFileChecked = false;
-	private CsvFileWriter csvFile;
+	private CsvFileWriter csvSensorsFile;
 	private CsvFileWriter csvLocationFile;
 
 
@@ -448,8 +446,8 @@ public class MainActivity extends Activity {
 		}
 
 		// close the captured file if not already
-		if (csvFile != null) {
-			csvFile.closeCaptureFile();
+		if (csvSensorsFile != null) {
+			csvSensorsFile.closeCaptureFile();
 			checkBoxSaveToFile.setText(R.string.checkBoxSaveToFileInitialMsg);
 		}
 		
@@ -513,32 +511,33 @@ public class MainActivity extends Activity {
 		case R.id.checkBoxSaveToFile:
 			// open the file if set true, otherwise close it.
 			if (checked) {
-				csvFile = new CsvFileWriter();
+				csvSensorsFile = new CsvFileWriter("Sensors");
 				accelerationEventListener.enableSaveToFile();
-				accelerationEventListener.setCsvFile(csvFile);
+				accelerationEventListener.setCsvFile(csvSensorsFile);
 				checkBoxSaveToFile
 						.setText(R.string.checkBoxSaveToFileSavingMsg);
 				Toast.makeText(
 						this,
 						getString(R.string.checkBoxSaveToFileSavingMsg) + " "
-								+ csvFile.getCaptureFileName(),
+								+ csvSensorsFile.getCaptureFileName(),
 						Toast.LENGTH_SHORT).show();
+				
 				// TODO test saving the bearing.
-				csvLocationFile = new CsvFileWriter();
+				csvLocationFile = new CsvFileWriter("Location");
 				myLocationListener.enableSaveToFile();
 				myLocationListener.setCsvFile(csvLocationFile);
 
 			} else {
-				if (csvFile != null) {
+				if (csvSensorsFile != null) {
 					// Closing the captured file is as important as creating it.
 					accelerationEventListener.disableSaveToFile();
-					csvFile.closeCaptureFile();
+					csvSensorsFile.closeCaptureFile();
 					checkBoxSaveToFile
 							.setText(R.string.checkBoxSaveToFileInitialMsg);
 					Toast.makeText(
 							this,
 							getString(R.string.checkBoxSaveToFileStoppedMsg)
-									+ " " + csvFile.getCaptureFileName(),
+									+ " " + csvSensorsFile.getCaptureFileName(),
 							Toast.LENGTH_SHORT).show();
 				}
 				if (csvLocationFile != null) {

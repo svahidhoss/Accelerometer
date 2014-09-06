@@ -1,6 +1,8 @@
 package com.vahid.accelerometer.util;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import android.hardware.SensorManager;
 
@@ -131,5 +133,13 @@ public class AlexMath {
 		}
 		return Math.sqrt(result);
 	}
+	
+	
+//	public static String getDate() {
+//		SimpleDateFormat formatter = new SimpleDateFormat(
+//				"yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+//		Date now = new Date();
+//		return formatter.format(now);
+//	}
 
 }

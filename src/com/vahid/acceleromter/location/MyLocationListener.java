@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.vahid.accelerometer.util.AlexMath;
+import com.vahid.accelerometer.util.CsvListenerInterface;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
@@ -15,7 +17,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
 
-public class MyLocationListener implements LocationListener,CSVListenerInterface {
+public class MyLocationListener implements LocationListener,
+		CsvListenerInterface {
 
 	private Context parentContext;
 	private Handler mHandler;
@@ -25,7 +28,7 @@ public class MyLocationListener implements LocationListener,CSVListenerInterface
 	private MovingAverage latMovingAverage = new MovingAverage(5);
 	private MovingAverage longMovingAverage = new MovingAverage(5);
 	private float bearing;
-	
+
 	// save to file view fields
 	private boolean savingToFile = false;
 	private CsvFileWriter csvLocationFile;
@@ -39,28 +42,29 @@ public class MyLocationListener implements LocationListener,CSVListenerInterface
 	// Apparently the most important one.
 	@Override
 	public void onLocationChanged(Location location) {
+		bearing = location.getBearing();
+
 		String Text = "My current location is: \n" + "Latitude = "
 				+ location.getLatitude() + "\n" + "Longitude = "
-				+ location.getLongitude();
+				+ location.getLongitude() + "\nMy Speed is: "
+				+ location.getSpeed() + "\nMy Bearing is: " + bearing;
 
-		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT)
-				.show();
-		bearing = location.getBearing();
+		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
+		mHandler.obtainMessage(Constants.LOC_VALUE_MSG, bearing).sendToTarget();
+
 		if (savingToFile && csvLocationFile != null) {
 			csvLocationFile.writeToFile(bearing, false);
-			csvLocationFile.writeToFile(getDate(), true);
+			csvLocationFile.writeToFile(location.getSpeed(), false);
+			csvLocationFile.writeToFile(location.getTime(), true);
 		}
-		mHandler.obtainMessage(Constants.LOC_VALUE_MSG,
-				bearing).sendToTarget();
-//		latMovingAverage.pushValue(location.);
-//		if (locations.size() >= 10) {
-			
-//		}
-/*		try {
-			sendGPSLocations(location);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}*/
+		// latMovingAverage.pushValue(location.);
+		// if (locations.size() >= 10) {
+
+		// }
+		/*
+		 * try { sendGPSLocations(location); } catch (JSONException e) {
+		 * e.printStackTrace(); }
+		 */
 	}
 
 	// called when the GPS provider is turned off (user turning off the GPS on
@@ -88,22 +92,15 @@ public class MyLocationListener implements LocationListener,CSVListenerInterface
 	public void enableSaveToFile() {
 		this.savingToFile = true;
 	}
-	
+
 	@Override
 	public void disableSaveToFile() {
 		this.savingToFile = false;
 	}
-	
+
 	@Override
-	public void setCsvFile(CsvFileWriter csvFile) {
-		this.csvLocationFile = csvFile;
-	}
-	
-	private String getDate() {
-		SimpleDateFormat formatter = new SimpleDateFormat(
-				"yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
-		Date now = new Date();
-		return formatter.format(now);
+	public void setCsvFile(CsvFileWriter csvLocationFile) {
+		this.csvLocationFile = csvLocationFile;
 	}
 
 }

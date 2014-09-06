@@ -24,9 +24,9 @@ public class CsvFileWriter {
 	 * Default constructor that creates a new CSV file based on the current time
 	 * in the /Sensors capture folder.
 	 */
-	public CsvFileWriter() {
+	public CsvFileWriter(String fileName) {
 		checkDirectoryToCreate(DIRECTORY_PATH);
-		captureFileName = getFileNameByDate();
+		captureFileName = getFileNameByDate(fileName);
 		File captureFile = new File(DIRECTORY_PATH, captureFileName);
 		captureStateText = "Capture: " + captureFile.getAbsolutePath();
 		try {
@@ -45,12 +45,17 @@ public class CsvFileWriter {
 	 * 
 	 * @param values
 	 */
-	public boolean writeToFile(float values[]) {
+	public boolean writeToFile(float values[], boolean endOfLine) {
 		if (captureFileWriter != null) {
 			for (int i = 0; i < values.length; ++i) {
 				if (i > 0)
 					captureFileWriter.print(",");
 				captureFileWriter.print(Float.toString(values[i]));
+			}
+			if (endOfLine) {
+				captureFileWriter.println();
+			} else {
+				captureFileWriter.print(",");
 			}
 			return true;
 		}
@@ -61,6 +66,8 @@ public class CsvFileWriter {
 	 * Method that writes the value of a sensor passed with constructor to the
 	 * file that has been created.
 	 * 
+	 * @param startOfLine
+	 *            if the value to be written is at the beginning of the line.
 	 * @param value
 	 *            float value to be written to the end of file.
 	 * @param endOfLine
@@ -69,7 +76,6 @@ public class CsvFileWriter {
 	 */
 	public boolean writeToFile(float value, boolean endOfLine) {
 		if (captureFileWriter != null) {
-			captureFileWriter.print(",");
 			captureFileWriter.print(Float.toString(value));
 			if (endOfLine) {
 				captureFileWriter.println();
@@ -84,6 +90,8 @@ public class CsvFileWriter {
 	/**
 	 * Method that writes the string passed to the file that has been created.
 	 * 
+	 * @param startOfLine
+	 *            if the value to be written is at the beginning of the line.
 	 * @param value
 	 *            float value to be written to the end of file.
 	 * @param endOfLine
@@ -92,7 +100,6 @@ public class CsvFileWriter {
 	 */
 	public boolean writeToFile(String value, boolean endOfLine) {
 		if (captureFileWriter != null) {
-			captureFileWriter.print(",");
 			captureFileWriter.print(value);
 			if (endOfLine) {
 				captureFileWriter.println();
@@ -110,12 +117,12 @@ public class CsvFileWriter {
 	 * 
 	 * @return
 	 */
-	private String getFileNameByDate() {
+	private String getFileNameByDate(String fileName) {
 		SimpleDateFormat formatter = new SimpleDateFormat(
 				"yyyy_MM_dd_HH_mm_ss", java.util.Locale.getDefault());
 		Date now = new Date();
-		String fileName = "Capture_" + formatter.format(now) + ".csv";
-		return fileName;
+		String fianlFileName = fileName + "_capture_" + formatter.format(now) + ".csv";
+		return fianlFileName;
 	}
 
 	/**
