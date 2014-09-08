@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
 	// Connected views
 	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar, finalSeekBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
-	private TextView tvXTrueAxisValue,tvYTrueAxisValue;
+	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvRotationDegreeTitle;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -131,7 +131,6 @@ public class MainActivity extends Activity {
 	int n = 0;
 	int n_aux = 0;
 	float[] orientationValuesEarlier = new float[] { 0, 0, 0 };
-
 
 	// *****end*angles average
 
@@ -322,18 +321,21 @@ public class MainActivity extends Activity {
 
 		// retrieve all the needed components
 		// TODO correct later
-/*		xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar);
-		yAxisSeekBar = (SeekBar) findViewById(R.id.yAxisBar);
-		zAxisSeekBar = (SeekBar) findViewById(R.id.zAxisBar);*/
+		/*
+		 * xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar); yAxisSeekBar =
+		 * (SeekBar) findViewById(R.id.yAxisBar); zAxisSeekBar = (SeekBar)
+		 * findViewById(R.id.zAxisBar);
+		 */
 		finalSeekBar = (SeekBar) findViewById(R.id.finalBar);
 
 		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
-		
+
 		tvXTrueAxisValue = (TextView) findViewById(R.id.xAxisTrueValue);
 		tvYTrueAxisValue = (TextView) findViewById(R.id.yAxisTrueValue);
+		tvRotationDegreeTitle = (TextView) findViewById(R.id.rotationDegreeeValue);
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
@@ -592,8 +594,9 @@ public class MainActivity extends Activity {
 	 * This handler is used to enable communication with the threads.
 	 */
 	private final Handler mHandler = new Handler() {
-//		private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
-//		private float[] trueLinearAccelerationValues = new float[] { 0, 0 };
+		// private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0
+		// };
+		// private float[] trueLinearAccelerationValues = new float[] { 0, 0 };
 		@Override
 		public void handleMessage(Message msg) {
 			currentState = msg.what;
@@ -639,12 +642,13 @@ public class MainActivity extends Activity {
 
 				// set the value on to the SeekBar
 				// TODO correct later
-/*				xAxisSeekBar
-						.setProgress((int) (earthLinearAccelerationValues[0] + 10f));
-				yAxisSeekBar
-						.setProgress((int) (earthLinearAccelerationValues[1] + 10f));
-				zAxisSeekBar
-						.setProgress((int) (earthLinearAccelerationValues[2] + 10f));*/
+				/*
+				 * xAxisSeekBar .setProgress((int)
+				 * (earthLinearAccelerationValues[0] + 10f)); yAxisSeekBar
+				 * .setProgress((int) (earthLinearAccelerationValues[1] + 10f));
+				 * zAxisSeekBar .setProgress((int)
+				 * (earthLinearAccelerationValues[2] + 10f));
+				 */
 				finalSeekBar
 						.setProgress((int) (linearAccelerationMagnitude + 10f));
 				break;
@@ -657,6 +661,7 @@ public class MainActivity extends Activity {
 						.toString(trueLinearAccelerationValues[0]));
 				tvYTrueAxisValue.setText(Float
 						.toString(trueLinearAccelerationValues[1]));
+				tvRotationDegreeTitle.setText(Float.toString(rotationValue));
 				break;
 			default:
 				break;

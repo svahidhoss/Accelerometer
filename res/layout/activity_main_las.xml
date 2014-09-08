@@ -190,4 +190,25 @@
         </TextView>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/rotationDegreeLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp" >
+
+        <TextView
+            android:id="@+id/rotationDegreeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rotation Degree: " >
+        </TextView>
+
+        <TextView
+            android:id="@+id/rotationDegreeeValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00" >
+        </TextView>
+    </LinearLayout>
+
 </LinearLayout>
