@@ -58,14 +58,15 @@ public class MyLocationListener implements LocationListener,
 				+ "\nMy Dclination is: " + magneticDeclination;
 
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
-
-		mHandler.obtainMessage(Constants.ROTATION_DEGREE_MSG, bearing + magneticDeclination).sendToTarget();
+		
+		// sending back the degree between 
+		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG, (bearing + magneticDeclination)).sendToTarget();
 
 
 		if (savingToFile && csvLocationFile != null) {
 			csvLocationFile.writeToFile(bearing, false);
 			csvLocationFile.writeToFile(location.getSpeed(), false);
-			csvLocationFile.writeToFile(bearing + magneticDeclination, false);
+			csvLocationFile.writeToFile((bearing + magneticDeclination), false);
 			csvLocationFile.writeToFile(location.getTime(), true);
 		}
 		// latMovingAverage.pushValue(location.);

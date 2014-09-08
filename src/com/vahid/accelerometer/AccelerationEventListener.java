@@ -48,11 +48,12 @@ public class AccelerationEventListener implements SensorEventListener,
 	private float[] outRotationMatrix = new float[16];
 
 	private double trueAccelerationMagnitude;
+	private float currentBearing;
+
 
 	// save to file view fields
 	private boolean savingToFile = false;
 	private CsvFileWriter csvFile;
-
 
 	public AccelerationEventListener(Handler mHandler) {
 		this.mHandler = mHandler;
@@ -260,7 +261,7 @@ public class AccelerationEventListener implements SensorEventListener,
 
 				// Convert to degrees & 360 span (feel like I'm in Trig class
 				// with Radians)
-				// bearing = ((float) Math.toDegrees(bearing) + 360) % 360;
+				currentBearing = ((float) Math.toDegrees(orientationValuesRadian[0]) + 360) % 360;
 
 				// if you need True North enable the lines below and you'll need
 				// GPS
@@ -319,6 +320,8 @@ public class AccelerationEventListener implements SensorEventListener,
 
 				mHandler.obtainMessage(Constants.ACCEL_VALUE_MSG,
 						trueAcceleration).sendToTarget();
+				mHandler.obtainMessage(Constants.CURRENT_BEARING_MSG,
+						currentBearing).sendToTarget();
 
 			}
 		}

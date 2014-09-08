@@ -112,7 +112,9 @@ public class MainActivity extends Activity {
 	// private float[] rotationMatrixInverse = new float[16];
 
 	// Calculation of Motion Direction
-	private float rotationValue;
+	private float movementBearingDegree;
+	private float currentBearing;
+
 
 	// --- Filters ---
 	boolean breakOn = false; // on when is more than one minimum defined
@@ -652,16 +654,21 @@ public class MainActivity extends Activity {
 				finalSeekBar
 						.setProgress((int) (linearAccelerationMagnitude + 10f));
 				break;
-			case Constants.ROTATION_DEGREE_MSG:
-				rotationValue = (Float) msg.obj;
+			case Constants.MOVEMENT_BEARING_MSG:
+				movementBearingDegree = (Float) msg.obj;
+				break;
+			case Constants.CURRENT_BEARING_MSG:
+				currentBearing = (Float) msg.obj;
+				float diffrenccInDegree = Math.abs(movementBearingDegree - currentBearing);
+				
 				trueLinearAccelerationValues = AlexMath.convertReference(
-						earthLinearAccelerationValues, rotationValue);
+						earthLinearAccelerationValues, diffrenccInDegree);
 				// set the value as the text of every TextView
 				tvXTrueAxisValue.setText(Float
 						.toString(trueLinearAccelerationValues[0]));
 				tvYTrueAxisValue.setText(Float
 						.toString(trueLinearAccelerationValues[1]));
-				tvRotationDegreeTitle.setText(Float.toString(rotationValue));
+				tvRotationDegreeTitle.setText(Float.toString(diffrenccInDegree));
 				break;
 			default:
 				break;
