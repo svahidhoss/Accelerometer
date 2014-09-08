@@ -11,6 +11,7 @@ import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
 
 import android.content.Context;
+import android.hardware.GeomagneticField;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ public class MyLocationListener implements LocationListener,
 	private MovingAverage latMovingAverage = new MovingAverage(5);
 	private MovingAverage longMovingAverage = new MovingAverage(5);
 	private float bearing;
+	private float magneticDeclination;
 
 	// save to file view fields
 	private boolean savingToFile = false;
@@ -42,19 +44,28 @@ public class MyLocationListener implements LocationListener,
 	// Apparently the most important one.
 	@Override
 	public void onLocationChanged(Location location) {
+		locationRecieved(location);
+	}
+
+	private void locationRecieved(Location location) {
 		bearing = location.getBearing();
+		magneticDeclination = getMagneticDeclination(location);
 
 		String Text = "My current location is: \n" + "Latitude = "
 				+ location.getLatitude() + "\n" + "Longitude = "
 				+ location.getLongitude() + "\nMy Speed is: "
-				+ location.getSpeed() + "\nMy Bearing is: " + bearing;
+				+ location.getSpeed() + "\nMy Bearing is: " + bearing
+				+ "\nMy Dclination is: " + magneticDeclination;
 
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
-		mHandler.obtainMessage(Constants.LOC_VALUE_MSG, bearing).sendToTarget();
+
+		mHandler.obtainMessage(Constants.ROTATION_DEGREE_MSG, bearing + magneticDeclination).sendToTarget();
+
 
 		if (savingToFile && csvLocationFile != null) {
 			csvLocationFile.writeToFile(bearing, false);
 			csvLocationFile.writeToFile(location.getSpeed(), false);
+			csvLocationFile.writeToFile(bearing + magneticDeclination, false);
 			csvLocationFile.writeToFile(location.getTime(), true);
 		}
 		// latMovingAverage.pushValue(location.);
@@ -101,6 +112,16 @@ public class MyLocationListener implements LocationListener,
 	@Override
 	public void setCsvFile(CsvFileWriter csvLocationFile) {
 		this.csvLocationFile = csvLocationFile;
+	}
+
+	public static float getMagneticDeclination(Location location) {
+		GeomagneticField geoField = new GeomagneticField(
+				(float) location.getLatitude(),
+				(float) location.getLongitude(),
+				(float) location.getAltitude(), System.currentTimeMillis());
+		// West declination is reported in negative values
+		// return -1*geoField.getDeclination();
+		return geoField.getDeclination();
 	}
 
 }

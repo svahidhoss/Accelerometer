@@ -55,7 +55,6 @@ public class AccelerationEventListener implements SensorEventListener,
 
 
 	public AccelerationEventListener(Handler mHandler) {
-		// TODO Auto-generated constructor stub
 		this.mHandler = mHandler;
 	}
 

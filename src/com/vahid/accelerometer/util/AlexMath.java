@@ -7,6 +7,7 @@ import java.util.Date;
 import android.hardware.SensorManager;
 
 public class AlexMath {
+	public static double DEFAULT_ICLINATION = -13.505042;
 
 	/**
 	 * Cancels the effects of Gravity form accelerometer values by using
@@ -45,7 +46,8 @@ public class AlexMath {
 		return f;
 	}
 
-	public static float[] convertReference(float[] values, float[] orientationValues) {
+	public static float[] convertReference(float[] values,
+			float[] orientationValues) {
 
 		float x = values[0];
 		float y = values[1];
@@ -67,6 +69,20 @@ public class AlexMath {
 				* Math.sin(pitch_angle) + z * a * Math.cos(pitch_angle));
 
 		return values;
+	}
+	
+	/**
+	 * Used for conversion of a 2x2 matrices based on the input degree.
+	 * @param values
+	 * @param degree
+	 * @return
+	 */
+	public static float[] convertReference(float[] values, float degree) {
+		float degreeRadian = degreesToRadians(degree);
+		float[] covertedValues = new float[] { 0, 0 };
+		covertedValues[0] = (float) (Math.cos(degreeRadian) * values[0] - Math.sin(degreeRadian) * values[1]);
+		covertedValues[1] = (float) (Math.sin(degreeRadian) * values[0] + Math.cos(degreeRadian) * values[1]);
+		return covertedValues;
 	}
 
 	public static byte[] toByteArray(double value) {
@@ -133,13 +149,12 @@ public class AlexMath {
 		}
 		return Math.sqrt(result);
 	}
-	
-	
-//	public static String getDate() {
-//		SimpleDateFormat formatter = new SimpleDateFormat(
-//				"yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
-//		Date now = new Date();
-//		return formatter.format(now);
-//	}
+
+	// public static String getDate() {
+	// SimpleDateFormat formatter = new SimpleDateFormat(
+	// "yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+	// Date now = new Date();
+	// return formatter.format(now);
+	// }
 
 }

@@ -32,8 +32,9 @@ public class Constants {
 	public static final int STATE_CONNECTING = 1;// initiating an outgoing connection
 	public static final int STATE_CONNECTED = 2; // connected to a remote device
 	
-	public static final int ACCEL_VALUE_MSG = 3; // connected to a remote device
-	public static final int LOC_VALUE_MSG = 4; // connected to a remote device
+	public static final int ACCEL_VALUE_MSG = 3;
+	public static final int ROTATION_DEGREE_MSG = 4;
+	public static final int DECLINATION_MSG = 5;
 	
 	
 	// ****calculate angles average

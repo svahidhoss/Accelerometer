@@ -68,6 +68,7 @@ public class MainActivity extends Activity {
 	// Connected views
 	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar, finalSeekBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
+	private TextView tvXTrueAxisValue,tvYTrueAxisValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -76,7 +77,6 @@ public class MainActivity extends Activity {
 	// private boolean saveToFileChecked = false;
 	private CsvFileWriter csvSensorsFile;
 	private CsvFileWriter csvLocationFile;
-
 
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
@@ -97,20 +97,22 @@ public class MainActivity extends Activity {
 
 	// Sensor Values: it's important to initialize them.
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
-	private float[] orientationValues = new float[] { 0, 0, 0 };
-	private float[] linearAccelerationValues = new float[] { 0, 0, 0 };
-	private float[] magneticValues;
-	private float[] gravityValues;
+	// private float[] orientationValues = new float[] { 0, 0, 0 };
+	private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
+	private float[] trueLinearAccelerationValues = new float[] { 0, 0 };
+	// private float[] magneticValues;
+	// private float[] gravityValues;
 
 	private double linearAccelerationMagnitude;
 
 	// Rotation Matrix Calculation
-	private float[] trueAcceleration = new float[4];
-	private float[] inclinationMatrix = new float[16];
-	private float[] rotationMatrix = new float[16];
-	private float[] rotationMatrixInverse = new float[16];
+	// private float[] trueAcceleration = new float[4];
+	// private float[] inclinationMatrix = new float[16];
+	// private float[] rotationMatrix = new float[16];
+	// private float[] rotationMatrixInverse = new float[16];
 
-	private double trueAccelerationMagnitude;
+	// Calculation of Motion Direction
+	private float rotationValue;
 
 	// --- Filters ---
 	boolean breakOn = false; // on when is more than one minimum defined
@@ -129,6 +131,7 @@ public class MainActivity extends Activity {
 	int n = 0;
 	int n_aux = 0;
 	float[] orientationValuesEarlier = new float[] { 0, 0, 0 };
+
 
 	// *****end*angles average
 
@@ -318,15 +321,19 @@ public class MainActivity extends Activity {
 		accelerationEventListener.registerSensors(currentDelayRate);
 
 		// retrieve all the needed components
-		xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar);
+		// TODO correct later
+/*		xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar);
 		yAxisSeekBar = (SeekBar) findViewById(R.id.yAxisBar);
-		zAxisSeekBar = (SeekBar) findViewById(R.id.zAxisBar);
+		zAxisSeekBar = (SeekBar) findViewById(R.id.zAxisBar);*/
 		finalSeekBar = (SeekBar) findViewById(R.id.finalBar);
 
 		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
+		
+		tvXTrueAxisValue = (TextView) findViewById(R.id.xAxisTrueValue);
+		tvYTrueAxisValue = (TextView) findViewById(R.id.yAxisTrueValue);
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
@@ -450,7 +457,7 @@ public class MainActivity extends Activity {
 			csvSensorsFile.closeCaptureFile();
 			checkBoxSaveToFile.setText(R.string.checkBoxSaveToFileInitialMsg);
 		}
-		
+
 		if (csvLocationFile != null) {
 			csvLocationFile.closeCaptureFile();
 		}
@@ -521,7 +528,7 @@ public class MainActivity extends Activity {
 						getString(R.string.checkBoxSaveToFileSavingMsg) + " "
 								+ csvSensorsFile.getCaptureFileName(),
 						Toast.LENGTH_SHORT).show();
-				
+
 				// TODO test saving the bearing.
 				csvLocationFile = new CsvFileWriter("Location");
 				myLocationListener.enableSaveToFile();
@@ -585,8 +592,8 @@ public class MainActivity extends Activity {
 	 * This handler is used to enable communication with the threads.
 	 */
 	private final Handler mHandler = new Handler() {
-		private float bearingValue;
-
+//		private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
+//		private float[] trueLinearAccelerationValues = new float[] { 0, 0 };
 		@Override
 		public void handleMessage(Message msg) {
 			currentState = msg.what;
@@ -617,31 +624,39 @@ public class MainActivity extends Activity {
 				miSearchOption.setTitle(R.string.connect);
 				break;
 			case Constants.ACCEL_VALUE_MSG:
-				linearAccelerationValues = (float[]) msg.obj;
+				earthLinearAccelerationValues = (float[]) msg.obj;
 				linearAccelerationMagnitude = AlexMath
-						.getVectorMagnitude(linearAccelerationValues);
+						.getVectorMagnitude(earthLinearAccelerationValues);
 				// set the value as the text of every TextView
 				tvXAxisValue.setText(Float
-						.toString(linearAccelerationValues[0]));
+						.toString(earthLinearAccelerationValues[0]));
 				tvYAxisValue.setText(Float
-						.toString(linearAccelerationValues[1]));
+						.toString(earthLinearAccelerationValues[1]));
 				tvZAxisValue.setText(Float
-						.toString(linearAccelerationValues[2]));
+						.toString(earthLinearAccelerationValues[2]));
 				tvFinalValue.setText(AlexMath.round(
 						linearAccelerationMagnitude, 10));
 
 				// set the value on to the SeekBar
-				xAxisSeekBar
-						.setProgress((int) (linearAccelerationValues[0] + 10f));
+				// TODO correct later
+/*				xAxisSeekBar
+						.setProgress((int) (earthLinearAccelerationValues[0] + 10f));
 				yAxisSeekBar
-						.setProgress((int) (linearAccelerationValues[1] + 10f));
+						.setProgress((int) (earthLinearAccelerationValues[1] + 10f));
 				zAxisSeekBar
-						.setProgress((int) (linearAccelerationValues[2] + 10f));
+						.setProgress((int) (earthLinearAccelerationValues[2] + 10f));*/
 				finalSeekBar
-						.setProgress((int) (trueAccelerationMagnitude + 10f));
+						.setProgress((int) (linearAccelerationMagnitude + 10f));
 				break;
-			case Constants.LOC_VALUE_MSG:
-				bearingValue = (Float) msg.obj;
+			case Constants.ROTATION_DEGREE_MSG:
+				rotationValue = (Float) msg.obj;
+				trueLinearAccelerationValues = AlexMath.convertReference(
+						earthLinearAccelerationValues, rotationValue);
+				// set the value as the text of every TextView
+				tvXTrueAxisValue.setText(Float
+						.toString(trueLinearAccelerationValues[0]));
+				tvYTrueAxisValue.setText(Float
+						.toString(trueLinearAccelerationValues[1]));
 				break;
 			default:
 				break;
