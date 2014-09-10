@@ -874,10 +874,10 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
 		switch (situation) {
-		case Constants.ACCEL_DETECTED:
+		case Constants.BRAKE_DETECTED:
 			background.setBackgroundResource(R.color.dark_red);
 			break;
-		case Constants.BRAKE_DETECTED:
+		case Constants.ACCEL_DETECTED:
 			background.setBackgroundResource(R.color.dark_green);
 			break;
 		default:
