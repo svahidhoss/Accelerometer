@@ -8,6 +8,7 @@ import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.util.AlexMath;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
+import com.vahid.accelerometer.util.MovingAverage;
 import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.ActionBar;
@@ -36,6 +37,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -68,7 +70,8 @@ public class MainActivity extends Activity {
 	// Connected views
 	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar, finalSeekBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
-	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue, tvRotationDegreeTitle;
+	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
+			tvRotationDegreeTitle;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -100,11 +103,28 @@ public class MainActivity extends Activity {
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
 	// private float[] orientationValues = new float[] { 0, 0, 0 };
 	private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
-	private float[] trueLinearAccelerationValues = new float[] { 0, 0 };
+
+	private MovingAverage elaMovingAverageX = new MovingAverage(
+			Constants.WINDOW_SIZE);
+	private MovingAverage elaMovingAverageY = new MovingAverage(
+			Constants.WINDOW_SIZE);
+	private MovingAverage elaMovingAverageZ = new MovingAverage(
+			Constants.WINDOW_SIZE);
+
+	private float[] trueLinearAccelerationValues = new float[] { 0, 0, 0 };
+
+	private MovingAverage tlaMovingAverageX = new MovingAverage(
+			Constants.WINDOW_SIZE);
+	private MovingAverage tlaMovingAverageY = new MovingAverage(
+			Constants.WINDOW_SIZE);
+	private MovingAverage tlaMovingAverageZ = new MovingAverage(
+			Constants.WINDOW_SIZE);
 	// private float[] magneticValues;
 	// private float[] gravityValues;
 
 	private double linearAccelerationMagnitude;
+	private MovingAverage laMagMovingAverage = new MovingAverage(
+			Constants.WINDOW_SIZE);
 
 	// Rotation Matrix Calculation
 	// private float[] trueAcceleration = new float[4];
@@ -115,7 +135,6 @@ public class MainActivity extends Activity {
 	// Calculation of Motion Direction
 	private float movementMagneticBearing;
 	private float currentMovementBearing;
-
 
 	// --- Filters ---
 	boolean breakOn = false; // on when is more than one minimum defined
@@ -309,7 +328,7 @@ public class MainActivity extends Activity {
 				mHandler);
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				10000, 5, myLocationListener);
+				5000, 5, myLocationListener);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
@@ -329,16 +348,18 @@ public class MainActivity extends Activity {
 		 * (SeekBar) findViewById(R.id.yAxisBar); zAxisSeekBar = (SeekBar)
 		 * findViewById(R.id.zAxisBar);
 		 */
-		finalSeekBar = (SeekBar) findViewById(R.id.finalBar);
 
 		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
+
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
+		finalSeekBar = (SeekBar) findViewById(R.id.finalBar);
 
 		tvXTrueAxisValue = (TextView) findViewById(R.id.xAxisTrueValue);
 		tvYTrueAxisValue = (TextView) findViewById(R.id.yAxisTrueValue);
 		tvZTrueAxisValue = (TextView) findViewById(R.id.zAxisTrueValue);
+
 		tvRotationDegreeTitle = (TextView) findViewById(R.id.rotationDegreeeValue);
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
@@ -442,9 +463,9 @@ public class MainActivity extends Activity {
 	 * Method that stops everything.
 	 */
 	private void finilizeAll() {
-		initViewsNotConnected(); // #check, ... I put this here because when the
-		// orientation changes, the Activity is destroyed, so
-		// the device is disconnecting automatically
+		// Remove the listener you previously added to location manager
+		locationManager.removeUpdates(myLocationListener);
+
 		if (accelerationEventListener != null) {
 			accelerationEventListener.unregisterSensors();
 		}
@@ -466,12 +487,15 @@ public class MainActivity extends Activity {
 
 		if (csvLocationFile != null) {
 			csvLocationFile.closeCaptureFile();
-		}	
-		
+		}
+
 		if (csvTrueAccelerationFile != null) {
 			csvTrueAccelerationFile.closeCaptureFile();
 		}
 
+		initViewsNotConnected(); // #check, ... I put this here because when the
+		// orientation changes, the Activity is destroyed, so
+		// the device is disconnecting automatically
 	}
 
 	private void populateDelayRateSpinner() {
@@ -636,17 +660,32 @@ public class MainActivity extends Activity {
 				break;
 			case Constants.ACCEL_VALUE_MSG:
 				earthLinearAccelerationValues = (float[]) msg.obj;
+
+				elaMovingAverageX.pushValue(earthLinearAccelerationValues[0]);
+				elaMovingAverageY.pushValue(earthLinearAccelerationValues[1]);
+				elaMovingAverageZ.pushValue(earthLinearAccelerationValues[2]);
+
+				// set the value as the text of every TextView
+				tvXAxisValue.setText(Float.toString(elaMovingAverageX
+						.getMovingAverage()));
+				tvYAxisValue.setText(Float.toString(elaMovingAverageY
+						.getMovingAverage()));
+				tvZAxisValue.setText(Float.toString(elaMovingAverageZ
+						.getMovingAverage()));
+
+				// acceleration magnitude
 				linearAccelerationMagnitude = AlexMath
 						.getVectorMagnitude(earthLinearAccelerationValues);
-				// set the value as the text of every TextView
-				tvXAxisValue.setText(Float
-						.toString(earthLinearAccelerationValues[0]));
-				tvYAxisValue.setText(Float
-						.toString(earthLinearAccelerationValues[1]));
-				tvZAxisValue.setText(Float
-						.toString(earthLinearAccelerationValues[2]));
-				tvFinalValue.setText(AlexMath.round(
-						linearAccelerationMagnitude, 10));
+				laMagMovingAverage
+						.pushValue((float) linearAccelerationMagnitude);
+				/*
+				 * tvFinalValue.setText(AlexMath.round(
+				 * linearAccelerationMagnitude, 10));
+				 */
+				tvFinalValue.setText(Float.toString(laMagMovingAverage
+						.getMovingAverage()));
+				finalSeekBar.setProgress((int) (laMagMovingAverage
+						.getMovingAverage()));
 
 				// set the value on to the SeekBar
 				// TODO correct later
@@ -657,20 +696,28 @@ public class MainActivity extends Activity {
 				 * zAxisSeekBar .setProgress((int)
 				 * (earthLinearAccelerationValues[2] + 10f));
 				 */
-				
+
 				trueLinearAccelerationValues = AlexMath.convertReference(
 						earthLinearAccelerationValues, currentMovementBearing);
+
+				tlaMovingAverageX.pushValue(trueLinearAccelerationValues[0]);
+				tlaMovingAverageY.pushValue(trueLinearAccelerationValues[1]);
+				tlaMovingAverageZ.pushValue(trueLinearAccelerationValues[2]);
+
 				// set the value as the text of every TextView
-				tvXTrueAxisValue.setText(Float
-						.toString(trueLinearAccelerationValues[0]));
-				tvYTrueAxisValue.setText(Float
-						.toString(trueLinearAccelerationValues[1]));
-				tvZTrueAxisValue.setText(Float
-						.toString(trueLinearAccelerationValues[2]));
-				tvRotationDegreeTitle.setText(Float.toString(currentMovementBearing));
-				
-				finalSeekBar
-						.setProgress((int) (linearAccelerationMagnitude));
+				tvXTrueAxisValue.setText(Float.toString(tlaMovingAverageX
+						.getMovingAverage()));
+
+				// display the current situation if there's a brake.
+				displaySituation(tlaMovingAverageX.detectSituation());
+
+				tvYTrueAxisValue.setText(Float.toString(tlaMovingAverageY
+						.getMovingAverage()));
+				tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
+						.getMovingAverage()));
+				tvRotationDegreeTitle.setText(Float
+						.toString(currentMovementBearing));
+
 				break;
 			case Constants.MAGNETIC_BEARING_MSG:
 				movementMagneticBearing = (Float) msg.obj;
@@ -678,14 +725,16 @@ public class MainActivity extends Activity {
 			case Constants.MOVEMENT_BEARING_MSG:
 				currentMovementBearing = (Float) msg.obj;
 				// TODO think about it you don't need it really.
-//				float bearingDiffrence = Math.abs(movementMagneticBearing - currentMovementBearing);
-//				float bearingDiffrence = Math.abs(currentMovementBearing);
+				// float bearingDiffrence = Math.abs(movementMagneticBearing -
+				// currentMovementBearing);
+				// float bearingDiffrence = Math.abs(currentMovementBearing);
 				currentMovementBearing = Math.abs(currentMovementBearing);
 				break;
 			default:
 				break;
 			}
 		}
+
 	};
 
 	/**
@@ -797,7 +846,6 @@ public class MainActivity extends Activity {
 			@Override
 			public void run() {
 				doubleBackToExitIsPressedOnce = false;
-
 			}
 		}, 2000);
 	}
@@ -822,4 +870,19 @@ public class MainActivity extends Activity {
 		actionBar.setSubtitle(resourceId);
 	}
 
+	private void displaySituation(int situation) {
+		// TODO Auto-generated method stub
+		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
+		switch (situation) {
+		case Constants.ACCEL_DETECTED:
+			background.setBackgroundResource(R.color.dark_red);
+			break;
+		case Constants.BRAKE_DETECTED:
+			background.setBackgroundResource(R.color.dark_green);
+			break;
+		default:
+			background.setBackgroundResource(R.color.White);
+			break;
+		}
+	}
 }

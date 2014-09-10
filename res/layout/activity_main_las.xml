@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/connectedLayout"
+    android:id="@+id/activity_main_las"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -158,14 +158,16 @@
             android:id="@+id/xAxisTrueTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="X-axis Linear Acceleration: " >
+            android:text="X-axis Linear Acceleration: "
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
             android:id="@+id/xAxisTrueValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.0" >
+            android:text="0.0"
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
@@ -179,14 +181,16 @@
             android:id="@+id/yAxisTrueTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Y-axis Linear Acceleration: " >
+            android:text="Y-axis Linear Acceleration: "
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
             android:id="@+id/yAxisTrueValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.0" >
+            android:text="0.0"
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 

@@ -154,6 +154,7 @@ public class AlexMath {
 		}
 		return Math.sqrt(result);
 	}
+	
 
 	// public static String getDate() {
 	// SimpleDateFormat formatter = new SimpleDateFormat(

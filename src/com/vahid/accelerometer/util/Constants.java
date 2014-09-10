@@ -3,6 +3,19 @@ package com.vahid.accelerometer.util;
 import java.util.UUID;
 
 public class Constants {
+	/** Brake detection **/
+	// low pass filter: moving average - app 4 Seconds
+	public static final int WINDOW_SIZE = 20;
+	// The brake threshold based on heuristic 1 m/s2
+	public static final float BRAKE_THRESHOLD = -1;
+	public static final float ACCEL_THRESHOLD = 1;
+	// Three situations for brake condition
+	public static final int BRAKE_DETECTED = -1;
+	public static final int NO_MOVE_DETECTED = 0;
+	public static final int ACCEL_DETECTED = 1;
+
+
+	
 	// Debug related constants
 	public static boolean DEBUG = true;
 	public static String LOG_TAG = "Debugging Tag";
