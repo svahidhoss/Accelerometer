@@ -70,18 +70,23 @@ public class AlexMath {
 
 		return values;
 	}
-	
+
 	/**
-	 * Used for conversion of a 2x2 matrices based on the input degree.
+	 * Used for conversion of a 3x1 matrices based on the input degree around
+	 * only one axis.
+	 * 
 	 * @param values
 	 * @param degree
 	 * @return
 	 */
 	public static float[] convertReference(float[] values, float degree) {
 		float degreeRadian = degreesToRadians(degree);
-		float[] covertedValues = new float[] { 0, 0 };
-		covertedValues[0] = (float) (Math.cos(degreeRadian) * values[0] - Math.sin(degreeRadian) * values[1]);
-		covertedValues[1] = (float) (Math.sin(degreeRadian) * values[0] + Math.cos(degreeRadian) * values[1]);
+		float[] covertedValues = new float[] { 0, 0, 0 };
+		covertedValues[0] = (float) (Math.cos(degreeRadian) * values[0] - Math
+				.sin(degreeRadian) * values[1]);
+		covertedValues[1] = (float) (Math.sin(degreeRadian) * values[0] + Math
+				.cos(degreeRadian) * values[1]);
+		covertedValues[2] = values[2];
 		return covertedValues;
 	}
 

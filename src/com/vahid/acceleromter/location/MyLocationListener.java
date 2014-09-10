@@ -1,10 +1,7 @@
 package com.vahid.acceleromter.location;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
-import com.vahid.accelerometer.util.AlexMath;
 import com.vahid.accelerometer.util.CsvListenerInterface;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
@@ -30,6 +27,7 @@ public class MyLocationListener implements LocationListener,
 	private MovingAverage longMovingAverage = new MovingAverage(5);
 	private float bearing;
 	private float magneticDeclination;
+	private float bearingFromMagneticNorth;
 
 	// save to file view fields
 	private boolean savingToFile = false;
@@ -50,6 +48,7 @@ public class MyLocationListener implements LocationListener,
 	private void locationRecieved(Location location) {
 		bearing = location.getBearing();
 		magneticDeclination = getMagneticDeclination(location);
+		bearingFromMagneticNorth = bearing - magneticDeclination;
 
 		String Text = "My current location is: \n" + "Latitude = "
 				+ location.getLatitude() + "\n" + "Longitude = "
@@ -60,13 +59,13 @@ public class MyLocationListener implements LocationListener,
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
 		
 		// sending back the degree between 
-		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG, (bearing + magneticDeclination)).sendToTarget();
+		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG, bearingFromMagneticNorth).sendToTarget();
 
 
 		if (savingToFile && csvLocationFile != null) {
 			csvLocationFile.writeToFile(bearing, false);
 			csvLocationFile.writeToFile(location.getSpeed(), false);
-			csvLocationFile.writeToFile((bearing + magneticDeclination), false);
+			csvLocationFile.writeToFile(bearingFromMagneticNorth, false);
 			csvLocationFile.writeToFile(location.getTime(), true);
 		}
 		// latMovingAverage.pushValue(location.);

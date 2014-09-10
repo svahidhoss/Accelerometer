@@ -48,7 +48,7 @@ public class AccelerationEventListener implements SensorEventListener,
 	private float[] outRotationMatrix = new float[16];
 
 	private double trueAccelerationMagnitude;
-	private float currentBearing;
+	private float magneticBearing;
 
 
 	// save to file view fields
@@ -261,7 +261,7 @@ public class AccelerationEventListener implements SensorEventListener,
 
 				// Convert to degrees & 360 span (feel like I'm in Trig class
 				// with Radians)
-				currentBearing = ((float) Math.toDegrees(orientationValuesRadian[0]) + 360) % 360;
+				magneticBearing = ((float) Math.toDegrees(orientationValuesRadian[0]) + 360) % 360;
 
 				// if you need True North enable the lines below and you'll need
 				// GPS
@@ -320,8 +320,8 @@ public class AccelerationEventListener implements SensorEventListener,
 
 				mHandler.obtainMessage(Constants.ACCEL_VALUE_MSG,
 						trueAcceleration).sendToTarget();
-				mHandler.obtainMessage(Constants.CURRENT_BEARING_MSG,
-						currentBearing).sendToTarget();
+				mHandler.obtainMessage(Constants.MAGNETIC_BEARING_MSG,
+						magneticBearing).sendToTarget();
 
 			}
 		}

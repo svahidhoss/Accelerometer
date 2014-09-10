@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
 	// Connected views
 	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar, finalSeekBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
-	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvRotationDegreeTitle;
+	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue, tvRotationDegreeTitle;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -77,6 +77,7 @@ public class MainActivity extends Activity {
 	// private boolean saveToFileChecked = false;
 	private CsvFileWriter csvSensorsFile;
 	private CsvFileWriter csvLocationFile;
+	private CsvFileWriter csvTrueAccelerationFile;
 
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
@@ -112,8 +113,8 @@ public class MainActivity extends Activity {
 	// private float[] rotationMatrixInverse = new float[16];
 
 	// Calculation of Motion Direction
-	private float movementBearingDegree;
-	private float currentBearing;
+	private float movementMagneticBearing;
+	private float currentMovementBearing;
 
 
 	// --- Filters ---
@@ -337,6 +338,7 @@ public class MainActivity extends Activity {
 
 		tvXTrueAxisValue = (TextView) findViewById(R.id.xAxisTrueValue);
 		tvYTrueAxisValue = (TextView) findViewById(R.id.yAxisTrueValue);
+		tvZTrueAxisValue = (TextView) findViewById(R.id.zAxisTrueValue);
 		tvRotationDegreeTitle = (TextView) findViewById(R.id.rotationDegreeeValue);
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
@@ -464,6 +466,10 @@ public class MainActivity extends Activity {
 
 		if (csvLocationFile != null) {
 			csvLocationFile.closeCaptureFile();
+		}	
+		
+		if (csvTrueAccelerationFile != null) {
+			csvTrueAccelerationFile.closeCaptureFile();
 		}
 
 	}
@@ -651,24 +657,30 @@ public class MainActivity extends Activity {
 				 * zAxisSeekBar .setProgress((int)
 				 * (earthLinearAccelerationValues[2] + 10f));
 				 */
-				finalSeekBar
-						.setProgress((int) (linearAccelerationMagnitude + 10f));
-				break;
-			case Constants.MOVEMENT_BEARING_MSG:
-				movementBearingDegree = (Float) msg.obj;
-				break;
-			case Constants.CURRENT_BEARING_MSG:
-				currentBearing = (Float) msg.obj;
-				float diffrenccInDegree = Math.abs(movementBearingDegree - currentBearing);
 				
 				trueLinearAccelerationValues = AlexMath.convertReference(
-						earthLinearAccelerationValues, diffrenccInDegree);
+						earthLinearAccelerationValues, currentMovementBearing);
 				// set the value as the text of every TextView
 				tvXTrueAxisValue.setText(Float
 						.toString(trueLinearAccelerationValues[0]));
 				tvYTrueAxisValue.setText(Float
 						.toString(trueLinearAccelerationValues[1]));
-				tvRotationDegreeTitle.setText(Float.toString(diffrenccInDegree));
+				tvZTrueAxisValue.setText(Float
+						.toString(trueLinearAccelerationValues[2]));
+				tvRotationDegreeTitle.setText(Float.toString(currentMovementBearing));
+				
+				finalSeekBar
+						.setProgress((int) (linearAccelerationMagnitude));
+				break;
+			case Constants.MAGNETIC_BEARING_MSG:
+				movementMagneticBearing = (Float) msg.obj;
+				break;
+			case Constants.MOVEMENT_BEARING_MSG:
+				currentMovementBearing = (Float) msg.obj;
+				// TODO think about it you don't need it really.
+//				float bearingDiffrence = Math.abs(movementMagneticBearing - currentMovementBearing);
+//				float bearingDiffrence = Math.abs(currentMovementBearing);
+				currentMovementBearing = Math.abs(currentMovementBearing);
 				break;
 			default:
 				break;
