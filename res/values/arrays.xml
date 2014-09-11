@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string-array name="delay_rates">
-		<item>Normal</item>
-		<item>UI</item>
-		<item>Game</item>
-		<item>Fastest</item>
+		<item>Normal 200,000 ms</item>
+		<item>UI 	60,000 ms</item>
+		<item>Game 	20,000 ms</item>
+		<item>Fastest 0 ms</item>
 	</string-array>
 </resources>

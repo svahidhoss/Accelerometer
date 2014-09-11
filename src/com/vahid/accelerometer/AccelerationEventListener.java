@@ -90,7 +90,6 @@ public class AccelerationEventListener implements SensorEventListener,
 		mSensorManager.unregisterListener(this);
 
 		// TODO change this
-
 		// mSensorManager.registerListener(this, mAccelerometer,
 		// delayRates[curDelayRate]);
 
@@ -135,25 +134,26 @@ public class AccelerationEventListener implements SensorEventListener,
 	public void onSensorChanged(SensorEvent event) {
 		// synchronized (this) {
 		switch (event.sensor.getType()) {
-		case Sensor.TYPE_ACCELEROMETER:
-			// getAccelerometer(event);
-			break;
-		case Sensor.TYPE_ORIENTATION:
-			// getOrientation(event);
-			break;
+		// TODO change this
+		// case Sensor.TYPE_ACCELEROMETER:
+		// // getAccelerometer(event);
+		// break;
+		// case Sensor.TYPE_ORIENTATION:
+		// // getOrientation(event);
+		// break;
 		case Sensor.TYPE_LINEAR_ACCELERATION:
-			getLinearAcceleration2(event);
+			getLinearAcceleration(event);
 			// getLinearAcceleration(event);
 			// getAccelerometer(event);
 
 			break;
 		case Sensor.TYPE_GRAVITY:
-			getLinearAcceleration2(event);
+			getLinearAcceleration(event);
 			// getGravity(event);
 
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			getLinearAcceleration2(event);
+			getLinearAcceleration(event);
 			// getMagneticField(event);
 
 			break;
@@ -164,56 +164,7 @@ public class AccelerationEventListener implements SensorEventListener,
 		// } //fin del syncronized this. //#check?
 	}
 
-	/**
-	 * 
-	 * 
-	 * @param linearAccelerationEvent
-	 */
-	private void getLinearAcceleration(SensorEvent linearAccelerationEvent) {
-		// A three dimensional vector indicating acceleration along each device
-		// axis, not including gravity. All values have units of m/s^2. The
-		// coordinate system is the same as is used by the acceleration sensor.
-		// The
-		// output of the accelerometer, gravity and linear-acceleration sensors
-		// must
-		// obey the following relation:
-		//
-		//
-		// acceleration = gravity + linear-acceleration
-		linearAccelerationValues = linearAccelerationEvent.values;
-		// its is enough because you all the acceleration on phone is due to
-		// car.If possible apply low pass filter to remove changes due to road
-		// bumps .
-		linearAccelerationMagnitude = AlexMath
-				.getVectorMagnitude(linearAccelerationValues);
-
-		// If check box for saving the file has been checked.
-		if (savingToFile && csvFile != null) {
-			csvFile.writeToFile(linearAccelerationValues, false);
-			csvFile.writeToFile((float) linearAccelerationMagnitude, true);
-		}
-
-		// set the value as the text of every TextView
-		/*
-		 * tvXAxisStringValue = Float.toString(linearAccelerationValues[0]);
-		 * tvYAxisStringValue = Float.toString(linearAccelerationValues[1]);
-		 * tvZAxisStringValue = Float.toString(linearAccelerationValues[2]);
-		 * tvFinalStringValue = Double.toString(linearAccelerationMagnitude);
-		 * 
-		 * 
-		 * xAxisSeekBarIntValue = (int) (linearAccelerationValues[0] + 10f);
-		 * yAxisSeekBarIntValue = (int) (linearAccelerationValues[1] + 10f);
-		 * zAxisSeekBarIntValue = (int) (linearAccelerationValues[2] + 10f);
-		 * 
-		 * finalSeekBarIntValue = (int) (linearAccelerationValues[2]);
-		 */
-
-		mHandler.obtainMessage(Constants.ACCEL_VALUE_MSG,
-				linearAccelerationValues).sendToTarget();
-
-	}
-
-	private void getLinearAcceleration2(SensorEvent event) {
+	private void getLinearAcceleration(SensorEvent event) {
 		if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION)
 			linearAccelerationValues = event.values;
 

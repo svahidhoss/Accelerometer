@@ -5,7 +5,7 @@ import java.util.UUID;
 public class Constants {
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
-	public static final int WINDOW_SIZE = 25;
+	public static final int WINDOW_SIZE = 20;
 	// The brake threshold based on heuristic 1 m/s2
 	public static final float BRAKE_THRESHOLD = -0.75f;
 	public static final float ACCEL_THRESHOLD = -BRAKE_THRESHOLD;

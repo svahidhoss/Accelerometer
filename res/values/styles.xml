@@ -17,8 +17,6 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
-    <color name="dark_red">#CC0000</color>
-    <color name="dark_green">#669900</color>
 
     <style name="bigTitle">
         <item name="android:textStyle">bold|italic</item>

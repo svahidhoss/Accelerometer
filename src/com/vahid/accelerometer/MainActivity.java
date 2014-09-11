@@ -65,10 +65,11 @@ public class MainActivity extends Activity {
 
 	/**** Defining view fields ****/
 	private Button btnConnect, buttonCheck;
-	private TextView tvState, tvLASCapturedState;
+	private TextView tvState;
 	private MenuItem miSearchOption;
 	// Connected views
-	private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar, finalSeekBar;
+	// private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
+	private SeekBar finalSeekBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
 			tvRotationDegreeTitle;
@@ -518,15 +519,9 @@ public class MainActivity extends Activity {
 										.registerSensors(currentDelayRate);
 							}
 							// show a toast message
-							/*
-							 * toastObject = Toast.makeText(
-							 * AccelerometerInfoActivity.this,
-							 * "Delay rate changed to '" +
-							 * delayRatesDescription[position] + "' mode",
-							 * Toast.LENGTH_SHORT);
-							 * toastObject.setGravity(Gravity.CENTER_VERTICAL |
-							 * Gravity.BOTTOM, 0, 0); toastObject.show();
-							 */
+							Toast.makeText(getApplicationContext(), "Delay rate changed to '"
+									+ delayRatesDescription[position]
+									+ "' mode", Toast.LENGTH_SHORT).show();
 						}
 					}
 
@@ -870,8 +865,11 @@ public class MainActivity extends Activity {
 		actionBar.setSubtitle(resourceId);
 	}
 
+	/**
+	 * Show weather a brake or acceleration has occured.
+	 * @param situation
+	 */
 	private void displaySituation(int situation) {
-		// TODO Auto-generated method stub
 		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
 		switch (situation) {
 		case Constants.BRAKE_DETECTED:
