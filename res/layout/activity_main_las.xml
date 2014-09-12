@@ -19,14 +19,16 @@
             android:id="@+id/xAxisTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="x-axis Linear Acceleration: " >
+            android:text="x-axis Linear Acceleration: "
+            android:textSize="18sp" >
         </TextView>
 
         <TextView
             android:id="@+id/xAxisValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.0" >
+            android:text="0.0"
+            android:textSize="18sp" >
         </TextView>
     </LinearLayout>
 
@@ -47,14 +49,16 @@
             android:id="@+id/yAxisTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="y-axis Linear Acceleration: " >
+            android:text="y-axis Linear Acceleration: "
+            android:textSize="18sp" >
         </TextView>
 
         <TextView
             android:id="@+id/yAxisValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.0" >
+            android:text="0.0"
+            android:textSize="18sp" >
         </TextView>
     </LinearLayout>
 
@@ -75,14 +79,16 @@
             android:id="@+id/zAxisTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="z-axis Linear Acceleration: " >
+            android:text="z-axis Linear Acceleration: "
+            android:textSize="18sp" >
         </TextView>
 
         <TextView
             android:id="@+id/zAxisValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.0" >
+            android:text="0.0"
+            android:textSize="18sp" >
         </TextView>
     </LinearLayout>
 
@@ -138,7 +144,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Delay Rate:" >
+        android:text="Sensors Delay Rate:" >
     </TextView>
 
     <Spinner
@@ -159,7 +165,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="X-axis Linear Acceleration: "
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
 
         <TextView
@@ -167,7 +174,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
     </LinearLayout>
 
@@ -204,14 +212,16 @@
             android:id="@+id/zAxisTrueTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Z-axis Linear Acceleration: " >
+            android:text="Z-axis Linear Acceleration: "
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
             android:id="@+id/zAxisTrueValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.0" >
+            android:text="0.0"
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
@@ -225,14 +235,18 @@
             android:id="@+id/rotationDegreeTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="True Bearing: " >
+            android:text="True Bearing: "
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
 
         <TextView
             android:id="@+id/rotationDegreeeValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="00" >
+            android:text="00"
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
     </LinearLayout>
 
