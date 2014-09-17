@@ -329,7 +329,7 @@ public class MainActivity extends Activity {
 				mHandler);
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				0, 0, myLocationListener);
+				1000, 1, myLocationListener);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
