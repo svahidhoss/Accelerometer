@@ -9,6 +9,15 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin" >
 
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Earth Frame Of Reference"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/holo_red_dark" />
+
     <LinearLayout
         android:id="@+id/xAxisLinearLayout"
         android:layout_width="fill_parent"
@@ -50,7 +59,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="y-axis Linear Acceleration: "
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
 
         <TextView
@@ -58,7 +68,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
     </LinearLayout>
 
@@ -130,29 +141,19 @@
         android:layout_height="wrap_content"
         android:max="20" />
 
-    <CheckBox
-        android:id="@+id/checkBoxSaveToFile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:onClick="onCheckboxClicked"
-        android:text="@string/checkBoxSaveToFileInitialMsg" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/black" />
 
     <TextView
-        android:id="@+id/textView5"
-        style="@style/littleTitle"
-        android:layout_width="fill_parent"
+        android:id="@+id/TextView01"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Sensors Delay Rate:" >
-    </TextView>
-
-    <Spinner
-        android:id="@+id/delayRateChooser"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:prompt="@string/delay_rate_spinner_prompt" >
-    </Spinner>
+        android:text="Movement Frame Of Reference"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/holo_red_dark" />
 
     <LinearLayout
         android:id="@+id/xAxisTrueLinearLayout"
@@ -165,8 +166,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="X-axis Linear Acceleration: "
-            android:textSize="16sp"
-            android:textStyle="bold" >
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
@@ -174,8 +174,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="16sp"
-            android:textStyle="bold" >
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
@@ -190,7 +189,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Y-axis Linear Acceleration: "
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
 
         <TextView
@@ -198,7 +198,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
     </LinearLayout>
 
@@ -249,5 +250,39 @@
             android:textStyle="bold" >
         </TextView>
     </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/black" />
+
+    <CheckBox
+        android:id="@+id/checkBoxSaveToFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:onClick="onCheckboxClicked"
+        android:text="@string/checkBoxSaveToFileInitialMsg" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/black" />
+
+    <TextView
+        android:id="@+id/textView5"
+        style="@style/littleTitle"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Sensors Delay Rate:" >
+    </TextView>
+
+    <Spinner
+        android:id="@+id/delayRateChooser"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:prompt="@string/delay_rate_spinner_prompt" >
+    </Spinner>
 
 </LinearLayout>
