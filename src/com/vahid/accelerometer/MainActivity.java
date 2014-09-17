@@ -324,7 +324,7 @@ public class MainActivity extends Activity {
 
 		}
 
-		// we are ready
+		// we are ready for GPS
 		myLocationListener = new MyLocationListener(getApplicationContext(),
 				mHandler);
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -702,12 +702,10 @@ public class MainActivity extends Activity {
 				// set the value as the text of every TextView
 				tvXTrueAxisValue.setText(Float.toString(tlaMovingAverageX
 						.getMovingAverage()));
-
-				// display the current situation if there's a brake.
-				displaySituation(tlaMovingAverageX.detectSituation());
-
 				tvYTrueAxisValue.setText(Float.toString(tlaMovingAverageY
 						.getMovingAverage()));
+				// display the current situation if there's a brake.
+				displayDetectedSituation(tlaMovingAverageY.detectSituation());
 				tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
 						.getMovingAverage()));
 				tvRotationDegreeTitle.setText(Float
@@ -869,7 +867,7 @@ public class MainActivity extends Activity {
 	 * Show weather a brake or acceleration has occured.
 	 * @param situation
 	 */
-	private void displaySituation(int situation) {
+	private void displayDetectedSituation(int situation) {
 		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
 		switch (situation) {
 		case Constants.BRAKE_DETECTED:
