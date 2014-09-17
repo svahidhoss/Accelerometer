@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="x-axis Linear Acceleration: "
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
@@ -50,7 +50,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="y-axis Linear Acceleration: "
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
@@ -58,7 +58,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
@@ -80,7 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="z-axis Linear Acceleration: "
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
@@ -88,7 +88,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
@@ -111,7 +111,7 @@
             android:layout_height="wrap_content"
             android:text="Acceleration Mag.: "
             android:textColor="@android:color/holo_blue_dark"
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
@@ -120,7 +120,7 @@
             android:layout_height="wrap_content"
             android:text="0.0"
             android:textColor="@android:color/holo_blue_dark"
-            android:textSize="18sp" >
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
