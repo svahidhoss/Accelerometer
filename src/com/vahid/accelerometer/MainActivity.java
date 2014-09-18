@@ -127,6 +127,7 @@ public class MainActivity extends Activity {
 	private MovingAverage laMagMovingAverage = new MovingAverage(
 			Constants.WINDOW_SIZE);
 
+	private boolean useX = false;
 	// Rotation Matrix Calculation
 	// private float[] trueAcceleration = new float[4];
 	// private float[] inclinationMatrix = new float[16];
@@ -329,7 +330,7 @@ public class MainActivity extends Activity {
 				mHandler);
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				1000, 1, myLocationListener);
+				2000, 2, myLocationListener);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
@@ -583,6 +584,14 @@ public class MainActivity extends Activity {
 				}
 			}
 			break;
+		case R.id.checkBoxUseX:
+			if (checked) {
+				useX = true;
+			}
+			else{
+				useX = false;
+			}
+			break;
 		}
 	}
 
@@ -705,7 +714,8 @@ public class MainActivity extends Activity {
 				tvYTrueAxisValue.setText(Float.toString(tlaMovingAverageY
 						.getMovingAverage()));
 				// display the current situation if there's a brake.
-				displayDetectedSituation(tlaMovingAverageY.detectSituation());
+				displayDetectedSituation(tlaMovingAverageX.detectSituation(), tlaMovingAverageY.detectSituation());
+				
 				tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
 						.getMovingAverage()));
 				tvRotationDegreeTitle.setText(Float
@@ -867,8 +877,15 @@ public class MainActivity extends Activity {
 	 * Show weather a brake or acceleration has occured.
 	 * @param situation
 	 */
-	private void displayDetectedSituation(int situation) {
+	private void displayDetectedSituation(int situationX, int situationY) {
 		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
+		int situation;
+		if (useX) {
+			situation = situationX;
+		}
+		else {
+			situation = situationY;
+		}
 		switch (situation) {
 		case Constants.BRAKE_DETECTED:
 			background.setBackgroundResource(R.color.dark_red);

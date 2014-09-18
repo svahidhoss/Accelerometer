@@ -21,7 +21,7 @@
     <string name="imageView1Desc">bluetooth image</string>
     <string name="imageViewWrong">wrong image</string>
     <string name="buttonConnectTitle">Connect Now!</string>
-    <string name="checkBoxSaveToFileInitialMsg">Click to Start Saving to file </string>
+    <string name="checkBoxSaveToFileInitialMsg">Start Saving to file </string>
     <string name="checkBoxSaveToFileSavingMsg">Now Saving to file </string>
     <string name="checkBoxSaveToFileStoppedMsg">Finished Saving to file </string>
 

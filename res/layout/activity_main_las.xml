@@ -257,6 +257,12 @@
         android:background="@android:color/black" />
 
     <CheckBox
+        android:id="@+id/checkBoxUseX"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Using X axis for brake detection" />
+
+    <CheckBox
         android:id="@+id/checkBoxSaveToFile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
