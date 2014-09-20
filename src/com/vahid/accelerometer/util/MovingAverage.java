@@ -1,55 +1,55 @@
 package com.vahid.accelerometer.util;
 
 public class MovingAverage {
-	private float circularBuffer[];
-	private float avg;
-	private int circularIndex;
-	private int count;
+	private float mCircularBuffer[];
+	private float mAverage;
+	private int mCircularIndex;
+	private int mCount;
 
 	public MovingAverage(int windowSize) {
-		circularBuffer = new float[windowSize];
-		count = 0;
-		circularIndex = 0;
-		avg = 0;
+		mCircularBuffer = new float[windowSize];
+		mCount = 0;
+		mCircularIndex = 0;
+		mAverage = 0;
 	}
 
 	/**
 	 * Get the current moving average.
 	 */
 	public float getMovingAverage() {
-		return avg;
+		return mAverage;
 	}
 
 	/**
 	 * Push a new value to the buffer.
 	 * 
-	 * @param x
+	 * @param newValue
 	 *            new value
 	 */
-	public void pushValue(float x) {
-		if (count++ == 0) {
-			primeBuffer(x);
+	public void pushValue(float newValue) {
+		if (mCount++ == 0) {
+			primeBuffer(newValue);
 		}
-		float lastValue = circularBuffer[circularIndex];
-		avg = avg + (x - lastValue) / circularBuffer.length;
-		circularBuffer[circularIndex] = x;
-		circularIndex = nextIndex(circularIndex);
+		float lastValue = mCircularBuffer[mCircularIndex];
+		mAverage = mAverage + (newValue - lastValue) / mCircularBuffer.length;
+		mCircularBuffer[mCircularIndex] = newValue;
+		mCircularIndex = findNextIndex(mCircularIndex);
 	}
 
 	public long getCount() {
-		return count;
+		return mCount;
 	}
 
 	private void primeBuffer(float val) {
-		for (int i = 0; i < circularBuffer.length; ++i) {
-			circularBuffer[i] = val;
+		for (int i = 0; i < mCircularBuffer.length; ++i) {
+			mCircularBuffer[i] = val;
 		}
 
-		avg = val;
+		mAverage = val;
 	}
 
-	private int nextIndex(int curIndex) {
-		if (curIndex + 1 >= circularBuffer.length) {
+	private int findNextIndex(int curIndex) {
+		if (curIndex + 1 >= mCircularBuffer.length) {
 			return 0;
 		}
 		return curIndex + 1;
@@ -61,11 +61,11 @@ public class MovingAverage {
 	 * @return true if occurred.
 	 */
 	public int detectSituation() {
-		if (count >= circularBuffer.length) {
-			if (avg <= Constants.BRAKE_THRESHOLD) {
+		if (mCount >= mCircularBuffer.length) {
+			if (mAverage <= Constants.BRAKE_THRESHOLD) {
 				return Constants.BRAKE_DETECTED;
 			}
-			if (avg >= Constants.ACCEL_THRESHOLD) {
+			if (mAverage >= Constants.ACCEL_THRESHOLD) {
 				return Constants.ACCEL_DETECTED;
 			}
 		}

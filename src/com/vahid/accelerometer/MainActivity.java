@@ -57,14 +57,14 @@ public class MainActivity extends Activity {
 			.getDefaultAdapter();
 	private BroadcastReceiver mReceiver;
 
-	private ConnectThread connectThread = null;
-	private ConnectedThread connectedThread = null;
-	private String deviceName = "";
+	private ConnectThread mConnectThread = null;
+	private ConnectedThread mConnectedThread = null;
+	private String mDeviceName = "";
 
-	private static int currentState = Constants.STATE_DISCONNECTED;
+	private static int mCurrentState = Constants.STATE_DISCONNECTED;
 
 	/**** Defining view fields ****/
-	private Button btnConnect, buttonCheck;
+	private Button btnConnect, btnCheck;
 	private TextView tvState;
 	private MenuItem miSearchOption;
 	// Connected views
@@ -85,20 +85,17 @@ public class MainActivity extends Activity {
 
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
-	private LocationManager locationManager;
+	private LocationManager mLocationManager;
 
 	/**** Sensor related Fields ****/
 	// private SensorManager mSensorManager;
-	private AccelerationEventListener accelerationEventListener;
+	private AccelerationEventListener mAccelerationEventListener;
 
 	// Sensor Accelerometer Rates
-	private static final int delayRates[] = {
-			SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
-			SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_FASTEST };
-	private static final String delayRatesDescription[] = {
+	private static final String DELAY_RATES_DESCRIPTION[] = {
 			"Normal 200,000 ms", "UI 60,000 ms", "Game 20,000 ms",
 			"Fastest 0 ms" };
-	private int currentDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
+	private int mCurrentDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
 	// Sensor Values: it's important to initialize them.
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
@@ -123,10 +120,11 @@ public class MainActivity extends Activity {
 	// private float[] magneticValues;
 	// private float[] gravityValues;
 
-	private double linearAccelerationMagnitude;
+	private double mLinearAccelerationMagnitude;
 	private MovingAverage laMagMovingAverage = new MovingAverage(
 			Constants.WINDOW_SIZE);
 
+	// TODO for testing.
 	private boolean useX = false;
 	// Rotation Matrix Calculation
 	// private float[] trueAcceleration = new float[4];
@@ -257,8 +255,8 @@ public class MainActivity extends Activity {
 			}
 		}
 
-		if (accelerationEventListener != null) {
-			accelerationEventListener.unregisterSensors();
+		if (mAccelerationEventListener != null) {
+			mAccelerationEventListener.unregisterSensors();
 		}
 	}
 
@@ -269,7 +267,7 @@ public class MainActivity extends Activity {
 	private void initViewsConnected() {
 
 		Toast.makeText(getApplicationContext(),
-				getString(R.string.title_connected) + deviceName,
+				getString(R.string.title_connected) + mDeviceName,
 				Toast.LENGTH_SHORT).show();
 		setContentView(R.layout.activity_main_connected);
 
@@ -277,25 +275,25 @@ public class MainActivity extends Activity {
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
 		if (Constants.BT_MODULE_EXISTS) {
-			BluetoothSocket mSocket = connectThread.getBluetoothSocket();
-			connectedThread = new ConnectedThread(mSocket, mHandler);
+			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
+			mConnectedThread = new ConnectedThread(mSocket, mHandler);
 		}
 
 		// we are ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		accelerationEventListener = new AccelerationEventListener(mHandler);
-		accelerationEventListener.initializeSensors(mSensorManager);
-		accelerationEventListener.registerSensors(currentDelayRate);
+		mAccelerationEventListener = new AccelerationEventListener(mHandler);
+		mAccelerationEventListener.initializeSensors(mSensorManager);
+		mAccelerationEventListener.registerSensors(mCurrentDelayRate);
 
 		// TODO what is this really doing?
-		buttonCheck = (Button) findViewById(R.id.buttonCheck);
-		buttonCheck.setOnClickListener(new OnClickListener() {
+		btnCheck = (Button) findViewById(R.id.buttonCheck);
+		btnCheck.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				if (Constants.BT_MODULE_EXISTS)
-					connectedThread.write(AlexMath.toByteArray(60));
+					mConnectedThread.write(AlexMath.toByteArray(60));
 				else {
 
 				}
@@ -310,7 +308,7 @@ public class MainActivity extends Activity {
 	 */
 	private void initViewsConnectedLinearAcceleration() {
 		Toast.makeText(getApplicationContext(),
-				getString(R.string.title_connected) + deviceName,
+				getString(R.string.title_connected) + mDeviceName,
 				Toast.LENGTH_SHORT).show();
 
 		setContentView(R.layout.activity_main_las);
@@ -320,16 +318,16 @@ public class MainActivity extends Activity {
 		// going to use read(). [write is not a blocking method].
 
 		if (Constants.BT_MODULE_EXISTS) {
-			BluetoothSocket mSocket = connectThread.getBluetoothSocket();
-			connectedThread = new ConnectedThread(mSocket, mHandler);
+			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
+			mConnectedThread = new ConnectedThread(mSocket, mHandler);
 
 		}
 
 		// we are ready for GPS
 		myLocationListener = new MyLocationListener(getApplicationContext(),
 				mHandler);
-		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
 				2000, 2, myLocationListener);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
@@ -339,9 +337,9 @@ public class MainActivity extends Activity {
 		// we are also ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		accelerationEventListener = new AccelerationEventListener(mHandler);
-		accelerationEventListener.initializeSensors(mSensorManager);
-		accelerationEventListener.registerSensors(currentDelayRate);
+		mAccelerationEventListener = new AccelerationEventListener(mHandler);
+		mAccelerationEventListener.initializeSensors(mSensorManager);
+		mAccelerationEventListener.registerSensors(mCurrentDelayRate);
 
 		// retrieve all the needed components
 		// TODO correct later
@@ -451,10 +449,10 @@ public class MainActivity extends Activity {
 	private void connectBluetoothDevice(String address) {
 		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
 
-		connectThread = new ConnectThread(device, mHandler);
-		connectThread.start();
+		mConnectThread = new ConnectThread(device, mHandler);
+		mConnectThread.start();
 
-		deviceName = device.getName();
+		mDeviceName = device.getName();
 		// the receiver (mReceiver) is waiting for the signal of
 		// "device connected" to use the connection, and call connected().
 		// connected() initialize also the ConnectedThread instance (- connected
@@ -466,14 +464,14 @@ public class MainActivity extends Activity {
 	 */
 	private void finilizeAll() {
 		// Remove the listener you previously added to location manager
-		locationManager.removeUpdates(myLocationListener);
+		mLocationManager.removeUpdates(myLocationListener);
 
-		if (accelerationEventListener != null) {
-			accelerationEventListener.unregisterSensors();
+		if (mAccelerationEventListener != null) {
+			mAccelerationEventListener.unregisterSensors();
 		}
 		// disconnect the thread first
-		if (connectedThread != null) {
-			connectThread.cancel();
+		if (mConnectedThread != null) {
+			mConnectThread.cancel();
 		}
 
 		// unregister the receivers
@@ -513,15 +511,15 @@ public class MainActivity extends Activity {
 					@Override
 					public void onItemSelected(AdapterView<?> parentView,
 							View selectedItemView, int position, long id) {
-						if (currentDelayRate != position) {
-							currentDelayRate = position;
-							if (accelerationEventListener != null) {
-								accelerationEventListener
-										.registerSensors(currentDelayRate);
+						if (mCurrentDelayRate != position) {
+							mCurrentDelayRate = position;
+							if (mAccelerationEventListener != null) {
+								mAccelerationEventListener
+										.registerSensors(mCurrentDelayRate);
 							}
 							// show a toast message
 							Toast.makeText(getApplicationContext(), "Delay rate changed to '"
-									+ delayRatesDescription[position]
+									+ DELAY_RATES_DESCRIPTION[position]
 									+ "' mode", Toast.LENGTH_SHORT).show();
 						}
 					}
@@ -549,8 +547,8 @@ public class MainActivity extends Activity {
 			// open the file if set true, otherwise close it.
 			if (checked) {
 				csvSensorsFile = new CsvFileWriter("Sensors");
-				accelerationEventListener.enableSaveToFile();
-				accelerationEventListener.setCsvFile(csvSensorsFile);
+				mAccelerationEventListener.enableSaveToFile();
+				mAccelerationEventListener.setCsvFile(csvSensorsFile);
 				checkBoxSaveToFile
 						.setText(R.string.checkBoxSaveToFileSavingMsg);
 				Toast.makeText(
@@ -567,7 +565,7 @@ public class MainActivity extends Activity {
 			} else {
 				if (csvSensorsFile != null) {
 					// Closing the captured file is as important as creating it.
-					accelerationEventListener.disableSaveToFile();
+					mAccelerationEventListener.disableSaveToFile();
 					csvSensorsFile.closeCaptureFile();
 					checkBoxSaveToFile
 							.setText(R.string.checkBoxSaveToFileInitialMsg);
@@ -603,12 +601,12 @@ public class MainActivity extends Activity {
 			return true;
 
 		case R.id.search_option:
-			if (currentState == Constants.STATE_DISCONNECTED) {
+			if (mCurrentState == Constants.STATE_DISCONNECTED) {
 				initializeBluetooth();
 				return true;
 			} else {
-				if (connectedThread != null) {
-					connectedThread.cancel();
+				if (mConnectedThread != null) {
+					mConnectedThread.cancel();
 				}
 				return true;
 			}
@@ -635,14 +633,14 @@ public class MainActivity extends Activity {
 		// private float[] trueLinearAccelerationValues = new float[] { 0, 0 };
 		@Override
 		public void handleMessage(Message msg) {
-			currentState = msg.what;
+			mCurrentState = msg.what;
 
 			switch (msg.what) {
 			case Constants.STATE_CONNECTED:
 				// TODO change later
 				initViewsConnectedLinearAcceleration();
 				// initViewsConnected();
-				setStatus(getString(R.string.title_connected) + deviceName);
+				setStatus(getString(R.string.title_connected) + mDeviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
 					miSearchOption.setIcon(R.drawable.menu_disconnect_icon);
@@ -678,10 +676,10 @@ public class MainActivity extends Activity {
 						.getMovingAverage()));
 
 				// acceleration magnitude
-				linearAccelerationMagnitude = AlexMath
+				mLinearAccelerationMagnitude = AlexMath
 						.getVectorMagnitude(earthLinearAccelerationValues);
 				laMagMovingAverage
-						.pushValue((float) linearAccelerationMagnitude);
+						.pushValue((float) mLinearAccelerationMagnitude);
 				/*
 				 * tvFinalValue.setText(AlexMath.round(
 				 * linearAccelerationMagnitude, 10));
@@ -815,7 +813,7 @@ public class MainActivity extends Activity {
 		byte[] all = new byte[8 * 4 + 8];
 		all = AlexMath.concatenateBytes(xyz_and_Mod, moduleRealByte);
 
-		connectedThread.write(all);
+		mConnectedThread.write(all);
 		// ********write angles
 		/*
 		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =

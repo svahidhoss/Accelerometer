@@ -2,12 +2,15 @@ package com.vahid.accelerometer.util;
 
 import java.util.UUID;
 
+import android.hardware.SensorManager;
+
 public class Constants {
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
-	public static final int WINDOW_SIZE = 20;
+	public static final int WINDOW_SIZE = 10;
+	public static final int WINDOW_SIZE_IN_MILIS = 1000;
 	// The brake threshold based on heuristic 1 m/s2
-	public static final float BRAKE_THRESHOLD = -0.75f;
+	public static final float BRAKE_THRESHOLD = -1f;
 	public static final float ACCEL_THRESHOLD = -BRAKE_THRESHOLD;
 	// Three situations for brake condition
 	public static final int BRAKE_DETECTED = -1;
@@ -29,6 +32,10 @@ public class Constants {
 												// acceleration (if it is
 												// braking or accelerating) (=0
 												// by the moment)
+	
+	public static final int DELAY_RATES[] = {
+		SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
+		SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_FASTEST };
 
 	/**** Bluetooth related fields ****/
 	// MY_UUID is the app's UUID string, also used by the server code?
