@@ -47,7 +47,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements Runnable {
 
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int REQUEST_CONNECT_DEVICE = 2;
@@ -335,8 +335,8 @@ public class MainActivity extends Activity {
 				2000, 2, myLocationListener);
 		// Creates a thread pool of size 1 to schedule commands to run periodically
 		mGpsExecutor = Executors.newScheduledThreadPool(1);
-/*		mGpsExecutor.scheduleAtFixedRate(, Constants.WINDOW_SIZE_IN_MILIS,
-				Constants.WINDOW_SIZE_IN_MILIS, TimeUnit.MILLISECONDS);*/
+		mGpsExecutor.scheduleAtFixedRate(this, Constants.WINDOW_SIZE_IN_MILIS,
+				Constants.WINDOW_SIZE_IN_MILIS, TimeUnit.MILLISECONDS);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
@@ -471,6 +471,11 @@ public class MainActivity extends Activity {
 	 * Method that stops everything.
 	 */
 	private void finilizeAll() {
+		// shutdown the GPS Executor immediately
+		if (mGpsExecutor != null) {
+			mGpsExecutor.shutdown();
+		}
+		
 		// Remove the listener you previously added to location manager
 		mLocationManager.removeUpdates(myLocationListener);
 
@@ -903,5 +908,12 @@ public class MainActivity extends Activity {
 			background.setBackgroundResource(R.color.White);
 			break;
 		}
+	}
+	
+	@Override
+	public void run() {
+		// TODO
+//		detectSituation();
+
 	}
 }

@@ -3,7 +3,7 @@ package com.vahid.accelerometer.util;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovingAverageTimeBased implements Runnable {
+public class MovingAverageTimeBased {
 	private List<Float> mCircularBuffer;
 	private float mAverage;
 
@@ -57,6 +57,8 @@ public class MovingAverageTimeBased implements Runnable {
 	 * @return whether there was a break, an acceleration or no move.
 	 */
 	public int detectSituation() {
+		// Empty the buffer for getting new values to average.
+		mCircularBuffer.clear();
 		if (mAverage <= Constants.BRAKE_THRESHOLD) {
 			return Constants.BRAKE_DETECTED;
 		}
@@ -64,12 +66,5 @@ public class MovingAverageTimeBased implements Runnable {
 			return Constants.ACCEL_DETECTED;
 		}
 		return Constants.NO_MOVE_DETECTED;
-	}
-
-	@Override
-	public void run() {
-		detectSituation();
-		// Empty the buffer for getting new values to average.
-		mCircularBuffer.clear();
 	}
 }
