@@ -11,12 +11,11 @@
 
     <TextView
         android:id="@+id/textView1"
+        style="@style/bigTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Earth Frame Of Reference"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@android:color/holo_red_dark" />
+        android:text="Earth Frame Of Reference" />
 
     <LinearLayout
         android:id="@+id/xAxisLinearLayout"
@@ -41,13 +40,6 @@
         </TextView>
     </LinearLayout>
 
-    <!--
-         <SeekBar
-        android:id="@+id/xAxisBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="20" />
-    -->
 
     <LinearLayout
         android:id="@+id/yAxisLinearLayout"
@@ -74,7 +66,7 @@
     </LinearLayout>
 
     <!--
-         <SeekBar
+        <SeekBar
         android:id="@+id/yAxisBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -104,7 +96,7 @@
     </LinearLayout>
 
     <!--
-         <SeekBar
+        <SeekBar
         android:id="@+id/zAxisBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -120,7 +112,7 @@
             android:id="@+id/finalTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Acceleration Mag.: "
+            android:text="Accel. Mag. (Minus Z): "
             android:textColor="@android:color/holo_blue_dark"
             android:textSize="16sp" >
         </TextView>
@@ -148,12 +140,11 @@
 
     <TextView
         android:id="@+id/TextView01"
+        style="@style/bigTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Movement Frame Of Reference"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@android:color/holo_red_dark" />
+        android:text="Movement Frame Of Reference" />
 
     <LinearLayout
         android:id="@+id/xAxisTrueLinearLayout"
@@ -189,8 +180,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Y-axis Linear Acceleration: "
-            android:textSize="16sp"
-            android:textStyle="bold" >
+            android:textSize="16sp">
         </TextView>
 
         <TextView
@@ -198,8 +188,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="16sp"
-            android:textStyle="bold" >
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 

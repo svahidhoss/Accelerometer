@@ -3,7 +3,7 @@ package com.vahid.acceleromter.location;
 import java.util.ArrayList;
 
 import com.vahid.accelerometer.util.CsvListenerInterface;
-import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.VahidConstants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
 
@@ -72,7 +72,7 @@ public class MyLocationListener implements LocationListener,
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
 
 		// sending back the degree between
-		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG,
+		mHandler.obtainMessage(VahidConstants.MOVEMENT_BEARING_MSG,
 				bearingFromMagneticNorth).sendToTarget();
 
 		if (savingToFile && csvLocationFile != null) {

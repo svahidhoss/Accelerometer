@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.VahidConstants;
 
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
@@ -62,7 +62,7 @@ public class ConnectedThread extends Thread {
 		} catch (IOException e) {
 			// when error have occurred trying to write, it's because we are not
 			// connected any more.
-			sendMessageToHandler(Constants.STATE_DISCONNECTED);
+			sendMessageToHandler(VahidConstants.STATE_DISCONNECTED);
 		}
 	}
 
@@ -85,7 +85,7 @@ public class ConnectedThread extends Thread {
 	public void cancel() {
 		try {
 			mmSocket.close();
-			sendMessageToHandler(Constants.STATE_DISCONNECTED);
+			sendMessageToHandler(VahidConstants.STATE_DISCONNECTED);
 		} catch (IOException e) {
 		}
 	}

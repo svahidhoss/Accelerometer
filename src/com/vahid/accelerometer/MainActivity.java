@@ -1,6 +1,7 @@
 package com.vahid.accelerometer;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -9,7 +10,7 @@ import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.util.AlexMath;
-import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.VahidConstants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
 import com.vahid.acceleromter.location.MyLocationListener;
@@ -64,7 +65,7 @@ public class MainActivity extends Activity implements Runnable {
 	private ConnectedThread mConnectedThread = null;
 	private String mDeviceName = "";
 
-	private static int mCurrentState = Constants.STATE_DISCONNECTED;
+	private static int mCurrentState = VahidConstants.STATE_DISCONNECTED;
 
 	/**** Defining view fields ****/
 	private Button btnConnect, btnCheck;
@@ -82,9 +83,8 @@ public class MainActivity extends Activity implements Runnable {
 
 	// save to file view fields
 	// private boolean saveToFileChecked = false;
-	private CsvFileWriter csvSensorsFile;
-	private CsvFileWriter csvLocationFile;
-	private CsvFileWriter csvTrueAccelerationFile;
+	private CsvFileWriter mCsvSensorsFile;
+	private CsvFileWriter mCsvLocationFile;
 
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
@@ -94,11 +94,6 @@ public class MainActivity extends Activity implements Runnable {
 	/**** Sensor related Fields ****/
 	// private SensorManager mSensorManager;
 	private AccelerationEventListener mAccelerationEventListener;
-
-	// Sensor Accelerometer Rates
-	private static final String DELAY_RATES_DESCRIPTION[] = {
-			"Normal 200,000 ms", "UI 60,000 ms", "Game 20,000 ms",
-			"Fastest 0 ms" };
 	private int mCurrentDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
 	// Sensor Values: it's important to initialize them.
@@ -107,38 +102,36 @@ public class MainActivity extends Activity implements Runnable {
 	private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
 
 	private MovingAverage elaMovingAverageX = new MovingAverage(
-			Constants.WINDOW_SIZE);
+			VahidConstants.WINDOW_SIZE);
 	private MovingAverage elaMovingAverageY = new MovingAverage(
-			Constants.WINDOW_SIZE);
+			VahidConstants.WINDOW_SIZE);
 	private MovingAverage elaMovingAverageZ = new MovingAverage(
-			Constants.WINDOW_SIZE);
+			VahidConstants.WINDOW_SIZE);
 
 	private float[] trueLinearAccelerationValues = new float[] { 0, 0, 0 };
 
 	private MovingAverage tlaMovingAverageX = new MovingAverage(
-			Constants.WINDOW_SIZE);
+			VahidConstants.WINDOW_SIZE);
 	private MovingAverage tlaMovingAverageY = new MovingAverage(
-			Constants.WINDOW_SIZE);
+			VahidConstants.WINDOW_SIZE);
 	private MovingAverage tlaMovingAverageZ = new MovingAverage(
-			Constants.WINDOW_SIZE);
-	// private float[] magneticValues;
-	// private float[] gravityValues;
+			VahidConstants.WINDOW_SIZE);
 
 	private double mLinearAccelerationMagnitude;
 	private MovingAverage laMagMovingAverage = new MovingAverage(
-			Constants.WINDOW_SIZE);
+			VahidConstants.WINDOW_SIZE);
 
 	// TODO for testing.
 	private boolean useX = false;
-	// Rotation Matrix Calculation
-	// private float[] trueAcceleration = new float[4];
-	// private float[] inclinationMatrix = new float[16];
-	// private float[] rotationMatrix = new float[16];
-	// private float[] rotationMatrixInverse = new float[16];
 
-	// Calculation of Motion Direction
-	private float movementMagneticBearing;
-	private float currentMovementBearing;
+	// Calculation of Motion Direction for brake detection
+	private float mCurrentMovementBearing;
+	private float mCurrentAccelerationBearing;
+	private int mAccelSituation = VahidConstants.NO_MOVE_DETECTED;
+
+	private boolean isBraking = false;
+	private Date mBrakeStartDate;
+	private Date mBrakeFinishDate;
 
 	// --- Filters ---
 	boolean breakOn = false; // on when is more than one minimum defined
@@ -232,7 +225,7 @@ public class MainActivity extends Activity implements Runnable {
 		btnConnect.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (Constants.BT_MODULE_EXISTS)
+				if (VahidConstants.BT_MODULE_EXISTS)
 					initializeBluetooth();
 				else {
 					initViewsConnectedLinearAcceleration();
@@ -278,7 +271,7 @@ public class MainActivity extends Activity implements Runnable {
 		// This instance of ConnectedThread is the one that we are going to
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
-		if (Constants.BT_MODULE_EXISTS) {
+		if (VahidConstants.BT_MODULE_EXISTS) {
 			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
 			mConnectedThread = new ConnectedThread(mSocket, mHandler);
 		}
@@ -296,7 +289,7 @@ public class MainActivity extends Activity implements Runnable {
 
 			@Override
 			public void onClick(View v) {
-				if (Constants.BT_MODULE_EXISTS)
+				if (VahidConstants.BT_MODULE_EXISTS)
 					mConnectedThread.write(AlexMath.toByteArray(60));
 				else {
 
@@ -321,7 +314,7 @@ public class MainActivity extends Activity implements Runnable {
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
 
-		if (Constants.BT_MODULE_EXISTS) {
+		if (VahidConstants.BT_MODULE_EXISTS) {
 			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
 			mConnectedThread = new ConnectedThread(mSocket, mHandler);
 
@@ -332,11 +325,14 @@ public class MainActivity extends Activity implements Runnable {
 				mHandler);
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				2000, 2, myLocationListener);
-		// Creates a thread pool of size 1 to schedule commands to run periodically
+				VahidConstants.GPS_MIN_TIME_MILSEC,
+				VahidConstants.GPS_MIN_DISTANCE_METER, myLocationListener);
+		// Creates a thread pool of size 1 to schedule commands to run
+		// periodically
 		mGpsExecutor = Executors.newScheduledThreadPool(1);
-		mGpsExecutor.scheduleAtFixedRate(this, Constants.WINDOW_SIZE_IN_MILIS,
-				Constants.WINDOW_SIZE_IN_MILIS, TimeUnit.MILLISECONDS);
+		mGpsExecutor.scheduleAtFixedRate(this,
+				VahidConstants.WINDOW_SIZE_IN_MILI_S,
+				VahidConstants.WINDOW_SIZE_IN_MILI_S, TimeUnit.MILLISECONDS);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
@@ -412,7 +408,8 @@ public class MainActivity extends Activity implements Runnable {
 					}
 
 				} else if (BluetoothDevice.ACTION_ACL_DISCONNECTED
-						.equals(action)) {// check this //#//
+						.equals(action)) {
+					// check this
 					// we recieve this information also from the connectThread
 					// and the connectedThread.
 
@@ -475,7 +472,7 @@ public class MainActivity extends Activity implements Runnable {
 		if (mGpsExecutor != null) {
 			mGpsExecutor.shutdown();
 		}
-		
+
 		// Remove the listener you previously added to location manager
 		mLocationManager.removeUpdates(myLocationListener);
 
@@ -493,20 +490,17 @@ public class MainActivity extends Activity implements Runnable {
 		}
 
 		// close the captured file if not already
-		if (csvSensorsFile != null) {
-			csvSensorsFile.closeCaptureFile();
+		if (mCsvSensorsFile != null) {
+			mCsvSensorsFile.closeCaptureFile();
 			checkBoxSaveToFile.setText(R.string.checkBoxSaveToFileInitialMsg);
 		}
 
-		if (csvLocationFile != null) {
-			csvLocationFile.closeCaptureFile();
+		if (mCsvLocationFile != null) {
+			mCsvLocationFile.closeCaptureFile();
 		}
 
-		if (csvTrueAccelerationFile != null) {
-			csvTrueAccelerationFile.closeCaptureFile();
-		}
-
-		initViewsNotConnected(); // #check, ... I put this here because when the
+		initViewsNotConnected();
+		// #check, ... I put this here because when the
 		// orientation changes, the Activity is destroyed, so
 		// the device is disconnecting automatically
 	}
@@ -531,9 +525,12 @@ public class MainActivity extends Activity implements Runnable {
 										.registerSensors(mCurrentDelayRate);
 							}
 							// show a toast message
-							Toast.makeText(getApplicationContext(), "Delay rate changed to '"
-									+ DELAY_RATES_DESCRIPTION[position]
-									+ "' mode", Toast.LENGTH_SHORT).show();
+							Toast.makeText(
+									getApplicationContext(),
+									"Delay rate changed to '"
+											+ VahidConstants.DELAY_RATES_DESCRIPTION[position]
+											+ "' mode", Toast.LENGTH_SHORT)
+									.show();
 						}
 					}
 
@@ -559,47 +556,46 @@ public class MainActivity extends Activity implements Runnable {
 		case R.id.checkBoxSaveToFile:
 			// open the file if set true, otherwise close it.
 			if (checked) {
-				csvSensorsFile = new CsvFileWriter("Sensors");
+				mCsvSensorsFile = new CsvFileWriter("Sensors");
 				mAccelerationEventListener.enableSaveToFile();
-				mAccelerationEventListener.setCsvFile(csvSensorsFile);
+				mAccelerationEventListener.setCsvFile(mCsvSensorsFile);
 				checkBoxSaveToFile
 						.setText(R.string.checkBoxSaveToFileSavingMsg);
 				Toast.makeText(
 						this,
 						getString(R.string.checkBoxSaveToFileSavingMsg) + " "
-								+ csvSensorsFile.getCaptureFileName(),
+								+ mCsvSensorsFile.getCaptureFileName(),
 						Toast.LENGTH_SHORT).show();
-
-				// TODO test saving the bearing.
-				csvLocationFile = new CsvFileWriter("Location");
+				// created the file for saving location information
+				mCsvLocationFile = new CsvFileWriter("Location");
 				myLocationListener.enableSaveToFile();
-				myLocationListener.setCsvFile(csvLocationFile);
+				myLocationListener.setCsvFile(mCsvLocationFile);
 
 			} else {
-				if (csvSensorsFile != null) {
-					// Closing the captured file is as important as creating it.
+				// Closing the logging files as it had the same importance as
+				// creating them.
+				if (mCsvSensorsFile != null) {
 					mAccelerationEventListener.disableSaveToFile();
-					csvSensorsFile.closeCaptureFile();
+					mCsvSensorsFile.closeCaptureFile();
 					checkBoxSaveToFile
 							.setText(R.string.checkBoxSaveToFileInitialMsg);
 					Toast.makeText(
 							this,
 							getString(R.string.checkBoxSaveToFileStoppedMsg)
-									+ " " + csvSensorsFile.getCaptureFileName(),
+									+ " "
+									+ mCsvSensorsFile.getCaptureFileName(),
 							Toast.LENGTH_SHORT).show();
 				}
-				if (csvLocationFile != null) {
-					// Closing the captured file is as important as creating it.
+				if (mCsvLocationFile != null) {
 					myLocationListener.disableSaveToFile();
-					csvLocationFile.closeCaptureFile();
+					mCsvLocationFile.closeCaptureFile();
 				}
 			}
 			break;
 		case R.id.checkBoxUseX:
 			if (checked) {
 				useX = true;
-			}
-			else{
+			} else {
 				useX = false;
 			}
 			break;
@@ -609,12 +605,12 @@ public class MainActivity extends Activity implements Runnable {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_settings:
-			Intent intentSettings = new Intent(this, Settings_m.class);
+			Intent intentSettings = new Intent(this, SettingsActivity.class);
 			startActivity(intentSettings);
 			return true;
 
 		case R.id.search_option:
-			if (mCurrentState == Constants.STATE_DISCONNECTED) {
+			if (mCurrentState == VahidConstants.STATE_DISCONNECTED) {
 				initializeBluetooth();
 				return true;
 			} else {
@@ -627,7 +623,7 @@ public class MainActivity extends Activity implements Runnable {
 		case R.id.about_option:
 			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
 					Toast.LENGTH_SHORT).show();
-			if (!Constants.BT_MODULE_EXISTS) {
+			if (!VahidConstants.BT_MODULE_EXISTS) {
 				// initViewsConnectedLinearAcceleration();
 			}
 			return true;
@@ -641,15 +637,12 @@ public class MainActivity extends Activity implements Runnable {
 	 * This handler is used to enable communication with the threads.
 	 */
 	private final Handler mHandler = new Handler() {
-		// private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0
-		// };
-		// private float[] trueLinearAccelerationValues = new float[] { 0, 0 };
 		@Override
 		public void handleMessage(Message msg) {
 			mCurrentState = msg.what;
 
 			switch (msg.what) {
-			case Constants.STATE_CONNECTED:
+			case VahidConstants.STATE_CONNECTED:
 				// TODO change later
 				initViewsConnectedLinearAcceleration();
 				// initViewsConnected();
@@ -660,12 +653,12 @@ public class MainActivity extends Activity implements Runnable {
 					miSearchOption.setTitle(R.string.disconnect);
 				}
 				break;
-			case Constants.STATE_CONNECTING:
+			case VahidConstants.STATE_CONNECTING:
 				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
 				tvState.setText(R.string.title_connecting);
 				setStatus(R.string.title_connecting);
 				break;
-			case Constants.STATE_DISCONNECTED:
+			case VahidConstants.STATE_DISCONNECTED:
 				Toast.makeText(getApplicationContext(),
 						getString(R.string.msgUnableToConnect),
 						Toast.LENGTH_SHORT).show();
@@ -673,8 +666,10 @@ public class MainActivity extends Activity implements Runnable {
 				miSearchOption.setIcon(R.drawable.menu_connect_icon);
 				miSearchOption.setTitle(R.string.connect);
 				break;
-			case Constants.ACCEL_VALUE_MSG:
+			case VahidConstants.ACCEL_VALUE_MSG:
 				earthLinearAccelerationValues = (float[]) msg.obj;
+				mCurrentAccelerationBearing = AlexMath
+						.calculateCurrentAccelerationBearing(earthLinearAccelerationValues);
 
 				elaMovingAverageX.pushValue(earthLinearAccelerationValues[0]);
 				elaMovingAverageY.pushValue(earthLinearAccelerationValues[1]);
@@ -690,7 +685,7 @@ public class MainActivity extends Activity implements Runnable {
 
 				// acceleration magnitude
 				mLinearAccelerationMagnitude = AlexMath
-						.getVectorMagnitude(earthLinearAccelerationValues);
+						.getVectorMagnitudeMinusZ(earthLinearAccelerationValues);
 				laMagMovingAverage
 						.pushValue((float) mLinearAccelerationMagnitude);
 				/*
@@ -703,7 +698,7 @@ public class MainActivity extends Activity implements Runnable {
 						.getMovingAverage()));
 
 				// set the value on to the SeekBar
-				// TODO correct later
+				// TODO correct later; not needed for now
 				/*
 				 * xAxisSeekBar .setProgress((int)
 				 * (earthLinearAccelerationValues[0] + 10f)); yAxisSeekBar
@@ -713,36 +708,38 @@ public class MainActivity extends Activity implements Runnable {
 				 */
 
 				trueLinearAccelerationValues = AlexMath.convertReference(
-						earthLinearAccelerationValues, currentMovementBearing);
+						earthLinearAccelerationValues, mCurrentMovementBearing);
 
-				tlaMovingAverageX.pushValue(trueLinearAccelerationValues[0]);
-				tlaMovingAverageY.pushValue(trueLinearAccelerationValues[1]);
-				tlaMovingAverageZ.pushValue(trueLinearAccelerationValues[2]);
-
-				// set the value as the text of every TextView
-				tvXTrueAxisValue.setText(Float.toString(tlaMovingAverageX
-						.getMovingAverage()));
-				tvYTrueAxisValue.setText(Float.toString(tlaMovingAverageY
-						.getMovingAverage()));
-				// display the current situation if there's a brake.
-				displayDetectedSituation(tlaMovingAverageX.detectSituation(), tlaMovingAverageY.detectSituation());
-				
-				tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
-						.getMovingAverage()));
+				displayDetectedSituation(mCurrentAccelerationBearing,
+						mCurrentMovementBearing, mLinearAccelerationMagnitude);
+				// TODO we don't need this rotation imho
+				/*
+				 * tlaMovingAverageX.pushValue(trueLinearAccelerationValues[0]);
+				 * tlaMovingAverageY.pushValue(trueLinearAccelerationValues[1]);
+				 * tlaMovingAverageZ.pushValue(trueLinearAccelerationValues[2]);
+				 * 
+				 * // set the value as the text of every TextView
+				 * tvXTrueAxisValue.setText(Float.toString(tlaMovingAverageX
+				 * .getMovingAverage()));
+				 * tvYTrueAxisValue.setText(Float.toString(tlaMovingAverageY
+				 * .getMovingAverage())); // display the current situation if
+				 * there's a brake.
+				 * displayDetectedSituation(tlaMovingAverageX.detectSituation(),
+				 * tlaMovingAverageY.detectSituation());
+				 * 
+				 * tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
+				 * .getMovingAverage()));
+				 */
 				tvRotationDegreeTitle.setText(Float
-						.toString(currentMovementBearing));
+						.toString(mCurrentMovementBearing));
 
 				break;
-			case Constants.MAGNETIC_BEARING_MSG:
-				movementMagneticBearing = (Float) msg.obj;
-				break;
-			case Constants.MOVEMENT_BEARING_MSG:
-				currentMovementBearing = (Float) msg.obj;
+			case VahidConstants.MOVEMENT_BEARING_MSG:
+				mCurrentMovementBearing = Math.abs((Float) msg.obj);
 				// TODO think about it you don't need it really.
 				// float bearingDiffrence = Math.abs(movementMagneticBearing -
 				// currentMovementBearing);
 				// float bearingDiffrence = Math.abs(currentMovementBearing);
-				currentMovementBearing = Math.abs(currentMovementBearing);
 				break;
 			default:
 				break;
@@ -885,7 +882,8 @@ public class MainActivity extends Activity implements Runnable {
 	}
 
 	/**
-	 * Show weather a brake or acceleration has occured.
+	 * Show weather a brake or acceleration has occurred.
+	 * 
 	 * @param situation
 	 */
 	private void displayDetectedSituation(int situationX, int situationY) {
@@ -893,15 +891,14 @@ public class MainActivity extends Activity implements Runnable {
 		int situation;
 		if (useX) {
 			situation = situationX;
-		}
-		else {
+		} else {
 			situation = situationY;
 		}
 		switch (situation) {
-		case Constants.BRAKE_DETECTED:
+		case VahidConstants.BRAKE_DETECTED:
 			background.setBackgroundResource(R.color.dark_red);
 			break;
-		case Constants.ACCEL_DETECTED:
+		case VahidConstants.ACCEL_DETECTED:
 			background.setBackgroundResource(R.color.dark_green);
 			break;
 		default:
@@ -909,11 +906,54 @@ public class MainActivity extends Activity implements Runnable {
 			break;
 		}
 	}
-	
+
+	/**
+	 * Show weather a brake or acceleration has occurred, it considers if the
+	 * acceleration magnitude on y (North) and x (East) is more than a certain
+	 * threshold and if it's been going on for more than a certain time.
+	 * 
+	 * @param accelerationBearing
+	 * @param movementBearing
+	 * @param linearAccelMagMinusZ 
+	 */
+	private void displayDetectedSituation(float accelerationBearing,
+			float movementBearing, double linearAccelMagMinusZ) {
+		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
+		float bearingDifference = Math.abs(accelerationBearing
+				- movementBearing);
+		if (linearAccelMagMinusZ >= VahidConstants.ACCEL_THRESHOLD) {
+			if (bearingDifference > 75) {
+				if (!isBraking) {
+					isBraking = true;
+					mBrakeStartDate = new Date();
+				}
+				mAccelSituation = VahidConstants.BRAKE_DETECTED;
+			} else {
+				if (isBraking) {
+					isBraking = false;
+					mBrakeFinishDate = new Date();
+				}
+				mAccelSituation = VahidConstants.ACCEL_DETECTED;
+			}
+		}
+		
+		switch (mAccelSituation) {
+		case VahidConstants.BRAKE_DETECTED:
+			background.setBackgroundResource(R.color.dark_red);
+			break;
+		case VahidConstants.ACCEL_DETECTED:
+			background.setBackgroundResource(R.color.dark_green);
+			break;
+		default:
+			background.setBackgroundResource(R.color.White);
+			break;
+		}
+	}
+
 	@Override
 	public void run() {
 		// TODO
-//		detectSituation();
+		// detectSituation();
 
 	}
 }

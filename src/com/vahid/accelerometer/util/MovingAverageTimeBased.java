@@ -59,12 +59,12 @@ public class MovingAverageTimeBased {
 	public int detectSituation() {
 		// Empty the buffer for getting new values to average.
 		mCircularBuffer.clear();
-		if (mAverage <= Constants.BRAKE_THRESHOLD) {
-			return Constants.BRAKE_DETECTED;
+		if (mAverage <= VahidConstants.BRAKE_THRESHOLD) {
+			return VahidConstants.BRAKE_DETECTED;
 		}
-		if (mAverage >= Constants.ACCEL_THRESHOLD) {
-			return Constants.ACCEL_DETECTED;
+		if (mAverage >= VahidConstants.ACCEL_THRESHOLD) {
+			return VahidConstants.ACCEL_DETECTED;
 		}
-		return Constants.NO_MOVE_DETECTED;
+		return VahidConstants.NO_MOVE_DETECTED;
 	}
 }

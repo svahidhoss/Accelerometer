@@ -2,7 +2,7 @@ package com.vahid.accelerometer.bluetooth;
 
 import java.io.IOException;
 
-import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.VahidConstants;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -28,9 +28,9 @@ public class ConnectThread extends Thread {
 		// Get a BluetoothSocket to connect with the given Bluetooth Device
 		try {
 			tmpSocket = device
-					.createRfcommSocketToServiceRecord(Constants.MY_UUID);
+					.createRfcommSocketToServiceRecord(VahidConstants.MY_UUID);
 		} catch (IOException e) {
-			sendMessageToHandler(Constants.STATE_DISCONNECTED);
+			sendMessageToHandler(VahidConstants.STATE_DISCONNECTED);
 		}
 		bluetoothSocket = tmpSocket;
 
@@ -42,7 +42,7 @@ public class ConnectThread extends Thread {
 
 		// handler. we use it to know when device has been connected or
 		// disconnected in the UI activity.
-		sendMessageToHandler(Constants.STATE_CONNECTING);
+		sendMessageToHandler(VahidConstants.STATE_CONNECTING);
 
 		try {
 			// Connect the device through the socket. This will block
@@ -50,17 +50,17 @@ public class ConnectThread extends Thread {
 			bluetoothSocket.connect();
 
 			// handler
-			sendMessageToHandler(Constants.STATE_CONNECTED);
+			sendMessageToHandler(VahidConstants.STATE_CONNECTED);
 
 			// ********handler***
-			if (Constants.DEBUG)
-				Log.d(Constants.LOG_TAG, "Application is connected");
+			if (VahidConstants.DEBUG)
+				Log.d(VahidConstants.LOG_TAG, "Application is connected");
 
 		} catch (IOException connectException) {
 			// Unable to connect; close the socket and get out
-			if (Constants.DEBUG)
-				Log.d(Constants.LOG_TAG, "Application is not connected");
-			sendMessageToHandler(Constants.STATE_DISCONNECTED);
+			if (VahidConstants.DEBUG)
+				Log.d(VahidConstants.LOG_TAG, "Application is not connected");
+			sendMessageToHandler(VahidConstants.STATE_DISCONNECTED);
 			try {
 				bluetoothSocket.close();
 			} catch (IOException closeException) {
@@ -76,7 +76,7 @@ public class ConnectThread extends Thread {
 	public void cancel() {
 		try {
 			bluetoothSocket.close();
-			sendMessageToHandler(Constants.STATE_DISCONNECTED);
+			sendMessageToHandler(VahidConstants.STATE_DISCONNECTED);
 		} catch (IOException e) {
 		}
 	}

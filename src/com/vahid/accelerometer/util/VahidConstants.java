@@ -5,27 +5,32 @@ import java.util.concurrent.TimeUnit;
 
 import android.hardware.SensorManager;
 
-public class Constants {
-	/** Brake detection **/
-	// low pass filter: moving average - app 4 Seconds
-	public static final int WINDOW_SIZE = 10;
-	public static final long WINDOW_SIZE_IN_MILIS = TimeUnit.SECONDS
-			.toMillis(1);
-	// The brake threshold based on heuristic 1 m/s2
-	public static final float BRAKE_THRESHOLD = -1f;
-	public static final float ACCEL_THRESHOLD = -BRAKE_THRESHOLD;
-	// Three situations for brake condition
-	public static final int BRAKE_DETECTED = -1;
-	public static final int NO_MOVE_DETECTED = 0;
-	public static final int ACCEL_DETECTED = 1;
-
-	// Debug related constants
+public class VahidConstants {
+	/** Debug related constants */
 	public static boolean DEBUG = true;
 	public static String LOG_TAG = "Debugging Tag";
 	// Used in cases of no BT module
 	public static boolean BT_MODULE_EXISTS = false;
 
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
+
+	/** GPS values **/
+	public static long GPS_MIN_TIME_MILSEC = TimeUnit.SECONDS.toMillis(5);
+	public static float GPS_MIN_DISTANCE_METER = 5;
+
+	/** Brake detection **/
+	// low pass filter: moving average - app 4 Seconds
+	public static final int WINDOW_SIZE = 20;
+	public static long WINDOW_SIZE_IN_MILI_S = TimeUnit.SECONDS
+			.toMillis(1);
+	// The brake threshold based on heuristic 1 m/s2
+	public static float ACCEL_THRESHOLD = 1f;
+	public static float BRAKE_THRESHOLD = -ACCEL_THRESHOLD;
+
+	// Three situations of brake condition
+	public static final int BRAKE_DETECTED = -1;
+	public static final int NO_MOVE_DETECTED = 0;
+	public static final int ACCEL_DETECTED = 1;
 
 	/**** Settings related constants ****/
 	public static long marginMilliseconds = 300;
@@ -35,9 +40,13 @@ public class Constants {
 												// braking or accelerating) (=0
 												// by the moment)
 
+	/** Sensor Accelerometer Rates **/
 	public static final int DELAY_RATES[] = {
 			SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
 			SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_FASTEST };
+	public static final String DELAY_RATES_DESCRIPTION[] = {
+			"Normal 200,000 ms", "UI 60,000 ms", "Game 20,000 ms",
+			"Fastest 0 ms" };
 
 	/**** Bluetooth related fields ****/
 	// MY_UUID is the app's UUID string, also used by the server code?
@@ -48,11 +57,13 @@ public class Constants {
 
 	/**** Handler Section ****/
 	// Constants that indicate the current connection state
-	public static final int STATE_DISCONNECTED = 0; // we're doing nothing
-	public static final int STATE_CONNECTING = 1;// initiating an outgoing
-													// connection
-	public static final int STATE_CONNECTED = 2; // connected to a remote device
-
+	// we're doing nothing
+	public static final int STATE_DISCONNECTED = 0;
+	// initiating an outgoing connection
+	public static final int STATE_CONNECTING = 1;
+	// connected to a remote device
+	public static final int STATE_CONNECTED = 2;
+	// Sending back calculated values
 	public static final int ACCEL_VALUE_MSG = 3;
 	public static final int MAGNETIC_BEARING_MSG = 4;
 	public static final int MOVEMENT_BEARING_MSG = 5;

@@ -154,7 +154,36 @@ public class AlexMath {
 		}
 		return Math.sqrt(result);
 	}
-	
+
+	/**
+	 * Calculates the magnitude of a vector by using Pythagorean principle without the Z element.
+	 * 
+	 * @param vectorComponents
+	 * @return The vector magnitude minus Z element.
+	 */
+	public static double getVectorMagnitudeMinusZ(float[] vectorComponents) {
+		double result = 0;
+		for (int i = 0; i < (vectorComponents.length - 1); i++) {
+			result += Math.pow(vectorComponents[i], 2);
+		}
+		return Math.sqrt(result);
+	}
+
+	/**
+	 * Method that calculates the current acceleration bearing between magnetic
+	 * north and the y (North) and x (East) components of current linear
+	 * acceleration.
+	 * 
+	 * @param earthLinearAccelerationValues
+	 * @return the degree or bearing of the current acceleration.
+	 */
+	public static float calculateCurrentAccelerationBearing(
+			float[] earthLinearAccelerationValues) {
+		float accelerationBearing = (float) (Math.atan2(
+				earthLinearAccelerationValues[0],
+				earthLinearAccelerationValues[1]));
+		return (float) ((Math.toDegrees(accelerationBearing) + 360) % 360);
+	}
 
 	// public static String getDate() {
 	// SimpleDateFormat formatter = new SimpleDateFormat(
