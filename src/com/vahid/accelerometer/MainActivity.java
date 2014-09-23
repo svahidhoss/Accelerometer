@@ -68,6 +68,7 @@ public class MainActivity extends Activity implements Runnable {
 	private static int mCurrentState = VahidConstants.STATE_DISCONNECTED;
 
 	/**** Defining view fields ****/
+	private LinearLayout mBackground;
 	private Button btnConnect, btnCheck;
 	private TextView tvState;
 	private MenuItem miSearchOption;
@@ -747,7 +748,9 @@ public class MainActivity extends Activity implements Runnable {
 		}
 
 	};
-
+	
+	
+	
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
 	 * app then closes.
@@ -918,7 +921,6 @@ public class MainActivity extends Activity implements Runnable {
 	 */
 	private void displayDetectedSituation(float accelerationBearing,
 			float movementBearing, double linearAccelMagMinusZ) {
-		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
 		float bearingDifference = Math.abs(accelerationBearing
 				- movementBearing);
 		if (linearAccelMagMinusZ >= VahidConstants.ACCEL_THRESHOLD) {
@@ -935,17 +937,20 @@ public class MainActivity extends Activity implements Runnable {
 				}
 				mAccelSituation = VahidConstants.ACCEL_DETECTED;
 			}
+		} else {
+			mAccelSituation = VahidConstants.NO_MOVE_DETECTED;
 		}
 		
+		mBackground = (LinearLayout) findViewById(R.id.activity_main_las);
 		switch (mAccelSituation) {
 		case VahidConstants.BRAKE_DETECTED:
-			background.setBackgroundResource(R.color.dark_red);
+			mBackground.setBackgroundResource(R.color.dark_red);
 			break;
 		case VahidConstants.ACCEL_DETECTED:
-			background.setBackgroundResource(R.color.dark_green);
+			mBackground.setBackgroundResource(R.color.dark_green);
 			break;
 		default:
-			background.setBackgroundResource(R.color.White);
+			mBackground.setBackgroundResource(R.color.White);
 			break;
 		}
 	}
