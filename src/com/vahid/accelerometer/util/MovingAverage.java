@@ -62,13 +62,13 @@ public class MovingAverage {
 	 */
 	public int detectSituation() {
 		if (mCount >= mCircularBuffer.length) {
-			if (mAverage <= VahidConstants.BRAKE_THRESHOLD) {
-				return VahidConstants.BRAKE_DETECTED;
+			if (mAverage <= Constants.BRAKE_THRESHOLD) {
+				return Constants.BRAKE_DETECTED;
 			}
-			if (mAverage >= VahidConstants.ACCEL_THRESHOLD) {
-				return VahidConstants.ACCEL_DETECTED;
+			if (mAverage >= Constants.ACCEL_THRESHOLD) {
+				return Constants.ACCEL_DETECTED;
 			}
 		}
-		return VahidConstants.NO_MOVE_DETECTED;
+		return Constants.NO_MOVE_DETECTED;
 	}
 }

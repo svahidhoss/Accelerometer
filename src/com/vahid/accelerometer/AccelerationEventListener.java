@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import com.vahid.accelerometer.util.AlexMath;
 import com.vahid.accelerometer.util.CsvListenerInterface;
-import com.vahid.accelerometer.util.VahidConstants;
+import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 
 import android.hardware.Sensor;
@@ -75,8 +75,8 @@ public class AccelerationEventListener implements SensorEventListener,
 		mMagneticField = mSensorManager
 				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-		if (VahidConstants.DEBUG)
-			Log.d(VahidConstants.LOG_TAG, "Sensors initialized");
+		if (Constants.DEBUG)
+			Log.d(Constants.LOG_TAG, "Sensors initialized");
 
 	}
 
@@ -94,15 +94,15 @@ public class AccelerationEventListener implements SensorEventListener,
 		// delayRates[curDelayRate]);
 
 		mSensorManager.registerListener(this, mMagneticField,
-				VahidConstants.DELAY_RATES[curDelayRate]);
+				Constants.DELAY_RATES[curDelayRate]);
 		mSensorManager.registerListener(this, mGravity,
-				VahidConstants.DELAY_RATES[curDelayRate]);
+				Constants.DELAY_RATES[curDelayRate]);
 
 		mSensorManager.registerListener(this, mLinearAcceleration,
-				VahidConstants.DELAY_RATES[curDelayRate]);
+				Constants.DELAY_RATES[curDelayRate]);
 
-		if (VahidConstants.DEBUG)
-			Log.d(VahidConstants.LOG_TAG, "sensors registered");
+		if (Constants.DEBUG)
+			Log.d(Constants.LOG_TAG, "sensors registered");
 	}
 
 	/**
@@ -114,8 +114,8 @@ public class AccelerationEventListener implements SensorEventListener,
 			// screen off)
 			if (mSensorManager != null)
 				mSensorManager.unregisterListener(this);
-			if (VahidConstants.DEBUG)
-				Log.d(VahidConstants.LOG_TAG, "sensor unregistered");
+			if (Constants.DEBUG)
+				Log.d(Constants.LOG_TAG, "sensor unregistered");
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -266,7 +266,7 @@ public class AccelerationEventListener implements SensorEventListener,
 				 * 10f));
 				 */
 
-				mHandler.obtainMessage(VahidConstants.ACCEL_VALUE_MSG,
+				mHandler.obtainMessage(Constants.ACCEL_VALUE_MSG,
 						trueAcceleration).sendToTarget();
 /*				mHandler.obtainMessage(Constants.MAGNETIC_BEARING_MSG,
 						magneticBearing).sendToTarget();*/

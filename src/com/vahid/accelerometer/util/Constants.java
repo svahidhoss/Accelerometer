@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 import android.hardware.SensorManager;
 
-public class VahidConstants {
+public class Constants {
 	/** Debug related constants */
 	public static boolean DEBUG = true;
 	public static String LOG_TAG = "Debugging Tag";
@@ -16,11 +16,11 @@ public class VahidConstants {
 
 	/** GPS values **/
 	public static long GPS_MIN_TIME_MILSEC = TimeUnit.SECONDS.toMillis(5);
-	public static float GPS_MIN_DISTANCE_METER = 5;
+	public static float GPS_MIN_DISTANCE_METER = 4;
 
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
-	public static final int WINDOW_SIZE = 20;
+	public static int WINDOW_SIZE = 25;
 	public static long WINDOW_SIZE_IN_MILI_S = TimeUnit.SECONDS
 			.toMillis(1);
 	// The brake threshold based on heuristic 1 m/s2

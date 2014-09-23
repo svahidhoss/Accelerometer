@@ -10,7 +10,7 @@ import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.util.AlexMath;
-import com.vahid.accelerometer.util.VahidConstants;
+import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
 import com.vahid.acceleromter.location.MyLocationListener;
@@ -65,7 +65,7 @@ public class MainActivity extends Activity implements Runnable {
 	private ConnectedThread mConnectedThread = null;
 	private String mDeviceName = "";
 
-	private static int mCurrentState = VahidConstants.STATE_DISCONNECTED;
+	private static int mCurrentState = Constants.STATE_DISCONNECTED;
 
 	/**** Defining view fields ****/
 	private LinearLayout mBackground;
@@ -103,24 +103,24 @@ public class MainActivity extends Activity implements Runnable {
 	private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
 
 	private MovingAverage elaMovingAverageX = new MovingAverage(
-			VahidConstants.WINDOW_SIZE);
+			Constants.WINDOW_SIZE);
 	private MovingAverage elaMovingAverageY = new MovingAverage(
-			VahidConstants.WINDOW_SIZE);
+			Constants.WINDOW_SIZE);
 	private MovingAverage elaMovingAverageZ = new MovingAverage(
-			VahidConstants.WINDOW_SIZE);
+			Constants.WINDOW_SIZE);
 
 	private float[] trueLinearAccelerationValues = new float[] { 0, 0, 0 };
 
 	private MovingAverage tlaMovingAverageX = new MovingAverage(
-			VahidConstants.WINDOW_SIZE);
+			Constants.WINDOW_SIZE);
 	private MovingAverage tlaMovingAverageY = new MovingAverage(
-			VahidConstants.WINDOW_SIZE);
+			Constants.WINDOW_SIZE);
 	private MovingAverage tlaMovingAverageZ = new MovingAverage(
-			VahidConstants.WINDOW_SIZE);
+			Constants.WINDOW_SIZE);
 
 	private double mLinearAccelerationMagnitude;
 	private MovingAverage laMagMovingAverage = new MovingAverage(
-			VahidConstants.WINDOW_SIZE);
+			Constants.WINDOW_SIZE);
 
 	// TODO for testing.
 	private boolean useX = false;
@@ -128,7 +128,7 @@ public class MainActivity extends Activity implements Runnable {
 	// Calculation of Motion Direction for brake detection
 	private float mCurrentMovementBearing;
 	private float mCurrentAccelerationBearing;
-	private int mAccelSituation = VahidConstants.NO_MOVE_DETECTED;
+	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
 	private boolean isBraking = false;
 	private Date mBrakeStartDate;
@@ -226,7 +226,7 @@ public class MainActivity extends Activity implements Runnable {
 		btnConnect.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (VahidConstants.BT_MODULE_EXISTS)
+				if (Constants.BT_MODULE_EXISTS)
 					initializeBluetooth();
 				else {
 					initViewsConnectedLinearAcceleration();
@@ -272,7 +272,7 @@ public class MainActivity extends Activity implements Runnable {
 		// This instance of ConnectedThread is the one that we are going to
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
-		if (VahidConstants.BT_MODULE_EXISTS) {
+		if (Constants.BT_MODULE_EXISTS) {
 			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
 			mConnectedThread = new ConnectedThread(mSocket, mHandler);
 		}
@@ -290,7 +290,7 @@ public class MainActivity extends Activity implements Runnable {
 
 			@Override
 			public void onClick(View v) {
-				if (VahidConstants.BT_MODULE_EXISTS)
+				if (Constants.BT_MODULE_EXISTS)
 					mConnectedThread.write(AlexMath.toByteArray(60));
 				else {
 
@@ -315,7 +315,7 @@ public class MainActivity extends Activity implements Runnable {
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
 
-		if (VahidConstants.BT_MODULE_EXISTS) {
+		if (Constants.BT_MODULE_EXISTS) {
 			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
 			mConnectedThread = new ConnectedThread(mSocket, mHandler);
 
@@ -326,14 +326,14 @@ public class MainActivity extends Activity implements Runnable {
 				mHandler);
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				VahidConstants.GPS_MIN_TIME_MILSEC,
-				VahidConstants.GPS_MIN_DISTANCE_METER, myLocationListener);
+				Constants.GPS_MIN_TIME_MILSEC,
+				Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
 		// Creates a thread pool of size 1 to schedule commands to run
 		// periodically
 		mGpsExecutor = Executors.newScheduledThreadPool(1);
 		mGpsExecutor.scheduleAtFixedRate(this,
-				VahidConstants.WINDOW_SIZE_IN_MILI_S,
-				VahidConstants.WINDOW_SIZE_IN_MILI_S, TimeUnit.MILLISECONDS);
+				Constants.WINDOW_SIZE_IN_MILI_S,
+				Constants.WINDOW_SIZE_IN_MILI_S, TimeUnit.MILLISECONDS);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
@@ -529,7 +529,7 @@ public class MainActivity extends Activity implements Runnable {
 							Toast.makeText(
 									getApplicationContext(),
 									"Delay rate changed to '"
-											+ VahidConstants.DELAY_RATES_DESCRIPTION[position]
+											+ Constants.DELAY_RATES_DESCRIPTION[position]
 											+ "' mode", Toast.LENGTH_SHORT)
 									.show();
 						}
@@ -611,7 +611,7 @@ public class MainActivity extends Activity implements Runnable {
 			return true;
 
 		case R.id.search_option:
-			if (mCurrentState == VahidConstants.STATE_DISCONNECTED) {
+			if (mCurrentState == Constants.STATE_DISCONNECTED) {
 				initializeBluetooth();
 				return true;
 			} else {
@@ -624,7 +624,7 @@ public class MainActivity extends Activity implements Runnable {
 		case R.id.about_option:
 			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
 					Toast.LENGTH_SHORT).show();
-			if (!VahidConstants.BT_MODULE_EXISTS) {
+			if (!Constants.BT_MODULE_EXISTS) {
 				// initViewsConnectedLinearAcceleration();
 			}
 			return true;
@@ -643,7 +643,7 @@ public class MainActivity extends Activity implements Runnable {
 			mCurrentState = msg.what;
 
 			switch (msg.what) {
-			case VahidConstants.STATE_CONNECTED:
+			case Constants.STATE_CONNECTED:
 				// TODO change later
 				initViewsConnectedLinearAcceleration();
 				// initViewsConnected();
@@ -654,12 +654,12 @@ public class MainActivity extends Activity implements Runnable {
 					miSearchOption.setTitle(R.string.disconnect);
 				}
 				break;
-			case VahidConstants.STATE_CONNECTING:
+			case Constants.STATE_CONNECTING:
 				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
 				tvState.setText(R.string.title_connecting);
 				setStatus(R.string.title_connecting);
 				break;
-			case VahidConstants.STATE_DISCONNECTED:
+			case Constants.STATE_DISCONNECTED:
 				Toast.makeText(getApplicationContext(),
 						getString(R.string.msgUnableToConnect),
 						Toast.LENGTH_SHORT).show();
@@ -667,7 +667,7 @@ public class MainActivity extends Activity implements Runnable {
 				miSearchOption.setIcon(R.drawable.menu_connect_icon);
 				miSearchOption.setTitle(R.string.connect);
 				break;
-			case VahidConstants.ACCEL_VALUE_MSG:
+			case Constants.ACCEL_VALUE_MSG:
 				earthLinearAccelerationValues = (float[]) msg.obj;
 				mCurrentAccelerationBearing = AlexMath
 						.calculateCurrentAccelerationBearing(earthLinearAccelerationValues);
@@ -735,8 +735,12 @@ public class MainActivity extends Activity implements Runnable {
 						.toString(mCurrentMovementBearing));
 
 				break;
-			case VahidConstants.MOVEMENT_BEARING_MSG:
-				mCurrentMovementBearing = Math.abs((Float) msg.obj);
+			case Constants.MOVEMENT_BEARING_MSG:
+				// TODO later change it to detect no movement.
+				// only use the bearing if it's not zero
+				if (msg.arg1 != 0) {
+					mCurrentMovementBearing = Math.abs((Float) msg.obj);
+				} 
 				// TODO think about it you don't need it really.
 				// float bearingDiffrence = Math.abs(movementMagneticBearing -
 				// currentMovementBearing);
@@ -898,10 +902,10 @@ public class MainActivity extends Activity implements Runnable {
 			situation = situationY;
 		}
 		switch (situation) {
-		case VahidConstants.BRAKE_DETECTED:
+		case Constants.BRAKE_DETECTED:
 			background.setBackgroundResource(R.color.dark_red);
 			break;
-		case VahidConstants.ACCEL_DETECTED:
+		case Constants.ACCEL_DETECTED:
 			background.setBackgroundResource(R.color.dark_green);
 			break;
 		default:
@@ -923,30 +927,30 @@ public class MainActivity extends Activity implements Runnable {
 			float movementBearing, double linearAccelMagMinusZ) {
 		float bearingDifference = Math.abs(accelerationBearing
 				- movementBearing);
-		if (linearAccelMagMinusZ >= VahidConstants.ACCEL_THRESHOLD) {
+		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference > 75) {
 				if (!isBraking) {
 					isBraking = true;
 					mBrakeStartDate = new Date();
 				}
-				mAccelSituation = VahidConstants.BRAKE_DETECTED;
+				mAccelSituation = Constants.BRAKE_DETECTED;
 			} else {
 				if (isBraking) {
 					isBraking = false;
 					mBrakeFinishDate = new Date();
 				}
-				mAccelSituation = VahidConstants.ACCEL_DETECTED;
+				mAccelSituation = Constants.ACCEL_DETECTED;
 			}
 		} else {
-			mAccelSituation = VahidConstants.NO_MOVE_DETECTED;
+			mAccelSituation = Constants.NO_MOVE_DETECTED;
 		}
 		
 		mBackground = (LinearLayout) findViewById(R.id.activity_main_las);
 		switch (mAccelSituation) {
-		case VahidConstants.BRAKE_DETECTED:
+		case Constants.BRAKE_DETECTED:
 			mBackground.setBackgroundResource(R.color.dark_red);
 			break;
-		case VahidConstants.ACCEL_DETECTED:
+		case Constants.ACCEL_DETECTED:
 			mBackground.setBackgroundResource(R.color.dark_green);
 			break;
 		default:

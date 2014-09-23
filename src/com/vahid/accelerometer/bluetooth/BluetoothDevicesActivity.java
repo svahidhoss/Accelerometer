@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.vahid.accelerometer.R;
-import com.vahid.accelerometer.util.VahidConstants;
+import com.vahid.accelerometer.util.Constants;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -237,7 +237,7 @@ public class BluetoothDevicesActivity extends Activity implements
 			}
 
 			String address = auxString.substring(auxString.length()
-					- VahidConstants.MAC_ADDRESS_CHAR_LENGTH);
+					- Constants.MAC_ADDRESS_CHAR_LENGTH);
 
 			Intent intentData = new Intent();
 			intentData.putExtra(EXTRA_ADDRESS, address);

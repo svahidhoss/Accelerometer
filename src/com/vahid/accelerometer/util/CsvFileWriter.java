@@ -33,8 +33,8 @@ public class CsvFileWriter {
 			captureFileWriter = new PrintWriter(new FileWriter(captureFile,
 					false));
 		} catch (IOException ex) {
-			if (VahidConstants.DEBUG)
-				Log.e(VahidConstants.LOG_TAG, ex.getMessage(), ex);
+			if (Constants.DEBUG)
+				Log.e(Constants.LOG_TAG, ex.getMessage(), ex);
 			captureStateText = "Capture: " + ex.getMessage();
 		}
 	}

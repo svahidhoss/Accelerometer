@@ -1,9 +1,10 @@
 package com.vahid.acceleromter.location;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import com.vahid.accelerometer.util.CsvListenerInterface;
-import com.vahid.accelerometer.util.VahidConstants;
+import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
 
@@ -18,7 +19,7 @@ import android.widget.Toast;
 public class MyLocationListener implements LocationListener,
 		CsvListenerInterface {
 	// currently two minutes.
-	private static final int MAX_ACCEPTED_TIME = 1000 * 60 * 2;
+	private static final long MAX_ACCEPTED_TIME = TimeUnit.SECONDS.toMillis(2);
 	// Main activity related fields
 	private Context parentContext;
 	private Handler mHandler;
@@ -72,7 +73,7 @@ public class MyLocationListener implements LocationListener,
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
 
 		// sending back the degree between
-		mHandler.obtainMessage(VahidConstants.MOVEMENT_BEARING_MSG,
+		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG, Math.round(bearing), Math.round(magneticDeclination),
 				bearingFromMagneticNorth).sendToTarget();
 
 		if (savingToFile && csvLocationFile != null) {
