@@ -70,6 +70,5 @@ public class MovingAverage {
 			}
 		}
 		return Constants.NO_MOVE_DETECTED;
-
 	}
 }

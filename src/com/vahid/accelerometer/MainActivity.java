@@ -1,6 +1,9 @@
 package com.vahid.accelerometer;
 
 import java.util.Calendar;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
@@ -86,6 +89,7 @@ public class MainActivity extends Activity {
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
 	private LocationManager mLocationManager;
+	private ScheduledExecutorService mGpsExecutor;
 
 	/**** Sensor related Fields ****/
 	// private SensorManager mSensorManager;
@@ -329,6 +333,10 @@ public class MainActivity extends Activity {
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
 				2000, 2, myLocationListener);
+		// Creates a thread pool of size 1 to schedule commands to run periodically
+		mGpsExecutor = Executors.newScheduledThreadPool(1);
+/*		mGpsExecutor.scheduleAtFixedRate(, Constants.WINDOW_SIZE_IN_MILIS,
+				Constants.WINDOW_SIZE_IN_MILIS, TimeUnit.MILLISECONDS);*/
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
