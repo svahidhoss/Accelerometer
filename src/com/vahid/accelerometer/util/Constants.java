@@ -16,7 +16,7 @@ public class Constants {
 
 	/** GPS values **/
 	public static long GPS_MIN_TIME_MILSEC = TimeUnit.SECONDS.toMillis(5);
-	public static float GPS_MIN_DISTANCE_METER = 4;
+	public static float GPS_MIN_DISTANCE_METER = 5;
 
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
@@ -26,6 +26,10 @@ public class Constants {
 	// The brake threshold based on heuristic 1 m/s2
 	public static float ACCEL_THRESHOLD = 1f;
 	public static float BRAKE_THRESHOLD = -ACCEL_THRESHOLD;
+	
+	// difference in degree values
+	public static final float DIFF_DEGREE = 90;
+	
 
 	// Three situations of brake condition
 	public static final int BRAKE_DETECTED = -1;

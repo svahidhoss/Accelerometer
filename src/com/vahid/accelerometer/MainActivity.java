@@ -49,7 +49,6 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class MainActivity extends Activity implements Runnable {
-
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int REQUEST_CONNECT_DEVICE = 2;
 
@@ -924,7 +923,7 @@ public class MainActivity extends Activity implements Runnable {
 		float bearingDifference = Math.abs(accelerationBearing
 				- movementBearing);
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
-			if (bearingDifference > 75) {
+			if (bearingDifference > Constants.DIFF_DEGREE) {
 				if (!isBraking) {
 					isBraking = true;
 					mBrakeStartDate = new Date();
