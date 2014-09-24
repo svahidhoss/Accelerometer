@@ -331,8 +331,7 @@ public class MainActivity extends Activity implements Runnable {
 		// Creates a thread pool of size 1 to schedule commands to run
 		// periodically
 		mGpsExecutor = Executors.newScheduledThreadPool(1);
-		mGpsExecutor.scheduleAtFixedRate(this,
-				Constants.WINDOW_SIZE_IN_MILI_S,
+		mGpsExecutor.scheduleAtFixedRate(this, Constants.WINDOW_SIZE_IN_MILI_S,
 				Constants.WINDOW_SIZE_IN_MILI_S, TimeUnit.MILLISECONDS);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
@@ -708,13 +707,12 @@ public class MainActivity extends Activity implements Runnable {
 				 * (earthLinearAccelerationValues[2] + 10f));
 				 */
 
-				trueLinearAccelerationValues = AlexMath.convertReference(
-						earthLinearAccelerationValues, mCurrentMovementBearing);
-
 				displayDetectedSituation(mCurrentAccelerationBearing,
 						mCurrentMovementBearing, mLinearAccelerationMagnitude);
 				// TODO we don't need this rotation imho
 				/*
+				 * trueLinearAccelerationValues = AlexMath.convertReference(
+				 * earthLinearAccelerationValues, mCurrentMovementBearing);
 				 * tlaMovingAverageX.pushValue(trueLinearAccelerationValues[0]);
 				 * tlaMovingAverageY.pushValue(trueLinearAccelerationValues[1]);
 				 * tlaMovingAverageZ.pushValue(trueLinearAccelerationValues[2]);
@@ -740,7 +738,7 @@ public class MainActivity extends Activity implements Runnable {
 				// only use the bearing if it's not zero
 				if (msg.arg1 != 0) {
 					mCurrentMovementBearing = Math.abs((Float) msg.obj);
-				} 
+				}
 				// TODO think about it you don't need it really.
 				// float bearingDiffrence = Math.abs(movementMagneticBearing -
 				// currentMovementBearing);
@@ -752,9 +750,7 @@ public class MainActivity extends Activity implements Runnable {
 		}
 
 	};
-	
-	
-	
+
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
 	 * app then closes.
@@ -921,7 +917,7 @@ public class MainActivity extends Activity implements Runnable {
 	 * 
 	 * @param accelerationBearing
 	 * @param movementBearing
-	 * @param linearAccelMagMinusZ 
+	 * @param linearAccelMagMinusZ
 	 */
 	private void displayDetectedSituation(float accelerationBearing,
 			float movementBearing, double linearAccelMagMinusZ) {
@@ -944,7 +940,7 @@ public class MainActivity extends Activity implements Runnable {
 		} else {
 			mAccelSituation = Constants.NO_MOVE_DETECTED;
 		}
-		
+
 		mBackground = (LinearLayout) findViewById(R.id.activity_main_las);
 		switch (mAccelSituation) {
 		case Constants.BRAKE_DETECTED:

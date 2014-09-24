@@ -163,7 +163,7 @@ public class AlexMath {
 	 */
 	public static double getVectorMagnitudeMinusZ(float[] vectorComponents) {
 		double result = 0;
-		for (int i = 0; i < (vectorComponents.length - 1); i++) {
+		for (int i = 0; i < 2; i++) {
 			result += Math.pow(vectorComponents[i], 2);
 		}
 		return Math.sqrt(result);
