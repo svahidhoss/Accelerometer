@@ -11,8 +11,6 @@ import android.os.Environment;
 import android.util.Log;
 
 public class CsvFileWriter {
-	private static final String ACCEL_SENSOR = "accelerometer";
-	private static final String LOC_SENSOR = "location";
 	private static final String DIRECTORY_PATH = Environment
 			.getExternalStorageDirectory().getPath() + "/Sensors Capture";
 	private boolean captureState = true;
@@ -62,6 +60,7 @@ public class CsvFileWriter {
 		return false;
 	}
 
+	
 	/**
 	 * Method that writes the value of a sensor passed with constructor to the
 	 * file that has been created.

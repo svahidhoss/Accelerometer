@@ -129,7 +129,6 @@ public class AccelerationEventListener implements SensorEventListener,
 	// Don't block the onSensorChanged() method
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		// synchronized (this) {
 		switch (event.sensor.getType()) {
 		// TODO change this
 		// case Sensor.TYPE_ACCELEROMETER:
@@ -157,8 +156,6 @@ public class AccelerationEventListener implements SensorEventListener,
 		default:
 			break;
 		}
-
-		// } //fin del syncronized this. //#check?
 	}
 
 	private void getLinearAcceleration(SensorEvent event) {

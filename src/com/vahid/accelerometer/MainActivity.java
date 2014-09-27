@@ -42,6 +42,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -73,7 +74,8 @@ public class MainActivity extends Activity implements Runnable {
 	private MenuItem miSearchOption;
 	// Connected views
 	// private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
-	private SeekBar finalSeekBar;
+	private SeekBar mFinalSeekBar;
+	private ProgressBar mFinalProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
 			tvRotationDegreeTitle;
@@ -127,6 +129,11 @@ public class MainActivity extends Activity implements Runnable {
 	// Calculation of Motion Direction for brake detection
 	private float mCurrentMovementBearing;
 	private float mCurrentAccelerationBearing;
+	private MovingAverage mCurAccBearingMovingAverage = new MovingAverage(
+			Constants.WINDOW_SIZE);
+	private MovingAverage mCurMovBearingMovingAverage = new MovingAverage(
+			Constants.WINDOW_SIZE);
+
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
 	private boolean isBraking = false;
@@ -330,8 +337,8 @@ public class MainActivity extends Activity implements Runnable {
 		// Creates a thread pool of size 1 to schedule commands to run
 		// periodically
 		mGpsExecutor = Executors.newScheduledThreadPool(1);
-		mGpsExecutor.scheduleAtFixedRate(this, Constants.WINDOW_SIZE_IN_MILI_S,
-				Constants.WINDOW_SIZE_IN_MILI_S, TimeUnit.MILLISECONDS);
+		mGpsExecutor.scheduleAtFixedRate(this, 0, Constants.RUNNING_PERIOD,
+				TimeUnit.MILLISECONDS);
 		// ?
 		// provider = myLocationManager.getBestProvider(criteria, false);
 		// Location loc = myLocationManager
@@ -351,13 +358,15 @@ public class MainActivity extends Activity implements Runnable {
 		 * (SeekBar) findViewById(R.id.yAxisBar); zAxisSeekBar = (SeekBar)
 		 * findViewById(R.id.zAxisBar);
 		 */
+		mBackground = (LinearLayout) findViewById(R.id.activity_main_las);
 
 		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
-		finalSeekBar = (SeekBar) findViewById(R.id.finalBar);
+		mFinalSeekBar = (SeekBar) findViewById(R.id.finalBar);
+		mFinalProgressBar = (ProgressBar) findViewById(R.id.finalProgressBar);
 
 		tvXTrueAxisValue = (TextView) findViewById(R.id.xAxisTrueValue);
 		tvYTrueAxisValue = (TextView) findViewById(R.id.yAxisTrueValue);
@@ -669,6 +678,8 @@ public class MainActivity extends Activity implements Runnable {
 				earthLinearAccelerationValues = (float[]) msg.obj;
 				mCurrentAccelerationBearing = AlexMath
 						.calculateCurrentAccelerationBearing(earthLinearAccelerationValues);
+				mCurAccBearingMovingAverage
+						.pushValue(mCurrentAccelerationBearing);
 
 				elaMovingAverageX.pushValue(earthLinearAccelerationValues[0]);
 				elaMovingAverageY.pushValue(earthLinearAccelerationValues[1]);
@@ -693,8 +704,10 @@ public class MainActivity extends Activity implements Runnable {
 				 */
 				tvFinalValue.setText(Float.toString(laMagMovingAverage
 						.getMovingAverage()));
-				finalSeekBar.setProgress((int) (laMagMovingAverage
-						.getMovingAverage()));
+				int progressPercentage = (int) (laMagMovingAverage
+						.getMovingAverage() * 5);
+				mFinalSeekBar.setProgress(progressPercentage);
+				mFinalProgressBar.setProgress(progressPercentage);
 
 				// set the value on to the SeekBar
 				// TODO correct later; not needed for now
@@ -706,8 +719,12 @@ public class MainActivity extends Activity implements Runnable {
 				 * (earthLinearAccelerationValues[2] + 10f));
 				 */
 
-				displayDetectedSituation(mCurrentAccelerationBearing,
-						mCurrentMovementBearing, mLinearAccelerationMagnitude);
+				displayDetectedSituation(
+						// mCurAccBearingMovingAverage.getMovingAverage(),
+						// mCurMovBearingMovingAverage.getMovingAverage(),
+						mCurrentMovementBearing, mCurrentAccelerationBearing,
+						mLinearAccelerationMagnitude);
+
 				// TODO we don't need this rotation imho
 				/*
 				 * trueLinearAccelerationValues = AlexMath.convertReference(
@@ -737,6 +754,8 @@ public class MainActivity extends Activity implements Runnable {
 				// only use the bearing if it's not zero
 				if (msg.arg1 != 0) {
 					mCurrentMovementBearing = Math.abs((Float) msg.obj);
+					mCurMovBearingMovingAverage
+							.pushValue(mCurrentMovementBearing);
 				}
 				// TODO think about it you don't need it really.
 				// float bearingDiffrence = Math.abs(movementMagneticBearing -
@@ -922,6 +941,8 @@ public class MainActivity extends Activity implements Runnable {
 			float movementBearing, double linearAccelMagMinusZ) {
 		float bearingDifference = Math.abs(accelerationBearing
 				- movementBearing);
+		
+		Date currentDate = new Date();
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference > Constants.DIFF_DEGREE) {
 				if (!isBraking) {
@@ -940,16 +961,19 @@ public class MainActivity extends Activity implements Runnable {
 			mAccelSituation = Constants.NO_MOVE_DETECTED;
 		}
 
-		mBackground = (LinearLayout) findViewById(R.id.activity_main_las);
 		switch (mAccelSituation) {
 		case Constants.BRAKE_DETECTED:
-			mBackground.setBackgroundResource(R.color.dark_red);
+			// mBackground.setBackgroundResource(R.color.dark_red);
+			mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
+					R.drawable.progress_bar_vahid_red));
 			break;
 		case Constants.ACCEL_DETECTED:
-			mBackground.setBackgroundResource(R.color.dark_green);
+			// mBackground.setBackgroundResource(R.color.dark_green);
+			mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
+					R.drawable.progress_bar_vahid_green));
 			break;
 		default:
-			mBackground.setBackgroundResource(R.color.White);
+			// mBackground.setBackgroundResource(R.color.White);
 			break;
 		}
 	}
@@ -957,7 +981,7 @@ public class MainActivity extends Activity implements Runnable {
 	@Override
 	public void run() {
 		// TODO
-		// detectSituation();
-
+		// displayDetectedSituation(mCurrentAccelerationBearing,
+		// mCurrentMovementBearing, mLinearAccelerationMagnitude);
 	}
 }

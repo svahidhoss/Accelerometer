@@ -28,7 +28,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="x-axis Linear Acceleration: "
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
 
         <TextView
@@ -36,10 +37,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textSize="16sp" >
+            android:textSize="16sp"
+            android:textStyle="bold" >
         </TextView>
     </LinearLayout>
-
 
     <LinearLayout
         android:id="@+id/yAxisLinearLayout"
@@ -131,7 +132,18 @@
         android:id="@+id/finalBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:max="20" />
+        android:max="50" />
+
+    <ProgressBar
+        android:id="@+id/finalProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        android:max="50"
+        android:minHeight="20dp"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress_bar_vahid_green" />
 
     <View
         android:layout_width="match_parent"
@@ -180,7 +192,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Y-axis Linear Acceleration: "
-            android:textSize="16sp">
+            android:textSize="16sp" >
         </TextView>
 
         <TextView
