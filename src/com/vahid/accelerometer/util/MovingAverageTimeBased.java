@@ -1,15 +1,35 @@
 package com.vahid.accelerometer.util;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import android.os.Handler;
+
+/**
+ * The class used for having a Moving Average low pass filter based on time (not
+ * on the size of the window). Its application here is to detect the brakes. To
+ * use this class you start pushing values to it whenever you detect a
+ * deceleration incident, it keeps getting brake the acceleration values and if
+ * the values continue for more than mWindowTimeFrame (a second_ a brake
+ * incident is detected.
+ * 
+ * @author Vahid
+ *
+ */
 public class MovingAverageTimeBased {
 	private List<Float> mCircularBuffer;
 	private float mAverage;
+	private Date mStartDate;
+	private long mWindowTimeFrame;
+	private boolean oneMinuteOfValuesWithin = false;
+	private Handler mHandler;
 
-	public MovingAverageTimeBased() {
+	public MovingAverageTimeBased(long windowTimeFrame, Handler handler) {
 		mCircularBuffer = new ArrayList<Float>();
 		mAverage = 0;
+		mWindowTimeFrame = windowTimeFrame;
+		mHandler = handler;
 	}
 
 	/**
@@ -25,15 +45,35 @@ public class MovingAverageTimeBased {
 	 * @param newValue
 	 *            new value
 	 */
-	public void pushValue(float newValue) {
+	public void pushValue(float newValue, Date newValueDate) {
 		if (mCircularBuffer.isEmpty()) {
-			createPrimeBuffer(newValue);
-		} else {
+			createPrimeBuffer(newValue, newValueDate);
+		} else if (isWithinWindowFrame(newValueDate)) {
 			mCircularBuffer.add(newValue);
 			mAverage = mAverage + (newValue - mAverage)
 					/ mCircularBuffer.size();
+			//
+		} else {
+			// Stop displaying brake incedent.
+			detectSituation();
 		}
 
+	}
+
+	/**
+	 * Determines weather the new time value coming is more within the time
+	 * frame of the moving average we're calculating.
+	 * 
+	 * @param newValueDate
+	 *            the value to do the comparison with the current start date of
+	 *            averaging.
+	 * @return true if it is within and false if not.
+	 */
+	private boolean isWithinWindowFrame(Date newValueDate) {
+		if (newValueDate.getTime() - mStartDate.getTime() >= mWindowTimeFrame) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -41,30 +81,26 @@ public class MovingAverageTimeBased {
 	 * 
 	 * @param initialValue
 	 */
-	private void createPrimeBuffer(float initialValue) {
+	private void createPrimeBuffer(float initialValue, Date newValueDate) {
 		mCircularBuffer.add(initialValue);
 		mAverage = initialValue;
+		mStartDate = newValueDate;
 	}
 
-	public long getCount() {
+	public int getCount() {
 		return mCircularBuffer.size();
 	}
 
 	/**
-	 * Function that detects if a brake has occurred. It should be called by a
-	 * scheduler after a certain interval.
+	 * Function that detects if a brake has occurred.
 	 * 
-	 * @return whether there was a break, an acceleration or no move.
+	 * @return whether there was a break to the Main Activity.
 	 */
-	public int detectSituation() {
+	private void detectSituation() {
 		// Empty the buffer for getting new values to average.
 		mCircularBuffer.clear();
-		if (mAverage <= Constants.BRAKE_THRESHOLD) {
-			return Constants.BRAKE_DETECTED;
-		}
-		if (mAverage >= Constants.ACCEL_THRESHOLD) {
-			return Constants.ACCEL_DETECTED;
-		}
-		return Constants.NO_MOVE_DETECTED;
+		if (mAverage >= Constants.ACCEL_THRESHOLD)
+			mHandler.sendEmptyMessage(Constants.BRAKE_DETECTED_MSG);
+
 	}
 }

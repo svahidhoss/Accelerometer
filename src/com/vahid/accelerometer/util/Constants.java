@@ -69,6 +69,7 @@ public class Constants {
 	public static final int MAGNETIC_BEARING_MSG = 4;
 	public static final int MOVEMENT_BEARING_MSG = 5;
 	public static final int DECLINATION_MSG = 6;
+	public static final int BRAKE_DETECTED_MSG = 7;
 	
 	
 	/**** Settings related constants ****/

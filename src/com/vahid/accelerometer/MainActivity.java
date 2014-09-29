@@ -79,6 +79,7 @@ public class MainActivity extends Activity implements Runnable {
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
 			tvRotationDegreeTitle;
+	private TextView tvBrake;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -134,11 +135,8 @@ public class MainActivity extends Activity implements Runnable {
 	private MovingAverage mCurMovBearingMovingAverage = new MovingAverage(
 			Constants.WINDOW_SIZE);
 
+	// current situation of the activity.
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
-
-	private boolean isBraking = false;
-	private Date mBrakeStartDate;
-	private Date mBrakeFinishDate;
 
 	// --- Filters ---
 	boolean breakOn = false; // on when is more than one minimum defined
@@ -375,6 +373,8 @@ public class MainActivity extends Activity implements Runnable {
 		tvZTrueAxisValue = (TextView) findViewById(R.id.zAxisTrueValue);
 
 		tvRotationDegreeTitle = (TextView) findViewById(R.id.rotationDegreeeValue);
+		
+		tvBrake = (TextView) findViewById(R.id.brakeTextView);
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
@@ -769,6 +769,11 @@ public class MainActivity extends Activity implements Runnable {
 				// currentMovementBearing);
 				// float bearingDiffrence = Math.abs(currentMovementBearing);
 				break;
+			case Constants.BRAKE_DETECTED_MSG:
+				// TODO: display brake
+				tvBrake.setText("Brake Detected!");
+				mAccelSituation = Constants.BRAKE_DETECTED;
+				break;
 			default:
 				break;
 			}
@@ -949,19 +954,10 @@ public class MainActivity extends Activity implements Runnable {
 		float bearingDifference = Math.abs(accelerationBearing
 				- movementBearing);
 
-		Date currentDate = new Date();
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference > Constants.DIFF_DEGREE) {
-				if (!isBraking) {
-					isBraking = true;
-					mBrakeStartDate = new Date();
-				}
 				mAccelSituation = Constants.BRAKE_DETECTED;
 			} else {
-				if (isBraking) {
-					isBraking = false;
-					mBrakeFinishDate = new Date();
-				}
 				mAccelSituation = Constants.ACCEL_DETECTED;
 			}
 		} else {
@@ -970,17 +966,21 @@ public class MainActivity extends Activity implements Runnable {
 
 		switch (mAccelSituation) {
 		case Constants.BRAKE_DETECTED:
-			// mBackground.setBackgroundResource(R.color.dark_red);
-			mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
-					R.drawable.progress_bar_vahid_red));
+			mBackground.setBackgroundResource(R.color.dark_red);
+			/*
+			 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
+			 * R.drawable.progress_bar_vahid_red));
+			 */
 			break;
 		case Constants.ACCEL_DETECTED:
-			// mBackground.setBackgroundResource(R.color.dark_green);
-			mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
-					R.drawable.progress_bar_vahid_green));
+			mBackground.setBackgroundResource(R.color.dark_green);
+			/*
+			 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
+			 * R.drawable.progress_bar_vahid_green));
+			 */
 			break;
 		default:
-			// mBackground.setBackgroundResource(R.color.White);
+			mBackground.setBackgroundResource(R.color.White);
 			break;
 		}
 	}

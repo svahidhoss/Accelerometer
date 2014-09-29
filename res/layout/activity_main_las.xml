@@ -227,6 +227,13 @@
         </TextView>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/brakeTextView"
+        style="@style/bigTitleStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No Brake." />
+
     <LinearLayout
         android:id="@+id/rotationDegreeLayout"
         android:layout_width="fill_parent"
