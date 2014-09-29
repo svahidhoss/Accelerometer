@@ -11,7 +11,7 @@
 
     <TextView
         android:id="@+id/textView1"
-        style="@style/bigTitle"
+        style="@style/bigTitleStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -152,7 +152,7 @@
 
     <TextView
         android:id="@+id/TextView01"
-        style="@style/bigTitle"
+        style="@style/bigTitleStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -278,7 +278,7 @@
 
     <TextView
         android:id="@+id/textView5"
-        style="@style/littleTitle"
+        style="@style/littleTitleStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"

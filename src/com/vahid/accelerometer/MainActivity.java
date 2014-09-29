@@ -320,7 +320,6 @@ public class MainActivity extends Activity implements Runnable {
 		// This instance of ConnectedThread is the one that we are going to
 		// use write(). We don't need to start the Thread, because we are not
 		// going to use read(). [write is not a blocking method].
-
 		if (Constants.BT_MODULE_EXISTS) {
 			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
 			mConnectedThread = new ConnectedThread(mSocket, mHandler);
@@ -328,21 +327,24 @@ public class MainActivity extends Activity implements Runnable {
 		}
 
 		// we are ready for GPS
-		myLocationListener = new MyLocationListener(getApplicationContext(),
-				mHandler);
-		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				Constants.GPS_MIN_TIME_MILSEC,
-				Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
-		// Creates a thread pool of size 1 to schedule commands to run
-		// periodically
-		mGpsExecutor = Executors.newScheduledThreadPool(1);
-		mGpsExecutor.scheduleAtFixedRate(this, 0, Constants.RUNNING_PERIOD,
-				TimeUnit.MILLISECONDS);
-		// ?
-		// provider = myLocationManager.getBestProvider(criteria, false);
-		// Location loc = myLocationManager
-		// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		if (Constants.GPS_MODULE_EXISTS) {
+			myLocationListener = new MyLocationListener(
+					getApplicationContext(), mHandler);
+			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			mLocationManager.requestLocationUpdates(
+					LocationManager.GPS_PROVIDER,
+					Constants.GPS_MIN_TIME_MIL_SEC,
+					Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
+			// Creates a thread pool of size 1 to schedule commands to run
+			// periodically
+			mGpsExecutor = Executors.newScheduledThreadPool(1);
+			mGpsExecutor.scheduleAtFixedRate(this, 0, Constants.RUNNING_PERIOD,
+					TimeUnit.MILLISECONDS);
+			// TODO check this?
+			// provider = myLocationManager.getBestProvider(criteria, false);
+			// Location loc = myLocationManager
+			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		}
 
 		// we are also ready to use the sensor and send the information of the
 		// brakes, so...
@@ -481,8 +483,11 @@ public class MainActivity extends Activity implements Runnable {
 			mGpsExecutor.shutdown();
 		}
 
-		// Remove the listener you previously added to location manager
-		mLocationManager.removeUpdates(myLocationListener);
+		// Remove the listener you previously added to location manager, if not
+		// null, e.g. GPS not used in debugging
+		if (mLocationManager != null) {
+			mLocationManager.removeUpdates(myLocationListener);
+		}
 
 		if (mAccelerationEventListener != null) {
 			mAccelerationEventListener.unregisterSensors();
@@ -574,10 +579,12 @@ public class MainActivity extends Activity implements Runnable {
 						getString(R.string.checkBoxSaveToFileSavingMsg) + " "
 								+ mCsvSensorsFile.getCaptureFileName(),
 						Toast.LENGTH_SHORT).show();
-				// created the file for saving location information
-				mCsvLocationFile = new CsvFileWriter("Location");
-				myLocationListener.enableSaveToFile();
-				myLocationListener.setCsvFile(mCsvLocationFile);
+				if (myLocationListener != null) {
+					// created the file for saving location information
+					mCsvLocationFile = new CsvFileWriter("Location");
+					myLocationListener.enableSaveToFile();
+					myLocationListener.setCsvFile(mCsvLocationFile);
+				}
 
 			} else {
 				// Closing the logging files as it had the same importance as
@@ -941,7 +948,7 @@ public class MainActivity extends Activity implements Runnable {
 			float movementBearing, double linearAccelMagMinusZ) {
 		float bearingDifference = Math.abs(accelerationBearing
 				- movementBearing);
-		
+
 		Date currentDate = new Date();
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference > Constants.DIFF_DEGREE) {

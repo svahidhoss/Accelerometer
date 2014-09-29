@@ -11,17 +11,20 @@ public class Constants {
 	public static String LOG_TAG = "Debugging Tag";
 	// Used in cases of no BT module
 	public static boolean BT_MODULE_EXISTS = false;
-
+	public static boolean GPS_MODULE_EXISTS = false;
+	
+	
+	/** General Variables **/
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
 
 	/** GPS values **/
-	public static long GPS_MIN_TIME_MILSEC = TimeUnit.SECONDS.toMillis(5);
+	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(5);
 	public static float GPS_MIN_DISTANCE_METER = 5;
 
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
 	public static int WINDOW_SIZE = 20;
-	public static long WINDOW_SIZE_IN_MILI_S = TimeUnit.SECONDS
+	public static long WINDOW_SIZE_IN_MILI_SEC = TimeUnit.SECONDS
 			.toMillis(1);
 	public static long RUNNING_PERIOD = TimeUnit.MILLISECONDS
 			.toMillis(1);
@@ -32,20 +35,12 @@ public class Constants {
 	// difference in degree values
 	public static final float DIFF_DEGREE = 90;
 	
-
 	// Three situations of brake condition
 	public static final int BRAKE_DETECTED = -1;
 	public static final int NO_MOVE_DETECTED = 0;
 	public static final int ACCEL_DETECTED = 1;
 
-	/**** Settings related constants ****/
-	public static long marginMilliseconds = 300;
-	public static float accelerationPrecision = (float) 0.9;
-	public static float pitchPrecision = 0f; // pitch defines design of the
-												// acceleration (if it is
-												// braking or accelerating) (=0
-												// by the moment)
-
+	
 	/** Sensor Accelerometer Rates **/
 	public static final int DELAY_RATES[] = {
 			SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
@@ -74,7 +69,16 @@ public class Constants {
 	public static final int MAGNETIC_BEARING_MSG = 4;
 	public static final int MOVEMENT_BEARING_MSG = 5;
 	public static final int DECLINATION_MSG = 6;
-
+	
+	
+	/**** Settings related constants ****/
+	public static long marginMilliseconds = 300;
+	public static float accelerationPrecision = (float) 0.9;
+	public static float pitchPrecision = 0f; // pitch defines design of the
+												// acceleration (if it is
+												// braking or accelerating) (=0
+												// by the moment)
+	
 	// ****calculate angles average
 	public static int delta = 30; // acceptable error in each angle.
 	public static int nIter = 10; // number of iteration to actualize the

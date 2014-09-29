@@ -14,6 +14,25 @@
         android:orientation="vertical" >
 
         <LinearLayout
+            android:id="@+id/linearLayout0"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textView0"
+                style="@style/bigTitleStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modify brake values"
+                android:textColor="@android:color/holo_blue_bright" />
+
+            <View
+                style="@style/Divider"
+                android:background="@android:color/holo_blue_bright" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/linearLayout1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -73,8 +92,8 @@
                 <requestFocus />
             </EditText>
         </LinearLayout>
-        
-                <LinearLayout
+
+        <LinearLayout
             android:id="@+id/linearLayout3"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -108,7 +127,33 @@
             android:id="@+id/linearLayout4"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" >
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textView1"
+                style="@style/bigTitleStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enable Features"
+                android:textColor="@android:color/holo_blue_bright" />
+
+            <View
+                style="@style/Divider"
+                android:background="@android:color/holo_blue_bright" />
+
+            <CheckBox
+                android:id="@+id/gpsCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onCheckboxClicked"
+                android:text="Use Real GPS Values" />
+
+            <CheckBox
+                android:id="@+id/btCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onCheckboxClicked"
+                android:text="Enable Bluetooth to Send data" />
         </LinearLayout>
 
         <LinearLayout
