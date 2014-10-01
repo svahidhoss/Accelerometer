@@ -9,10 +9,11 @@ import java.util.concurrent.TimeUnit;
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
-import com.vahid.accelerometer.util.AlexMath;
+import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
+import com.vahid.accelerometer.util.MovingAverageTime;
 import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.ActionBar;
@@ -50,6 +51,8 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class MainActivity extends Activity implements Runnable {
+
+	/**** for communication between activities ****/
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int REQUEST_CONNECT_DEVICE = 2;
 
@@ -65,29 +68,28 @@ public class MainActivity extends Activity implements Runnable {
 	private ConnectedThread mConnectedThread = null;
 	private String mDeviceName = "";
 
-	private static int mCurrentState = Constants.STATE_DISCONNECTED;
+	private static int mCurrentBTState = Constants.STATE_DISCONNECTED;
 
 	/**** Defining view fields ****/
+	// 1.Initial views
 	private LinearLayout mBackground;
 	private Button btnConnect, btnCheck;
 	private TextView tvState;
 	private MenuItem miSearchOption;
-	// Connected views
+
+	// 2. Connected views
 	// private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
 	private SeekBar mFinalSeekBar;
 	private ProgressBar mFinalProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
-			tvRotationDegreeTitle;
-	private TextView tvBrake;
+			tvRotationDegreeTitle, tvBrake, tvBrakeValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
 
-	// save to file view fields
-	// private boolean saveToFileChecked = false;
-	private CsvFileWriter mCsvSensorsFile;
-	private CsvFileWriter mCsvLocationFile;
+	/**** save to file view fields ****/
+	private CsvFileWriter mCsvSensorsFile, mCsvLocationFile;
 
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
@@ -103,41 +105,33 @@ public class MainActivity extends Activity implements Runnable {
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
 	// private float[] orientationValues = new float[] { 0, 0, 0 };
 	private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
-
-	private MovingAverage elaMovingAverageX = new MovingAverage(
-			Constants.WINDOW_SIZE);
-	private MovingAverage elaMovingAverageY = new MovingAverage(
-			Constants.WINDOW_SIZE);
-	private MovingAverage elaMovingAverageZ = new MovingAverage(
-			Constants.WINDOW_SIZE);
-
-	private float[] trueLinearAccelerationValues = new float[] { 0, 0, 0 };
-
-	private MovingAverage tlaMovingAverageX = new MovingAverage(
-			Constants.WINDOW_SIZE);
-	private MovingAverage tlaMovingAverageY = new MovingAverage(
-			Constants.WINDOW_SIZE);
-	private MovingAverage tlaMovingAverageZ = new MovingAverage(
-			Constants.WINDOW_SIZE);
-
+	// private float[] trueLinearAccelerationValues = new float[] { 0, 0, 0 };
 	private double mLinearAccelerationMagnitude;
-	private MovingAverage laMagMovingAverage = new MovingAverage(
-			Constants.WINDOW_SIZE);
 
 	// TODO for testing.
 	private boolean useX = false;
 
 	// Calculation of Motion Direction for brake detection
-	private float mCurrentMovementBearing;
-	private float mCurrentAccelerationBearing;
-	private MovingAverage mCurAccBearingMovingAverage = new MovingAverage(
-			Constants.WINDOW_SIZE);
-	private MovingAverage mCurMovBearingMovingAverage = new MovingAverage(
-			Constants.WINDOW_SIZE);
+	private float mCurrentMovementBearing, mCurrentAccelerationBearing;
 
 	// current situation of the activity.
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
+	// Moving Averages
+	private MovingAverage elaMovingAverageX, elaMovingAverageY,
+			elaMovingAverageZ;
+	private MovingAverage laMagMovingAverage;
+	private MovingAverage tlaMovingAverageX, tlaMovingAverageY,
+			tlaMovingAverageZ;
+	private MovingAverage mCurAccBearingMovingAverage,
+			mCurMovBearingMovingAverage;
+
+	// used for putting values in this list to execute the average deceleration
+	// after it exceeds the certain threshold. It's cleaned when we face an
+	// acceleration again.
+	private MovingAverageTime decelerationMovingAverageTime;
+
+	/**** Alex values ****/
 	// --- Filters ---
 	boolean breakOn = false; // on when is more than one minimum defined
 								// (Constant.precision)
@@ -295,7 +289,7 @@ public class MainActivity extends Activity implements Runnable {
 			@Override
 			public void onClick(View v) {
 				if (Constants.BT_MODULE_EXISTS)
-					mConnectedThread.write(AlexMath.toByteArray(60));
+					mConnectedThread.write(MathUtil.toByteArray(60));
 				else {
 
 				}
@@ -314,6 +308,8 @@ public class MainActivity extends Activity implements Runnable {
 				Toast.LENGTH_SHORT).show();
 
 		setContentView(R.layout.activity_main_las);
+		// initiate moving averages
+		initiateMovingAverages();
 
 		// This instance of ConnectedThread is the one that we are going to
 		// use write(). We don't need to start the Thread, because we are not
@@ -373,8 +369,9 @@ public class MainActivity extends Activity implements Runnable {
 		tvZTrueAxisValue = (TextView) findViewById(R.id.zAxisTrueValue);
 
 		tvRotationDegreeTitle = (TextView) findViewById(R.id.rotationDegreeeValue);
-		
+
 		tvBrake = (TextView) findViewById(R.id.brakeTextView);
+		tvBrakeValue = (TextView) findViewById(R.id.brakeValueTextView);
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
@@ -478,15 +475,19 @@ public class MainActivity extends Activity implements Runnable {
 	 * Method that stops everything.
 	 */
 	private void finilizeAll() {
-		// shutdown the GPS Executor immediately
-		if (mGpsExecutor != null) {
-			mGpsExecutor.shutdown();
-		}
 
-		// Remove the listener you previously added to location manager, if not
-		// null, e.g. GPS not used in debugging
-		if (mLocationManager != null) {
-			mLocationManager.removeUpdates(myLocationListener);
+		if (Constants.GPS_MODULE_EXISTS) {
+			// shutdown the GPS Executor immediately
+			if (mGpsExecutor != null) {
+				mGpsExecutor.shutdown();
+			}
+
+			// Remove the listener you previously added to location manager, if
+			// not
+			// null, e.g. GPS not used in debugging
+			if (mLocationManager != null) {
+				mLocationManager.removeUpdates(myLocationListener);
+			}
 		}
 
 		if (mAccelerationEventListener != null) {
@@ -518,6 +519,9 @@ public class MainActivity extends Activity implements Runnable {
 		// the device is disconnecting automatically
 	}
 
+	/**
+	 * Method to add values to the delay rate spinner.
+	 */
 	private void populateDelayRateSpinner() {
 		delayRateChooser = (Spinner) findViewById(R.id.delayRateChooser);
 		ArrayAdapter<?> adapter = ArrayAdapter.createFromResource(this,
@@ -625,7 +629,7 @@ public class MainActivity extends Activity implements Runnable {
 			return true;
 
 		case R.id.search_option:
-			if (mCurrentState == Constants.STATE_DISCONNECTED) {
+			if (mCurrentBTState == Constants.STATE_DISCONNECTED) {
 				initializeBluetooth();
 				return true;
 			} else {
@@ -654,7 +658,7 @@ public class MainActivity extends Activity implements Runnable {
 	private final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			mCurrentState = msg.what;
+			mCurrentBTState = msg.what;
 
 			switch (msg.what) {
 			case Constants.STATE_CONNECTED:
@@ -682,8 +686,11 @@ public class MainActivity extends Activity implements Runnable {
 				miSearchOption.setTitle(R.string.connect);
 				break;
 			case Constants.ACCEL_VALUE_MSG:
+				// 1. Receive the linear acceleration values
 				earthLinearAccelerationValues = (float[]) msg.obj;
-				mCurrentAccelerationBearing = AlexMath
+
+				// 2. calculate the actual acceleration bearing
+				mCurrentAccelerationBearing = MathUtil
 						.calculateCurrentAccelerationBearing(earthLinearAccelerationValues);
 				mCurAccBearingMovingAverage
 						.pushValue(mCurrentAccelerationBearing);
@@ -692,7 +699,8 @@ public class MainActivity extends Activity implements Runnable {
 				elaMovingAverageY.pushValue(earthLinearAccelerationValues[1]);
 				elaMovingAverageZ.pushValue(earthLinearAccelerationValues[2]);
 
-				// set the value as the text of every TextView
+				// 3.Update the UI (set the value ) as the text of every
+				// TextView
 				tvXAxisValue.setText(Float.toString(elaMovingAverageX
 						.getMovingAverage()));
 				tvYAxisValue.setText(Float.toString(elaMovingAverageY
@@ -700,32 +708,20 @@ public class MainActivity extends Activity implements Runnable {
 				tvZAxisValue.setText(Float.toString(elaMovingAverageZ
 						.getMovingAverage()));
 
-				// acceleration magnitude
-				mLinearAccelerationMagnitude = AlexMath
+				// 4. calculate the linear acceleration mag. (-z)
+				mLinearAccelerationMagnitude = MathUtil
 						.getVectorMagnitudeMinusZ(earthLinearAccelerationValues);
-				laMagMovingAverage
-						.pushValue((float) mLinearAccelerationMagnitude);
-				/*
-				 * tvFinalValue.setText(AlexMath.round(
-				 * linearAccelerationMagnitude, 10));
-				 */
-				tvFinalValue.setText(Float.toString(laMagMovingAverage
-						.getMovingAverage()));
-				int progressPercentage = (int) (laMagMovingAverage
-						.getMovingAverage() * 5);
+				// laMagMovingAverage
+				// .pushValue((float) mLinearAccelerationMagnitude);
+
+				// 5. updating the UI with Acceleration Magnitude
+				tvFinalValue.setText(Float
+						.toString((float) mLinearAccelerationMagnitude));
+				int progressPercentage = (int) (mLinearAccelerationMagnitude * 5);
 				mFinalSeekBar.setProgress(progressPercentage);
 				mFinalProgressBar.setProgress(progressPercentage);
 
-				// set the value on to the SeekBar
-				// TODO correct later; not needed for now
-				/*
-				 * xAxisSeekBar .setProgress((int)
-				 * (earthLinearAccelerationValues[0] + 10f)); yAxisSeekBar
-				 * .setProgress((int) (earthLinearAccelerationValues[1] + 10f));
-				 * zAxisSeekBar .setProgress((int)
-				 * (earthLinearAccelerationValues[2] + 10f));
-				 */
-
+				// 6. Detect the situation
 				displayDetectedSituation(
 						// mCurAccBearingMovingAverage.getMovingAverage(),
 						// mCurMovBearingMovingAverage.getMovingAverage(),
@@ -764,14 +760,11 @@ public class MainActivity extends Activity implements Runnable {
 					mCurMovBearingMovingAverage
 							.pushValue(mCurrentMovementBearing);
 				}
-				// TODO think about it you don't need it really.
-				// float bearingDiffrence = Math.abs(movementMagneticBearing -
-				// currentMovementBearing);
-				// float bearingDiffrence = Math.abs(currentMovementBearing);
 				break;
 			case Constants.BRAKE_DETECTED_MSG:
-				// TODO: display brake
+				// float f = (Float) msg.obj;
 				tvBrake.setText("Brake Detected!");
+				// tvBrakeValue.setText(Float.toString(f));
 				mAccelSituation = Constants.BRAKE_DETECTED;
 				break;
 			default:
@@ -841,20 +834,20 @@ public class MainActivity extends Activity implements Runnable {
 
 		// ---with the idea of write this data and send by bluetooth,
 		// first it's necessary to covert them to byte...
-		byte[] x = AlexMath.toByteArray(acceleromterValues[0]);
-		byte[] y = AlexMath.toByteArray(acceleromterValues[1]);
-		byte[] z = AlexMath.toByteArray(acceleromterValues[2]);
-		byte[] mod_byte = AlexMath.toByteArray(magnitude);
+		byte[] x = MathUtil.toByteArray(acceleromterValues[0]);
+		byte[] y = MathUtil.toByteArray(acceleromterValues[1]);
+		byte[] z = MathUtil.toByteArray(acceleromterValues[2]);
+		byte[] mod_byte = MathUtil.toByteArray(magnitude);
 		byte[] xyz_and_Mod = new byte[8 * 4];
 
-		xyz_and_Mod = AlexMath.concatenateBytes(
-				AlexMath.concatenateBytes(AlexMath.concatenateBytes(x, y), z),
+		xyz_and_Mod = MathUtil.concatenateBytes(
+				MathUtil.concatenateBytes(MathUtil.concatenateBytes(x, y), z),
 				mod_byte);
 		// ---
 
-		byte[] moduleRealByte = AlexMath.toByteArray(moduleReal);
+		byte[] moduleRealByte = MathUtil.toByteArray(moduleReal);
 		byte[] all = new byte[8 * 4 + 8];
-		all = AlexMath.concatenateBytes(xyz_and_Mod, moduleRealByte);
+		all = MathUtil.concatenateBytes(xyz_and_Mod, moduleRealByte);
 
 		mConnectedThread.write(all);
 		// ********write angles
@@ -957,10 +950,14 @@ public class MainActivity extends Activity implements Runnable {
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference > Constants.DIFF_DEGREE) {
 				mAccelSituation = Constants.BRAKE_DETECTED;
+				decelerationMovingAverageTime.pushValue(
+						(float) linearAccelMagMinusZ, new Date());
 			} else {
 				mAccelSituation = Constants.ACCEL_DETECTED;
+				decelerationMovingAverageTime.clearValues();
 			}
 		} else {
+			decelerationMovingAverageTime.clearValues();
 			mAccelSituation = Constants.NO_MOVE_DETECTED;
 		}
 
@@ -983,6 +980,31 @@ public class MainActivity extends Activity implements Runnable {
 			mBackground.setBackgroundResource(R.color.White);
 			break;
 		}
+	}
+
+	/**
+	 * Initiating moving averages function for better management.
+	 */
+	private void initiateMovingAverages() {
+		// earth linear acceleration initiating
+		elaMovingAverageX = new MovingAverage(Constants.WINDOW_SIZE);
+		elaMovingAverageY = new MovingAverage(Constants.WINDOW_SIZE);
+		elaMovingAverageZ = new MovingAverage(Constants.WINDOW_SIZE);
+
+		// true linear acceleration initiating
+		tlaMovingAverageX = new MovingAverage(Constants.WINDOW_SIZE);
+		tlaMovingAverageY = new MovingAverage(Constants.WINDOW_SIZE);
+		tlaMovingAverageZ = new MovingAverage(Constants.WINDOW_SIZE);
+
+		// used for smoothing the linear acceleration mag.
+		laMagMovingAverage = new MovingAverage(Constants.WINDOW_SIZE);
+
+		// used for smoothing the bearing values.
+		mCurAccBearingMovingAverage = new MovingAverage(Constants.WINDOW_SIZE);
+		mCurMovBearingMovingAverage = new MovingAverage(Constants.WINDOW_SIZE);
+
+		decelerationMovingAverageTime = new MovingAverageTime(
+				Constants.WINDOW_SIZE_IN_MILI_SEC, mHandler);
 	}
 
 	@Override

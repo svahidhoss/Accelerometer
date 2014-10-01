@@ -2,7 +2,7 @@ package com.vahid.accelerometer;
 
 import java.util.Arrays;
 
-import com.vahid.accelerometer.util.AlexMath;
+import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.CsvListenerInterface;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
@@ -228,9 +228,9 @@ public class AccelerationEventListener implements SensorEventListener,
 				 * Float.toString(orientation[1]) + "\n" +
 				 * Float.toString(orientation[2]) + "\n");
 				 */
-				linearAccelerationMagnitude = AlexMath
+				linearAccelerationMagnitude = MathUtil
 						.getVectorMagnitude(mLinearAccelerationValues);
-				trueAccelerationMagnitude = AlexMath
+				trueAccelerationMagnitude = MathUtil
 						.getVectorMagnitude(trueAcceleration);
 
 				// If check box for saving the file has been checked.

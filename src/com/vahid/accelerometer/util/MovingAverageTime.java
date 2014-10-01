@@ -17,15 +17,16 @@ import android.os.Handler;
  * @author Vahid
  *
  */
-public class MovingAverageTimeBased {
+public class MovingAverageTime {
 	private List<Float> mCircularBuffer;
 	private float mAverage;
 	private Date mStartDate;
 	private long mWindowTimeFrame;
 	private boolean oneMinuteOfValuesWithin = false;
 	private Handler mHandler;
+	private boolean brakeDetected = true;
 
-	public MovingAverageTimeBased(long windowTimeFrame, Handler handler) {
+	public MovingAverageTime(long windowTimeFrame, Handler handler) {
 		mCircularBuffer = new ArrayList<Float>();
 		mAverage = 0;
 		mWindowTimeFrame = windowTimeFrame;
@@ -48,16 +49,17 @@ public class MovingAverageTimeBased {
 	public void pushValue(float newValue, Date newValueDate) {
 		if (mCircularBuffer.isEmpty()) {
 			createPrimeBuffer(newValue, newValueDate);
-		} else if (isWithinWindowFrame(newValueDate)) {
+		} else {
 			mCircularBuffer.add(newValue);
 			mAverage = mAverage + (newValue - mAverage)
 					/ mCircularBuffer.size();
-			//
-		} else {
-			// Stop displaying brake incedent.
-			detectSituation();
 		}
-
+		if (isMoreThanWindowFrame(newValueDate) && brakeDetected) {
+			// Send Message about the average of a brake.
+//			mHandler.obtainMessage(Constants.BRAKE_DETECTED_MSG, mAverage);
+			mHandler.obtainMessage(Constants.BRAKE_DETECTED_MSG);
+			brakeDetected = false;
+		}
 	}
 
 	/**
@@ -69,11 +71,11 @@ public class MovingAverageTimeBased {
 	 *            averaging.
 	 * @return true if it is within and false if not.
 	 */
-	private boolean isWithinWindowFrame(Date newValueDate) {
+	private boolean isMoreThanWindowFrame(Date newValueDate) {
 		if (newValueDate.getTime() - mStartDate.getTime() >= mWindowTimeFrame) {
-			return false;
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -87,20 +89,24 @@ public class MovingAverageTimeBased {
 		mStartDate = newValueDate;
 	}
 
+	/**
+	 * Gets the size of the list.
+	 * 
+	 * @return the count of the list.
+	 */
 	public int getCount() {
 		return mCircularBuffer.size();
 	}
 
 	/**
-	 * Function that detects if a brake has occurred.
-	 * 
-	 * @return whether there was a break to the Main Activity.
+	 * Method to be called when the brake finishes.
 	 */
-	private void detectSituation() {
-		// Empty the buffer for getting new values to average.
-		mCircularBuffer.clear();
-		if (mAverage >= Constants.ACCEL_THRESHOLD)
-			mHandler.sendEmptyMessage(Constants.BRAKE_DETECTED_MSG);
-
+	public void clearValues() {
+		if (!mCircularBuffer.isEmpty()) {
+			// Empty the buffer for getting new values to average.
+			mCircularBuffer.clear();
+		}
+		brakeDetected = true;
 	}
+
 }

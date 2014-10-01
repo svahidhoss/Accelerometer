@@ -6,7 +6,7 @@ import java.util.Date;
 
 import android.hardware.SensorManager;
 
-public class AlexMath {
+public class MathUtil {
 	public static double DEFAULT_ICLINATION = -13.505042;
 
 	/**
