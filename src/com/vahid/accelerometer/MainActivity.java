@@ -945,10 +945,10 @@ public class MainActivity extends Activity implements Runnable {
 	private void displayDetectedSituation(float accelerationBearing,
 			float movementBearing, double linearAccelMagMinusZ) {
 		float bearingDifference = Math.abs(accelerationBearing
-				- movementBearing);
+				- movementBearing) % 360;
 
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
-			if (bearingDifference > Constants.DIFF_DEGREE) {
+			if (bearingDifference  > Constants.DIFF_DEGREE) {
 				mAccelSituation = Constants.BRAKE_DETECTED;
 				decelerationMovingAverageTime.pushValue(
 						(float) linearAccelMagMinusZ, new Date());
