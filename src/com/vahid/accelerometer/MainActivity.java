@@ -829,7 +829,6 @@ public class MainActivity extends Activity implements Runnable {
 			moduleReal = magnitude;
 		} else {
 			moduleReal = 0;
-
 		}
 
 		// ---with the idea of write this data and send by bluetooth,
@@ -944,8 +943,8 @@ public class MainActivity extends Activity implements Runnable {
 	 */
 	private void displayDetectedSituation(float accelerationBearing,
 			float movementBearing, double linearAccelMagMinusZ) {
-		float bearingDifference = Math.abs(accelerationBearing
-				- movementBearing) % 360;
+		float bearingDifference = MathUtil.getBearingsAbsoluteDifference(accelerationBearing
+				,movementBearing);
 
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference  > Constants.DIFF_DEGREE) {
@@ -957,8 +956,8 @@ public class MainActivity extends Activity implements Runnable {
 				decelerationMovingAverageTime.clearValues();
 			}
 		} else {
-			decelerationMovingAverageTime.clearValues();
 			mAccelSituation = Constants.NO_MOVE_DETECTED;
+			decelerationMovingAverageTime.clearValues();
 		}
 
 		switch (mAccelSituation) {

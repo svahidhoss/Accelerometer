@@ -156,7 +156,8 @@ public class MathUtil {
 	}
 
 	/**
-	 * Calculates the magnitude of a vector by using Pythagorean principle without the Z element.
+	 * Calculates the magnitude of a vector by using Pythagorean principle
+	 * without the Z element.
 	 * 
 	 * @param vectorComponents
 	 * @return The vector magnitude minus Z element.
@@ -182,7 +183,26 @@ public class MathUtil {
 		float accelerationBearing = (float) (Math.atan2(
 				earthLinearAccelerationValues[0],
 				earthLinearAccelerationValues[1]));
-		return (float) ((Math.toDegrees(accelerationBearing) + 360) % 360);
+		accelerationBearing = (float) ((Math.toDegrees(accelerationBearing) + 360) % 360);
+		return accelerationBearing;
+	}
+
+	/**
+	 * Method to calculate relative degree difference when degree inputs
+	 * (bearings) are in range of 0 to 360.
+	 * 
+	 * @param accelerationBearing
+	 * @param movementBearing
+	 * @return the degree difference between [0-180]
+	 */
+	public static float getBearingsAbsoluteDifference(float accelerationBearing,
+			float movementBearing) {
+		float difference = Math.abs(accelerationBearing - movementBearing);
+		if (difference <= 180) {
+			return difference;
+		} else {
+			return 360 - difference;
+		}
 	}
 
 	// public static String getDate() {
