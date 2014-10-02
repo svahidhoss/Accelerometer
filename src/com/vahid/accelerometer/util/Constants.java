@@ -13,6 +13,8 @@ public class Constants {
 	public static boolean BT_MODULE_EXISTS = false;
 	public static boolean GPS_MODULE_EXISTS = false;
 	
+	public static float MANUAL_BEARING = 0f;
+	
 	
 	/** General Variables **/
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
@@ -70,6 +72,7 @@ public class Constants {
 	public static final int MOVEMENT_BEARING_MSG = 5;
 	public static final int DECLINATION_MSG = 6;
 	public static final int BRAKE_DETECTED_MSG = 7;
+	
 	
 	
 	/**** Settings related constants ****/

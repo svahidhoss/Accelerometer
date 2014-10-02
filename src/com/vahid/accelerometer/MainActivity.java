@@ -44,7 +44,6 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,6 +54,7 @@ public class MainActivity extends Activity implements Runnable {
 	/**** for communication between activities ****/
 	private static final int REQUEST_ENABLE_BT = 1;
 	private static final int REQUEST_CONNECT_DEVICE = 2;
+	private static final int REQUEST_SETTINGS_CHANGE = 3;
 
 	// used for exiting on pressing back double
 	private boolean doubleBackToExitIsPressedOnce = false;
@@ -82,8 +82,8 @@ public class MainActivity extends Activity implements Runnable {
 	private ProgressBar mFinalProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
-			tvRotationDegreeValue, tvAccelerationDegreeValue, tvDifferenceDegreeeValue, tvBrake,
-			tvBrakeValue;
+			tvRotationDegreeValue, tvAccelerationDegreeValue,
+			tvDifferenceDegreeeValue, tvBrake, tvBrakeValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -202,7 +202,14 @@ public class MainActivity extends Activity implements Runnable {
 				initViewsNotConnected();
 			}
 			break;
-
+		// when information comes manually from the settings activity. (GPS is
+		// deactivated).
+		case REQUEST_SETTINGS_CHANGE:
+			if (resultCode == RESULT_OK) {
+				mCurrentMovementBearing = Math.abs(data.getExtras().getFloat(
+						SettingsActivity.SET_BEARING));
+			}
+			break;
 		default:
 			break;
 		}
@@ -617,7 +624,7 @@ public class MainActivity extends Activity implements Runnable {
 		switch (item.getItemId()) {
 		case R.id.action_settings:
 			Intent intentSettings = new Intent(this, SettingsActivity.class);
-			startActivity(intentSettings);
+			startActivityForResult(intentSettings, REQUEST_SETTINGS_CHANGE);
 			return true;
 
 		case R.id.search_option:
@@ -685,9 +692,11 @@ public class MainActivity extends Activity implements Runnable {
 				elaMovingAverageX.pushValue(earthLinearAccelerationValues[0]);
 				elaMovingAverageY.pushValue(earthLinearAccelerationValues[1]);
 				elaMovingAverageZ.pushValue(earthLinearAccelerationValues[2]);
-				
+
 				mCurrentAccelerationBearing = MathUtil
-						.calculateCurrentAccelerationBearing(elaMovingAverageY.getMovingAverage(), elaMovingAverageX.getMovingAverage());
+						.calculateCurrentAccelerationBearing(
+								elaMovingAverageY.getMovingAverage(),
+								elaMovingAverageX.getMovingAverage());
 
 				// 3.Update the UI (set the value ) as the text of every
 				// TextView
@@ -911,8 +920,7 @@ public class MainActivity extends Activity implements Runnable {
 		float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
 				accelerationBearing, movementBearing);
 		// update UI, for debugging.
-		tvDifferenceDegreeeValue.setText(Float
-				.toString(bearingDifference));
+		tvDifferenceDegreeeValue.setText(Float.toString(bearingDifference));
 
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference > Constants.DIFF_DEGREE) {
