@@ -66,14 +66,6 @@
         </TextView>
     </LinearLayout>
 
-    <!--
-        <SeekBar
-        android:id="@+id/yAxisBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="20" />
-    -->
-
     <LinearLayout
         android:id="@+id/zAxisLinearLayout"
         android:layout_width="fill_parent"
@@ -96,26 +88,19 @@
         </TextView>
     </LinearLayout>
 
-    <!--
-        <SeekBar
-        android:id="@+id/zAxisBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="20" />
-    -->
-
     <LinearLayout
         android:id="@+id/finalLinearLayout"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:gravity="center" >
 
         <TextView
             android:id="@+id/finalTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Accel. Mag. (Minus Z): "
-            android:textColor="@android:color/holo_blue_dark"
-            android:textSize="16sp" >
+            android:text="Accel. Mag.: "
+            android:textColor="@color/DarkBlue"
+            android:textSize="20sp" >
         </TextView>
 
         <TextView
@@ -123,18 +108,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0"
-            android:textColor="@android:color/holo_blue_dark"
-            android:textSize="16sp" >
+            android:textColor="@color/DarkBlue"
+            android:textSize="20sp"
+            android:textStyle="bold" >
         </TextView>
     </LinearLayout>
-
-    <!--
-         <SeekBar
-        android:id="@+id/finalBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="50" />
-    -->
 
     <ProgressBar
         android:id="@+id/finalProgressBar"
@@ -289,8 +267,8 @@
             android:textSize="16sp" >
         </TextView>
     </LinearLayout>
-    
-        <LinearLayout
+
+    <LinearLayout
         android:id="@+id/differenceDegreeLayout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -338,8 +316,6 @@
         android:layout_width="fill_parent"
         android:layout_height="1dp"
         android:background="@android:color/black" />
-
-
 
     <CheckBox
         android:id="@+id/checkBoxSaveToFile"

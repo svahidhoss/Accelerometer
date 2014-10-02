@@ -13,6 +13,7 @@ import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MovingAverage;
+import com.vahid.accelerometer.util.MovingAverage2;
 import com.vahid.accelerometer.util.MovingAverageTime;
 import com.vahid.acceleromter.location.MyLocationListener;
 
@@ -115,7 +116,7 @@ public class MainActivity extends Activity implements Runnable {
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
 	// Moving Averages
-	private MovingAverage elaMovingAverageX, elaMovingAverageY,
+	private MovingAverage2 elaMovingAverageX, elaMovingAverageY,
 			elaMovingAverageZ;
 	private MovingAverage laMagMovingAverage;
 	private MovingAverage tlaMovingAverageX, tlaMovingAverageY,
@@ -202,8 +203,8 @@ public class MainActivity extends Activity implements Runnable {
 				initViewsNotConnected();
 			}
 			break;
-		// when information comes manually from the settings activity. (GPS is
-		// deactivated).
+		// when information comes manually from the settings activity. (when GPS
+		// is deactivated).
 		case REQUEST_SETTINGS_CHANGE:
 			if (resultCode == RESULT_OK) {
 				mCurrentMovementBearing = Math.abs(data.getExtras().getFloat(
@@ -700,12 +701,12 @@ public class MainActivity extends Activity implements Runnable {
 
 				// 3.Update the UI (set the value ) as the text of every
 				// TextView
-				tvXAxisValue.setText(Float.toString(elaMovingAverageX
-						.getMovingAverage()));
-				tvYAxisValue.setText(Float.toString(elaMovingAverageY
-						.getMovingAverage()));
-				tvZAxisValue.setText(Float.toString(elaMovingAverageZ
-						.getMovingAverage()));
+				tvXAxisValue.setText(MathUtil.round(
+						elaMovingAverageX.getMovingAverage(), 6));
+				tvYAxisValue.setText(MathUtil.round(
+						elaMovingAverageY.getMovingAverage(), 6));
+				tvZAxisValue.setText(MathUtil.round(
+						elaMovingAverageZ.getMovingAverage(), 6));
 
 				// 4. calculate the linear acceleration mag. (-z)
 				mLinearAccelerationMagnitude = MathUtil
@@ -714,8 +715,8 @@ public class MainActivity extends Activity implements Runnable {
 				// .pushValue((float) mLinearAccelerationMagnitude);
 
 				// 5. updating the UI with Acceleration Magnitude
-				tvFinalValue.setText(Float
-						.toString((float) mLinearAccelerationMagnitude));
+				tvFinalValue.setText(MathUtil.round(
+						mLinearAccelerationMagnitude, 3));
 				int progressPercentage = (int) (mLinearAccelerationMagnitude * 5);
 				mFinalProgressBar.setProgress(progressPercentage);
 
@@ -723,7 +724,7 @@ public class MainActivity extends Activity implements Runnable {
 				displayDetectedSituation(
 						// mCurAccBearingMovingAverage.getMovingAverage(),
 						// mCurMovBearingMovingAverage.getMovingAverage(),
-						mCurrentMovementBearing, mCurrentAccelerationBearing,
+						mCurrentAccelerationBearing, mCurrentMovementBearing,
 						mLinearAccelerationMagnitude);
 
 				// TODO we don't need this rotation imho
@@ -746,6 +747,7 @@ public class MainActivity extends Activity implements Runnable {
 				 * tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
 				 * .getMovingAverage()));
 				 */
+
 				tvRotationDegreeValue.setText(Float
 						.toString(mCurrentMovementBearing));
 				tvAccelerationDegreeValue.setText(Float
@@ -917,43 +919,37 @@ public class MainActivity extends Activity implements Runnable {
 	 */
 	private void displayDetectedSituation(float accelerationBearing,
 			float movementBearing, double linearAccelMagMinusZ) {
-		float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
-				accelerationBearing, movementBearing);
-		// update UI, for debugging.
-		tvDifferenceDegreeeValue.setText(Float.toString(bearingDifference));
 
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
+			float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
+					accelerationBearing, movementBearing);
+			// update UI, for debugging.
+			tvDifferenceDegreeeValue.setText(Float.toString(bearingDifference));
+
 			if (bearingDifference > Constants.DIFF_DEGREE) {
 				mAccelSituation = Constants.BRAKE_DETECTED;
+				mBackground.setBackgroundResource(R.color.dark_red);
+
 				decelerationMovingAverageTime.pushValue(
 						(float) linearAccelMagMinusZ, new Date());
+
+				/*
+				 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable
+				 * ( R.drawable.progress_bar_vahid_red));
+				 */
 			} else {
 				mAccelSituation = Constants.ACCEL_DETECTED;
+				mBackground.setBackgroundResource(R.color.dark_green);
 				decelerationMovingAverageTime.clearValues();
+				/*
+				 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable
+				 * ( R.drawable.progress_bar_vahid_green));
+				 */
 			}
 		} else {
 			mAccelSituation = Constants.NO_MOVE_DETECTED;
-			decelerationMovingAverageTime.clearValues();
-		}
-
-		switch (mAccelSituation) {
-		case Constants.BRAKE_DETECTED:
-			mBackground.setBackgroundResource(R.color.dark_red);
-			/*
-			 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
-			 * R.drawable.progress_bar_vahid_red));
-			 */
-			break;
-		case Constants.ACCEL_DETECTED:
-			mBackground.setBackgroundResource(R.color.dark_green);
-			/*
-			 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable(
-			 * R.drawable.progress_bar_vahid_green));
-			 */
-			break;
-		default:
 			mBackground.setBackgroundResource(R.color.White);
-			break;
+			decelerationMovingAverageTime.clearValues();
 		}
 	}
 
@@ -962,9 +958,9 @@ public class MainActivity extends Activity implements Runnable {
 	 */
 	private void initiateMovingAverages() {
 		// earth linear acceleration initiating
-		elaMovingAverageX = new MovingAverage(Constants.WINDOW_SIZE);
-		elaMovingAverageY = new MovingAverage(Constants.WINDOW_SIZE);
-		elaMovingAverageZ = new MovingAverage(Constants.WINDOW_SIZE);
+		elaMovingAverageX = new MovingAverage2(Constants.WINDOW_SIZE);
+		elaMovingAverageY = new MovingAverage2(Constants.WINDOW_SIZE);
+		elaMovingAverageZ = new MovingAverage2(Constants.WINDOW_SIZE);
 
 		// true linear acceleration initiating
 		tlaMovingAverageX = new MovingAverage(Constants.WINDOW_SIZE);
@@ -985,7 +981,6 @@ public class MainActivity extends Activity implements Runnable {
 	@Override
 	public void run() {
 		// TODO
-		// displayDetectedSituation(mCurrentAccelerationBearing,
-		// mCurrentMovementBearing, mLinearAccelerationMagnitude);
+
 	}
 }

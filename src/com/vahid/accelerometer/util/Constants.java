@@ -25,7 +25,7 @@ public class Constants {
 
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
-	public static int WINDOW_SIZE = 20;
+	public static int WINDOW_SIZE = 25;
 	public static long WINDOW_SIZE_IN_MILI_SEC = TimeUnit.SECONDS
 			.toMillis(1);
 	public static long RUNNING_PERIOD = TimeUnit.MILLISECONDS

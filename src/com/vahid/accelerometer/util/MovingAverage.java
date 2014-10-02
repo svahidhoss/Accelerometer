@@ -55,20 +55,4 @@ public class MovingAverage {
 		return curIndex + 1;
 	}
 
-	/**
-	 * Function that detects if a brake has occurred.
-	 * 
-	 * @return true if occurred.
-	 */
-	public int detectSituation() {
-		if (mCount >= mCircularBuffer.length) {
-			if (mAverage <= Constants.BRAKE_THRESHOLD) {
-				return Constants.BRAKE_DETECTED;
-			}
-			if (mAverage >= Constants.ACCEL_THRESHOLD) {
-				return Constants.ACCEL_DETECTED;
-			}
-		}
-		return Constants.NO_MOVE_DETECTED;
-	}
 }

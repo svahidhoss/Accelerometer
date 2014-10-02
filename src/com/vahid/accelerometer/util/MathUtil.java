@@ -170,18 +170,19 @@ public class MathUtil {
 		return Math.sqrt(result);
 	}
 
-
 	/**
 	 * Method that calculates the current acceleration bearing. This is degree
 	 * between magnetic north and the vector composed of y (North) and x (East)
 	 * components of current linear acceleration.
 	 * 
-	 * @param movingAverageY y element of the acceleration vector.
-	 * @param movingAverageX x element of the acceleration vector.
+	 * @param movingAverageY
+	 *            y element of the acceleration vector.
+	 * @param movingAverageX
+	 *            x element of the acceleration vector.
 	 * @return
 	 */
 	public static float calculateCurrentAccelerationBearing(
-			float movingAverageY, float movingAverageX) {
+			double movingAverageY, double movingAverageX) {
 		float accelerationBearing = (float) (Math.atan2(movingAverageY,
 				movingAverageX));
 		accelerationBearing = (float) ((Math.toDegrees(accelerationBearing) + 360) % 360);
