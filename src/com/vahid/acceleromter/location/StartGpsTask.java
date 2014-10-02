@@ -2,7 +2,6 @@ package com.vahid.acceleromter.location;
 
 import java.util.concurrent.Callable;
 
-import android.content.Context;
 import android.location.LocationManager;
 
 import com.vahid.accelerometer.util.Constants;

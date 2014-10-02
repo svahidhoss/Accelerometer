@@ -128,11 +128,13 @@
         </TextView>
     </LinearLayout>
 
-    <SeekBar
+    <!--
+         <SeekBar
         android:id="@+id/finalBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="50" />
+    -->
 
     <ProgressBar
         android:id="@+id/finalProgressBar"
@@ -227,6 +229,19 @@
         </TextView>
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/black" />
+
+    <TextView
+        android:id="@+id/TextView02"
+        style="@style/bigTitleStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="The Bearings Values" />
+
     <LinearLayout
         android:id="@+id/rotationDegreeLayout"
         android:layout_width="fill_parent"
@@ -246,9 +261,32 @@
             android:id="@+id/rotationDegreeeValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="00"
+            android:text="0.0"
             android:textSize="16sp"
             android:textStyle="bold" >
+        </TextView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/accelerationDegreeLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp" >
+
+        <TextView
+            android:id="@+id/accelerationDegreeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Acceleration Bearing: "
+            android:textSize="16sp" >
+        </TextView>
+
+        <TextView
+            android:id="@+id/accelerationDegreeeValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.0"
+            android:textSize="16sp" >
         </TextView>
     </LinearLayout>
 
@@ -278,11 +316,7 @@
         android:layout_height="1dp"
         android:background="@android:color/black" />
 
-    <CheckBox
-        android:id="@+id/checkBoxUseX"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Using X axis for brake detection" />
+
 
     <CheckBox
         android:id="@+id/checkBoxSaveToFile"

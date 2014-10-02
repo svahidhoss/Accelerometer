@@ -170,19 +170,20 @@ public class MathUtil {
 		return Math.sqrt(result);
 	}
 
+
 	/**
-	 * Method that calculates the current acceleration bearing between magnetic
-	 * north and the y (North) and x (East) components of current linear
-	 * acceleration.
+	 * Method that calculates the current acceleration bearing. This is degree
+	 * between magnetic north and the vector composed of y (North) and x (East)
+	 * components of current linear acceleration.
 	 * 
-	 * @param earthLinearAccelerationValues
-	 * @return the degree or bearing of the current acceleration.
+	 * @param movingAverageY y element of the acceleration vector.
+	 * @param movingAverageX x element of the acceleration vector.
+	 * @return
 	 */
 	public static float calculateCurrentAccelerationBearing(
-			float[] earthLinearAccelerationValues) {
-		float accelerationBearing = (float) (Math.atan2(
-				earthLinearAccelerationValues[0],
-				earthLinearAccelerationValues[1]));
+			float movingAverageY, float movingAverageX) {
+		float accelerationBearing = (float) (Math.atan2(movingAverageY,
+				movingAverageX));
 		accelerationBearing = (float) ((Math.toDegrees(accelerationBearing) + 360) % 360);
 		return accelerationBearing;
 	}
@@ -195,8 +196,8 @@ public class MathUtil {
 	 * @param movementBearing
 	 * @return the degree difference between [0-180]
 	 */
-	public static float getBearingsAbsoluteDifference(float accelerationBearing,
-			float movementBearing) {
+	public static float getBearingsAbsoluteDifference(
+			float accelerationBearing, float movementBearing) {
 		float difference = Math.abs(accelerationBearing - movementBearing);
 		if (difference <= 180) {
 			return difference;

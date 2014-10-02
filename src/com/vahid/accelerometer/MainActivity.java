@@ -79,11 +79,11 @@ public class MainActivity extends Activity implements Runnable {
 
 	// 2. Connected views
 	// private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
-	private SeekBar mFinalSeekBar;
 	private ProgressBar mFinalProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
-			tvRotationDegreeTitle, tvBrake, tvBrakeValue;
+			tvRotationDegreeValue, tvAccelerationDegreeValue, tvBrake,
+			tvBrakeValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -107,9 +107,6 @@ public class MainActivity extends Activity implements Runnable {
 	private float[] earthLinearAccelerationValues = new float[] { 0, 0, 0 };
 	// private float[] trueLinearAccelerationValues = new float[] { 0, 0, 0 };
 	private double mLinearAccelerationMagnitude;
-
-	// TODO for testing.
-	private boolean useX = false;
 
 	// Calculation of Motion Direction for brake detection
 	private float mCurrentMovementBearing, mCurrentAccelerationBearing;
@@ -361,14 +358,14 @@ public class MainActivity extends Activity implements Runnable {
 		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
-		mFinalSeekBar = (SeekBar) findViewById(R.id.finalBar);
 		mFinalProgressBar = (ProgressBar) findViewById(R.id.finalProgressBar);
 
 		tvXTrueAxisValue = (TextView) findViewById(R.id.xAxisTrueValue);
 		tvYTrueAxisValue = (TextView) findViewById(R.id.yAxisTrueValue);
 		tvZTrueAxisValue = (TextView) findViewById(R.id.zAxisTrueValue);
 
-		tvRotationDegreeTitle = (TextView) findViewById(R.id.rotationDegreeeValue);
+		tvRotationDegreeValue = (TextView) findViewById(R.id.rotationDegreeeValue);
+		tvAccelerationDegreeValue = (TextView) findViewById(R.id.accelerationDegreeeValue);
 
 		tvBrake = (TextView) findViewById(R.id.brakeTextView);
 		tvBrakeValue = (TextView) findViewById(R.id.brakeValueTextView);
@@ -611,13 +608,7 @@ public class MainActivity extends Activity implements Runnable {
 				}
 			}
 			break;
-		case R.id.checkBoxUseX:
-			if (checked) {
-				useX = true;
-			} else {
-				useX = false;
-			}
-			break;
+
 		}
 	}
 
@@ -690,14 +681,12 @@ public class MainActivity extends Activity implements Runnable {
 				earthLinearAccelerationValues = (float[]) msg.obj;
 
 				// 2. calculate the actual acceleration bearing
-				mCurrentAccelerationBearing = MathUtil
-						.calculateCurrentAccelerationBearing(earthLinearAccelerationValues);
-				mCurAccBearingMovingAverage
-						.pushValue(mCurrentAccelerationBearing);
-
 				elaMovingAverageX.pushValue(earthLinearAccelerationValues[0]);
 				elaMovingAverageY.pushValue(earthLinearAccelerationValues[1]);
 				elaMovingAverageZ.pushValue(earthLinearAccelerationValues[2]);
+				
+				mCurrentAccelerationBearing = MathUtil
+						.calculateCurrentAccelerationBearing(elaMovingAverageY.getMovingAverage(), elaMovingAverageX.getMovingAverage());
 
 				// 3.Update the UI (set the value ) as the text of every
 				// TextView
@@ -718,7 +707,6 @@ public class MainActivity extends Activity implements Runnable {
 				tvFinalValue.setText(Float
 						.toString((float) mLinearAccelerationMagnitude));
 				int progressPercentage = (int) (mLinearAccelerationMagnitude * 5);
-				mFinalSeekBar.setProgress(progressPercentage);
 				mFinalProgressBar.setProgress(progressPercentage);
 
 				// 6. Detect the situation
@@ -748,8 +736,10 @@ public class MainActivity extends Activity implements Runnable {
 				 * tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
 				 * .getMovingAverage()));
 				 */
-				tvRotationDegreeTitle.setText(Float
+				tvRotationDegreeValue.setText(Float
 						.toString(mCurrentMovementBearing));
+				tvAccelerationDegreeValue.setText(Float
+						.toString(mCurrentAccelerationBearing));
 
 				break;
 			case Constants.MOVEMENT_BEARING_MSG:
@@ -757,8 +747,8 @@ public class MainActivity extends Activity implements Runnable {
 				// only use the bearing if it's not zero
 				if (msg.arg1 != 0) {
 					mCurrentMovementBearing = Math.abs((Float) msg.obj);
-					mCurMovBearingMovingAverage
-							.pushValue(mCurrentMovementBearing);
+					// mCurMovBearingMovingAverage
+					// .pushValue(mCurrentMovementBearing);
 				}
 				break;
 			case Constants.BRAKE_DETECTED_MSG:
@@ -907,32 +897,6 @@ public class MainActivity extends Activity implements Runnable {
 	}
 
 	/**
-	 * Show weather a brake or acceleration has occurred.
-	 * 
-	 * @param situation
-	 */
-	private void displayDetectedSituation(int situationX, int situationY) {
-		LinearLayout background = (LinearLayout) findViewById(R.id.activity_main_las);
-		int situation;
-		if (useX) {
-			situation = situationX;
-		} else {
-			situation = situationY;
-		}
-		switch (situation) {
-		case Constants.BRAKE_DETECTED:
-			background.setBackgroundResource(R.color.dark_red);
-			break;
-		case Constants.ACCEL_DETECTED:
-			background.setBackgroundResource(R.color.dark_green);
-			break;
-		default:
-			background.setBackgroundResource(R.color.White);
-			break;
-		}
-	}
-
-	/**
 	 * Show weather a brake or acceleration has occurred, it considers if the
 	 * acceleration magnitude on y (North) and x (East) is more than a certain
 	 * threshold and if it's been going on for more than a certain time.
@@ -943,11 +907,11 @@ public class MainActivity extends Activity implements Runnable {
 	 */
 	private void displayDetectedSituation(float accelerationBearing,
 			float movementBearing, double linearAccelMagMinusZ) {
-		float bearingDifference = MathUtil.getBearingsAbsoluteDifference(accelerationBearing
-				,movementBearing);
+		float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
+				accelerationBearing, movementBearing);
 
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
-			if (bearingDifference  > Constants.DIFF_DEGREE) {
+			if (bearingDifference > Constants.DIFF_DEGREE) {
 				mAccelSituation = Constants.BRAKE_DETECTED;
 				decelerationMovingAverageTime.pushValue(
 						(float) linearAccelMagMinusZ, new Date());
