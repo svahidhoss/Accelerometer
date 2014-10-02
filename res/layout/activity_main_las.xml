@@ -289,6 +289,29 @@
             android:textSize="16sp" >
         </TextView>
     </LinearLayout>
+    
+        <LinearLayout
+        android:id="@+id/differenceDegreeLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp" >
+
+        <TextView
+            android:id="@+id/differenceDegreeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Degree Difference: "
+            android:textSize="16sp" >
+        </TextView>
+
+        <TextView
+            android:id="@+id/differenceDegreeeValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.0"
+            android:textSize="16sp" >
+        </TextView>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/brakeLayout"

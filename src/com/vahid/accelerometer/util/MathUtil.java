@@ -202,7 +202,7 @@ public class MathUtil {
 		if (difference <= 180) {
 			return difference;
 		} else {
-			return 360 - difference;
+			return (360 - difference);
 		}
 	}
 

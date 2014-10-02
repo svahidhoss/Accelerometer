@@ -82,7 +82,7 @@ public class MainActivity extends Activity implements Runnable {
 	private ProgressBar mFinalProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
 	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
-			tvRotationDegreeValue, tvAccelerationDegreeValue, tvBrake,
+			tvRotationDegreeValue, tvAccelerationDegreeValue, tvDifferenceDegreeeValue, tvBrake,
 			tvBrakeValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
@@ -366,6 +366,7 @@ public class MainActivity extends Activity implements Runnable {
 
 		tvRotationDegreeValue = (TextView) findViewById(R.id.rotationDegreeeValue);
 		tvAccelerationDegreeValue = (TextView) findViewById(R.id.accelerationDegreeeValue);
+		tvDifferenceDegreeeValue = (TextView) findViewById(R.id.differenceDegreeeValue);
 
 		tvBrake = (TextView) findViewById(R.id.brakeTextView);
 		tvBrakeValue = (TextView) findViewById(R.id.brakeValueTextView);
@@ -909,6 +910,9 @@ public class MainActivity extends Activity implements Runnable {
 			float movementBearing, double linearAccelMagMinusZ) {
 		float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
 				accelerationBearing, movementBearing);
+		// update UI, for debugging.
+		tvDifferenceDegreeeValue.setText(Float
+				.toString(bearingDifference));
 
 		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
 			if (bearingDifference > Constants.DIFF_DEGREE) {
