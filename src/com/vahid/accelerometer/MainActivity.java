@@ -9,12 +9,12 @@ import java.util.concurrent.TimeUnit;
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
+import com.vahid.accelerometer.filter.MovingAverage;
+import com.vahid.accelerometer.filter.MovingAverage2;
+import com.vahid.accelerometer.filter.MovingAverageTime;
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
-import com.vahid.accelerometer.util.MovingAverage;
-import com.vahid.accelerometer.util.MovingAverage2;
-import com.vahid.accelerometer.util.MovingAverageTime;
 import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.ActionBar;

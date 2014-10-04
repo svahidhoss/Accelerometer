@@ -1,8 +1,10 @@
-package com.vahid.accelerometer.util;
+package com.vahid.accelerometer.filter;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import com.vahid.accelerometer.util.Constants;
 
 import android.os.Handler;
 

@@ -3,10 +3,10 @@ package com.vahid.acceleromter.location;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.util.CsvListenerInterface;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
-import com.vahid.accelerometer.util.MovingAverage;
 
 import android.content.Context;
 import android.hardware.GeomagneticField;
@@ -37,7 +37,7 @@ public class MyLocationListener implements LocationListener,
 
 	// save to file view fields
 	private boolean savingToFile = false;
-	private CsvFileWriter csvLocationFile;
+	private CsvFileWriter mCsvLocationFile;
 
 	public MyLocationListener(Context context, Handler mhHandler) {
 		parentContext = context;
@@ -73,14 +73,15 @@ public class MyLocationListener implements LocationListener,
 		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
 
 		// sending back the degree between
-		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG, Math.round(bearing), Math.round(magneticDeclination),
+		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG,
+				Math.round(bearing), Math.round(magneticDeclination),
 				bearingFromMagneticNorth).sendToTarget();
 
-		if (savingToFile && csvLocationFile != null) {
-			csvLocationFile.writeToFile(bearing, false);
-			csvLocationFile.writeToFile(location.getSpeed(), false);
-			csvLocationFile.writeToFile(bearingFromMagneticNorth, false);
-			csvLocationFile.writeToFile(location.getTime(), true);
+		if (savingToFile && mCsvLocationFile != null) {
+			mCsvLocationFile.writeToFile(bearing, false);
+			mCsvLocationFile.writeToFile(location.getSpeed(), false);
+			mCsvLocationFile.writeToFile(bearingFromMagneticNorth, false);
+			mCsvLocationFile.writeToFile(location.getTime(), true);
 		}
 		// latMovingAverage.pushValue(location.);
 		// if (locations.size() >= 10) {
@@ -125,7 +126,11 @@ public class MyLocationListener implements LocationListener,
 
 	@Override
 	public void setCsvFile(CsvFileWriter csvLocationFile) {
-		this.csvLocationFile = csvLocationFile;
+		this.mCsvLocationFile = csvLocationFile;	
+		/*String names[] = { "Time", "Bearing - True North",
+				"GPS Speed", "Bearing - Magnetic North",
+				"GPS Time" };
+		csvLocationFile.writeFileTitles(names);*/
 	}
 
 	/**

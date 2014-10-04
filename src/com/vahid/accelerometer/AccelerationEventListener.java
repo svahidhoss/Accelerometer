@@ -1,6 +1,7 @@
 package com.vahid.accelerometer;
 
 import java.util.Arrays;
+import java.util.Date;
 
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.CsvListenerInterface;
@@ -25,8 +26,8 @@ public class AccelerationEventListener implements SensorEventListener,
 	private Sensor mAccelerometer, mOrientation, mLinearAcceleration, mGravity,
 			mMagneticField;
 	// Sensor Values: it's important to initialize them.
-//	private float[] mAcceleromterValues = new float[] { 0, 0, 0 };
-//	private float[] orientationValues = new float[] { 0, 0, 0 };
+	// private float[] mAcceleromterValues = new float[] { 0, 0, 0 };
+	// private float[] orientationValues = new float[] { 0, 0, 0 };
 	private float[] mLinearAccelerationValues = new float[] { 0, 0, 0 };
 	private float[] mMagneticValues;
 	private float[] mGravityValues;
@@ -34,19 +35,18 @@ public class AccelerationEventListener implements SensorEventListener,
 	private double linearAccelerationMagnitude;
 
 	// Rotation Matrix Calculation
-	private float[] trueAcceleration = new float[4];
+	private float[] mEarthLinearAccelerationValues = new float[4];
 	private float[] inclinationMatrix = new float[16];
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
-	
+
 	// TODO testing the orientation values
-//	private float[] orientationValuesRadian = new float[] { 0, 0, 0 };
-//	private float[] orientationValuesDegrees = new float[] { 0, 0, 0 };
-//	private float[] outRotationMatrix = new float[16];
+	// private float[] orientationValuesRadian = new float[] { 0, 0, 0 };
+	// private float[] orientationValuesDegrees = new float[] { 0, 0, 0 };
+	// private float[] outRotationMatrix = new float[16];
 
 	private double trueAccelerationMagnitude;
 	private float magneticBearing;
-
 
 	// save to file view fields
 	private boolean savingToFile = false;
@@ -64,10 +64,11 @@ public class AccelerationEventListener implements SensorEventListener,
 	public void initializeSensors(SensorManager mSensorManager) {
 		this.mSensorManager = mSensorManager;
 
-//		mAccelerometer = mSensorManager
-//				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		// mAccelerometer = mSensorManager
+		// .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		// it is deprecated, but it works.
-//		mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+		// mOrientation =
+		// mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
 		mLinearAcceleration = mSensorManager
 				.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
@@ -184,16 +185,23 @@ public class AccelerationEventListener implements SensorEventListener,
 						mLinearAccelerationValues[2], 0 };
 
 				Matrix.invertM(rotationMatrixInverse, 0, rotationMatrix, 0);
-				Matrix.multiplyMV(trueAcceleration, 0, rotationMatrixInverse,
-						0, linearAccelerationValuesNew, 0);
-				
+				Matrix.multiplyMV(mEarthLinearAccelerationValues, 0,
+						rotationMatrixInverse, 0, linearAccelerationValuesNew,
+						0);
+
 				// TODO testing the orientation
-//				SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Y, outRotationMatrix);
-//				SensorManager.getOrientation(outRotationMatrix, orientationValuesRadian);
-//				
-//				orientationValuesDegrees[0] = (float) Math.toDegrees(orientationValuesRadian[0]);
-//				orientationValuesDegrees[1] = (float) Math.toDegrees(orientationValuesRadian[1]);
-//				orientationValuesDegrees[2] = (float) Math.toDegrees(orientationValuesRadian[2]);
+				// SensorManager.remapCoordinateSystem(rotationMatrix,
+				// SensorManager.AXIS_X, SensorManager.AXIS_Y,
+				// outRotationMatrix);
+				// SensorManager.getOrientation(outRotationMatrix,
+				// orientationValuesRadian);
+				//
+				// orientationValuesDegrees[0] = (float)
+				// Math.toDegrees(orientationValuesRadian[0]);
+				// orientationValuesDegrees[1] = (float)
+				// Math.toDegrees(orientationValuesRadian[1]);
+				// orientationValuesDegrees[2] = (float)
+				// Math.toDegrees(orientationValuesRadian[2]);
 
 				// This is Magnetic North in Radians
 				// bearing = orientation[0];
@@ -206,7 +214,8 @@ public class AccelerationEventListener implements SensorEventListener,
 
 				// Convert to degrees & 360 span (feel like I'm in Trig class
 				// with Radians)
-//				magneticBearing = ((float) Math.toDegrees(orientationValuesRadian[0]) + 360) % 360;
+				// magneticBearing = ((float)
+				// Math.toDegrees(orientationValuesRadian[0]) + 360) % 360;
 
 				// if you need True North enable the lines below and you'll need
 				// GPS
@@ -231,19 +240,25 @@ public class AccelerationEventListener implements SensorEventListener,
 				linearAccelerationMagnitude = MathUtil
 						.getVectorMagnitude(mLinearAccelerationValues);
 				trueAccelerationMagnitude = MathUtil
-						.getVectorMagnitude(trueAcceleration);
+						.getVectorMagnitude(mEarthLinearAccelerationValues);
 
 				// If check box for saving the file has been checked.
 				if (savingToFile && mCsvFile != null) {
-					// write the values of the linear acceleration
+					// current time stamp
+					Date date = new Date();
+					mCsvFile.writeToFile(Long.toString(date.getTime()), false);
+					
+					
 					mCsvFile.writeToFile(mLinearAccelerationValues, false);
+					// write the values of the true acceleration
+					mCsvFile.writeToFile(Arrays.copyOfRange(
+							mEarthLinearAccelerationValues, 0,
+							mEarthLinearAccelerationValues.length - 1), false);
 					mCsvFile.writeToFile((float) linearAccelerationMagnitude,
 							false);
-					// write the values of the true acceleration
-					mCsvFile.writeToFile(Arrays.copyOfRange(trueAcceleration, 0,
-							trueAcceleration.length - 1), false);
-					mCsvFile.writeToFile((float) trueAccelerationMagnitude, false);
-//					mCsvFile.writeToFile(orientationValuesDegrees, false);
+					mCsvFile.writeToFile((float) trueAccelerationMagnitude,
+							false);
+					// mCsvFile.writeToFile(orientationValuesDegrees, false);
 					mCsvFile.writeToFile(rotationMatrix, true);
 				}
 
@@ -264,9 +279,11 @@ public class AccelerationEventListener implements SensorEventListener,
 				 */
 
 				mHandler.obtainMessage(Constants.ACCEL_VALUE_MSG,
-						trueAcceleration).sendToTarget();
-/*				mHandler.obtainMessage(Constants.MAGNETIC_BEARING_MSG,
-						magneticBearing).sendToTarget();*/
+						mEarthLinearAccelerationValues).sendToTarget();
+				/*
+				 * mHandler.obtainMessage(Constants.MAGNETIC_BEARING_MSG,
+				 * magneticBearing).sendToTarget();
+				 */
 
 			}
 		}
@@ -293,6 +310,19 @@ public class AccelerationEventListener implements SensorEventListener,
 	@Override
 	public void setCsvFile(CsvFileWriter csvFile) {
 		this.mCsvFile = csvFile;
+/*		String names[] = { "Time", "LinearAcceleration - X",
+				"LinearAcceleration - Y", "LinearAcceleration - Z",
+				"EarthLinearAcceleration - X", "EarthLinearAcceleration - Y",
+				"EarthLinearAcceleration - Z",
+				"Linear Acceleration Magnitude(phone)",
+				"Linear Acceleration Magnitude(earth)", "rotation matrix[0,0]",
+				"rotation matrix[0,1]", "rotation matrix[0,2]",
+				"rotation matrix[0,3]", "rotation matrix[1,0]",
+				"rotation matrix[1,1]", "rotation matrix[1,2]",
+				"rotation matrix[1,3]", "rotation matrix[3,0]",
+				"rotation matrix[3,1]", "rotation matrix[3,2]",
+				"rotation matrix[3,3]" };
+		mCsvFile.writeFileTitles(names);*/
 	}
 
 }

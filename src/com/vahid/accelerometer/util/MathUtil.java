@@ -186,6 +186,9 @@ public class MathUtil {
 		float accelerationBearing = (float) (Math.atan2(movingAverageY,
 				movingAverageX));
 		accelerationBearing = (float) ((Math.toDegrees(accelerationBearing) + 360) % 360);
+		if (accelerationBearing < 0 || accelerationBearing > 360) {
+			System.out.print("WTF?");
+		}
 		return accelerationBearing;
 	}
 

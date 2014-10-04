@@ -1,4 +1,4 @@
-package com.vahid.accelerometer.util;
+package com.vahid.accelerometer.filter;
 
 import java.util.LinkedList;
 import java.util.Queue;

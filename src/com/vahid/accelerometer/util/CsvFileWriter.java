@@ -38,6 +38,26 @@ public class CsvFileWriter {
 	}
 
 	/**
+	 * Method that writes the titles of the values to the csv file.
+	 * 
+	 * @param titles
+	 * @return
+	 */
+	public boolean writeFileTitles(String titles[]) {
+		if (captureFileWriter != null) {
+			for (int i = 0; i < titles.length; i++) {
+				if (i > 0)
+					captureFileWriter.print(",");
+				captureFileWriter.print(titles[i]);
+			}
+			// end the line
+			captureFileWriter.println();
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Method that writes the values of the sensors passed with constructor to
 	 * the file that has been created.
 	 * 
@@ -60,7 +80,6 @@ public class CsvFileWriter {
 		return false;
 	}
 
-	
 	/**
 	 * Method that writes the value of a sensor passed with constructor to the
 	 * file that has been created.
@@ -120,7 +139,8 @@ public class CsvFileWriter {
 		SimpleDateFormat formatter = new SimpleDateFormat(
 				"yyyy_MM_dd_HH_mm_ss", java.util.Locale.getDefault());
 		Date now = new Date();
-		String fianlFileName = fileName + "_capture_" + formatter.format(now) + ".csv";
+		String fianlFileName = fileName + "_capture_" + formatter.format(now)
+				+ ".csv";
 		return fianlFileName;
 	}
 

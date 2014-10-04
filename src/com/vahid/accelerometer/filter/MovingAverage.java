@@ -1,4 +1,4 @@
-package com.vahid.accelerometer.util;
+package com.vahid.accelerometer.filter;
 
 public class MovingAverage {
 	private float mCircularBuffer[];
