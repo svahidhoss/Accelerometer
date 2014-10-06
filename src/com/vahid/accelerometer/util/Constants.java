@@ -24,6 +24,9 @@ public class Constants {
 	public static long SHUT_DOWN_AFTER_SEC = 20;
 	public static float GPS_MIN_DISTANCE_METER = 5;
 
+	/** Path Change Detection **/
+	public static final float DIFF_DEGREE_PATH_CHANGE = 40;
+	
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
 	public static int WINDOW_SIZE_SMA_FILTER = 10;
@@ -37,7 +40,7 @@ public class Constants {
 	public static float BRAKE_THRESHOLD = -ACCEL_THRESHOLD;
 	
 	// difference in degree values
-	public static final float DIFF_DEGREE = 90;
+	public static final float DIFF_DEGREE_BRAKE = 90;
 	
 	// Three situations of brake condition
 	public static final int BRAKE_DETECTED = -1;

@@ -930,20 +930,6 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * 
-	 * 
-	 * @param accelerationBearing
-	 * @param movementBearing
-	 * @param linearAccelMagMinusZ
-	 */
-	private void displayDetectedSituation(float accelerationBearing,
-			float movementBearing, double linearAccelMagMinusZ) {
-
-		// save to file Processed File
-		// new writeToProcessedFile().run();
-	}
-
-	/**
 	 * Initiating moving averages function for better management.
 	 */
 	private void initiateMovingAverages() {
@@ -977,11 +963,11 @@ public class MainActivity extends Activity {
 	 * Function that is called to start receiving of GPS fix values .
 	 */
 	private void activateLocationUpdatesFromGPS() {
-		ReqLocUpdatesFromGPSTask reqLocUpdatesFromGPSTask = new ReqLocUpdatesFromGPSTask();
+		RequestLocationGPSUpdatesTask reqLocUpdatesFromGPSTask = new RequestLocationGPSUpdatesTask();
 		reqLocUpdatesFromGPSTask.run();
 	}
 
-	private final class ReqLocUpdatesFromGPSTask implements Runnable {
+	private final class RequestLocationGPSUpdatesTask implements Runnable {
 		@Override
 		public void run() {
 			// Creates a thread pool of size 1 to schedule commands to run
@@ -1016,18 +1002,13 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			// only display if the mag. of linear acceleration is more than the
-			// threshold.
+			float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
+					mCurrentAccelerationBearing, mCurrentMovementBearing);
+			// update UI, for debugging.
+			tvDifferenceDegreeeValue.setText(Float.toString(bearingDifference));
+			// check if the values are more than threshold
 			if (mLinearAccelerationMagnitude >= Constants.ACCEL_THRESHOLD) {
-				float bearingDifference = MathUtil
-						.getBearingsAbsoluteDifference(
-								mCurrentAccelerationBearing,
-								mCurrentMovementBearing);
-				// update UI, for debugging.
-				tvDifferenceDegreeeValue.setText(Float
-						.toString(bearingDifference));
-
-				if (bearingDifference > Constants.DIFF_DEGREE) {
+				if (bearingDifference > Constants.DIFF_DEGREE_BRAKE) {
 					mAccelSituation = Constants.BRAKE_DETECTED;
 					mBackground.setBackgroundResource(R.color.dark_red);
 
@@ -1040,6 +1021,12 @@ public class MainActivity extends Activity {
 					 * getDrawable ( R.drawable.progress_bar_vahid_red));
 					 */
 				} else {
+					// Very smart, if the degree is more than path_change(40)
+					// and less than brake (90) this is most prob. a direction
+					// change.
+					if (bearingDifference >= Constants.DIFF_DEGREE_PATH_CHANGE) {
+						activateLocationUpdatesFromGPS();
+					}
 					mAccelSituation = Constants.ACCEL_DETECTED;
 					mBackground.setBackgroundResource(R.color.dark_green);
 					decelerationMovingAverageTime.clearValues();
