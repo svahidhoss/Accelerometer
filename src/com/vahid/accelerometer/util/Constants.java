@@ -20,13 +20,14 @@ public class Constants {
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
 
 	/** GPS values **/
-	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(5);
+	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(3);
+	public static long SHUT_DOWN_AFTER_SEC = 20;
 	public static float GPS_MIN_DISTANCE_METER = 5;
-	public static long SHUT_DOWN_AFTER = 20;
 
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
-	public static int WINDOW_SIZE = 25;
+	public static int WINDOW_SIZE = 20;
+	public static int MEDIAN_FILTER_WINDOW_SIZE = 5;
 	public static long WINDOW_SIZE_IN_MILI_SEC = TimeUnit.SECONDS
 			.toMillis(1);
 	public static long RUNNING_PERIOD = TimeUnit.MILLISECONDS

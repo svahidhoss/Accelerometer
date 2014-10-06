@@ -1,5 +1,6 @@
 package com.vahid.accelerometer;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -90,8 +91,12 @@ public class MainActivity extends Activity {
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
 
-	/**** save to file view fields ****/
-	private CsvFileWriter mCsvSensorsFile, mCsvLocationFile;
+	/**** Save to file view fields ****/
+	private CsvFileWriter mCsvSensorsFile, mCsvLocationFile, mCsvProcessedFile;
+	// boolean to check if it should save to mCsvProcessedFile;
+	private boolean mSavingToProcessedFile = false;
+	// The Runnable task to detect if there's a brake and save to file.
+	// private Runnable mDisplayDetectedSituationTask;
 
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
@@ -505,6 +510,10 @@ public class MainActivity extends Activity {
 			mCsvLocationFile.closeCaptureFile();
 		}
 
+		if (mCsvProcessedFile != null) {
+			mCsvProcessedFile.closeCaptureFile();
+		}
+
 		initViewsNotConnected();
 		// #check, ... I put this here because when the
 		// orientation changes, the Activity is destroyed, so
@@ -559,48 +568,66 @@ public class MainActivity extends Activity {
 	public void onCheckboxClicked(View view) {
 		// Is the view now checked?
 		boolean checked = ((CheckBox) view).isChecked();
+		String displayMsg;
 
 		// Check which checkbox was clicked
 		switch (view.getId()) {
 		case R.id.checkBoxSaveToFile:
 			// open the file if set true, otherwise close it.
 			if (checked) {
+				displayMsg = getString(R.string.checkBoxSaveToFileSavingMsg);
+				// 1.write unprocessed values of linear acceleration values
 				mCsvSensorsFile = new CsvFileWriter("Sensors");
 				mAccelerationEventListener.enableSaveToFile();
 				mAccelerationEventListener.setCsvFile(mCsvSensorsFile);
-				checkBoxSaveToFile
-						.setText(R.string.checkBoxSaveToFileSavingMsg);
-				Toast.makeText(
-						this,
-						getString(R.string.checkBoxSaveToFileSavingMsg) + " "
-								+ mCsvSensorsFile.getCaptureFileName(),
-						Toast.LENGTH_SHORT).show();
+				displayMsg += "\n" + mCsvSensorsFile.getCaptureFileName();
+
+				// 2.Process file that saves values of bearings and car
+				// detection
+				mCsvProcessedFile = new CsvFileWriter("Process");
+				this.mSavingToProcessedFile = true;
+				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
+
+				// 3.If GPS is enabled run the csv file for GPS fixes.
 				if (myLocationListener != null) {
 					// created the file for saving location information
 					mCsvLocationFile = new CsvFileWriter("Location");
 					myLocationListener.enableSaveToFile();
 					myLocationListener.setCsvFile(mCsvLocationFile);
+					displayMsg += "\n" + mCsvLocationFile.getCaptureFileName();
 				}
 
+				// 4.update UI
+				checkBoxSaveToFile
+						.setText(R.string.checkBoxSaveToFileSavingMsg);
+				Toast.makeText(this, displayMsg, Toast.LENGTH_SHORT).show();
+
 			} else {
-				// Closing the logging files as it had the same importance as
+				displayMsg = getString(R.string.checkBoxSaveToFileStoppedMsg);
+				// 1.Closing the logging files as it had the same importance as
 				// creating them.
 				if (mCsvSensorsFile != null) {
 					mAccelerationEventListener.disableSaveToFile();
 					mCsvSensorsFile.closeCaptureFile();
-					checkBoxSaveToFile
-							.setText(R.string.checkBoxSaveToFileInitialMsg);
-					Toast.makeText(
-							this,
-							getString(R.string.checkBoxSaveToFileStoppedMsg)
-									+ " "
-									+ mCsvSensorsFile.getCaptureFileName(),
-							Toast.LENGTH_SHORT).show();
+					displayMsg += "\n" + mCsvSensorsFile.getCaptureFileName();
 				}
+				
+				// 2.Closing the Processed file.
+				this.mSavingToProcessedFile = false;
+				mCsvProcessedFile.closeCaptureFile();
+				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
+				
+				// 3.Closing the location file
 				if (mCsvLocationFile != null) {
 					myLocationListener.disableSaveToFile();
 					mCsvLocationFile.closeCaptureFile();
+					displayMsg += "\n" + mCsvLocationFile.getCaptureFileName();
 				}
+				
+				// 4.update UI
+				checkBoxSaveToFile
+						.setText(R.string.checkBoxSaveToFileInitialMsg);
+				Toast.makeText(this, displayMsg, Toast.LENGTH_SHORT).show();
 			}
 			break;
 
@@ -709,11 +736,7 @@ public class MainActivity extends Activity {
 				mFinalProgressBar.setProgress(progressPercentage);
 
 				// 6. Detect the situation
-				displayDetectedSituation(
-						// mCurAccBearingMovingAverage.getMovingAverage(),
-						// mCurMovBearingMovingAverage.getMovingAverage(),
-						mCurrentAccelerationBearing, mCurrentMovementBearing,
-						mLinearAccelerationMagnitude);
+				new DisplayDetectedSituationTask().run();
 
 				// TODO we don't need this rotation imho
 				/*
@@ -751,13 +774,14 @@ public class MainActivity extends Activity {
 					// .pushValue(mCurrentMovementBearing);
 					bearingCounter++;
 				}
-				
-				// if the counter of getting GPS bearings is more than 5 and not 0
+
+				// if the counter of getting GPS bearings is more than 5 and not
+				// 0
 				// stop the scheduler!
 				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5) {
 					mGpsExecutor.shutdown();
 				}
-				
+
 				break;
 			case Constants.BRAKE_DETECTED_MSG:
 				// float f = (Float) msg.obj;
@@ -905,9 +929,7 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * Show weather a brake or acceleration has occurred, it considers if the
-	 * acceleration magnitude on y (North) and x (East) is more than a certain
-	 * threshold and if it's been going on for more than a certain time.
+	 * 
 	 * 
 	 * @param accelerationBearing
 	 * @param movementBearing
@@ -916,37 +938,8 @@ public class MainActivity extends Activity {
 	private void displayDetectedSituation(float accelerationBearing,
 			float movementBearing, double linearAccelMagMinusZ) {
 
-		if (linearAccelMagMinusZ >= Constants.ACCEL_THRESHOLD) {
-			float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
-					accelerationBearing, movementBearing);
-			// update UI, for debugging.
-			tvDifferenceDegreeeValue.setText(Float.toString(bearingDifference));
-
-			if (bearingDifference > Constants.DIFF_DEGREE) {
-				mAccelSituation = Constants.BRAKE_DETECTED;
-				mBackground.setBackgroundResource(R.color.dark_red);
-
-				decelerationMovingAverageTime.pushValue(
-						(float) linearAccelMagMinusZ, new Date());
-
-				/*
-				 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable
-				 * ( R.drawable.progress_bar_vahid_red));
-				 */
-			} else {
-				mAccelSituation = Constants.ACCEL_DETECTED;
-				mBackground.setBackgroundResource(R.color.dark_green);
-				decelerationMovingAverageTime.clearValues();
-				/*
-				 * mFinalProgressBar.setProgressDrawable(getResources().getDrawable
-				 * ( R.drawable.progress_bar_vahid_green));
-				 */
-			}
-		} else {
-			mAccelSituation = Constants.NO_MOVE_DETECTED;
-			mBackground.setBackgroundResource(R.color.White);
-			decelerationMovingAverageTime.clearValues();
-		}
+		// save to file Processed File
+		// new writeToProcessedFile().run();
 	}
 
 	/**
@@ -974,37 +967,27 @@ public class MainActivity extends Activity {
 				Constants.WINDOW_SIZE_IN_MILI_SEC, mHandler);
 	}
 
-	/** Sound the alarm for a few seconds, then stop. */
+	/**
+	 * Sound the alarm for a few seconds, then stop.
+	 * 
+	 */
 	private void activateLocationUpdatesFromGPS() {
-		myLocationListener = new MyLocationListener(getApplicationContext(),
-				mHandler);
-		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		// mLocationManager.requestLocationUpdates(
-		// LocationManager.GPS_PROVIDER,
-		// Constants.GPS_MIN_TIME_MIL_SEC,
-		// Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
-		// Creates a thread pool of size 1 to schedule commands to run
-		// periodically
-		Runnable reqLoUpdatesFromGPSTask = new ReqLocUpdatesFromGPSTask();
-		mGpsExecutor = Executors.newScheduledThreadPool(1);
-		mGpsExecutor.scheduleAtFixedRate(reqLoUpdatesFromGPSTask, 0,
-				Constants.RUNNING_PERIOD, TimeUnit.MILLISECONDS);
-		// TODO check this?
-		// provider = myLocationManager.getBestProvider(criteria, false);
-		// Location loc = myLocationManager
-		// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-		// Runnable StopReqLocUpdatesFromGPSTask = new
-		// StopReqLocUpdatesFromGPSTask(soundAlarmFuture);
-		// mGpsExecutor.schedule(stopAlarm, Constants.SHUT_DOWN_AFTER,
-		// TimeUnit.SECONDS);
-
+		ReqLocUpdatesFromGPSTask reqLocUpdatesFromGPSTask = new ReqLocUpdatesFromGPSTask();
+		reqLocUpdatesFromGPSTask.run();
 	}
 
 	private final class ReqLocUpdatesFromGPSTask implements Runnable {
-
 		@Override
 		public void run() {
+			// Creates a thread pool of size 1 to schedule commands to run
+			// periodically
+			myLocationListener = new MyLocationListener(
+					getApplicationContext(), mHandler);
+			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			// TODO check this?
+			// provider = myLocationManager.getBestProvider(criteria, false);
+			// Location loc = myLocationManager
+			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
 			mLocationManager.requestLocationUpdates(
 					LocationManager.GPS_PROVIDER,
 					Constants.GPS_MIN_TIME_MIL_SEC,
@@ -1029,6 +1012,77 @@ public class MainActivity extends Activity {
 		}
 
 		private ScheduledFuture<?> fSchedFuture;
+	}
+
+	/**
+	 * Show weather a brake or acceleration has occurred, it considers if the
+	 * acceleration magnitude on y (North) and x (East) is more than a certain
+	 * threshold and if it's been going on for more than a certain time.
+	 * 
+	 * Later on it decides to logs the values if saving to file has been
+	 * enabled.
+	 * 
+	 * @author Vahid
+	 *
+	 */
+	private final class DisplayDetectedSituationTask implements Runnable {
+
+		@Override
+		public void run() {
+
+			if (mLinearAccelerationMagnitude >= Constants.ACCEL_THRESHOLD) {
+				float bearingDifference = MathUtil
+						.getBearingsAbsoluteDifference(
+								mCurrentAccelerationBearing,
+								mCurrentMovementBearing);
+				// update UI, for debugging.
+				tvDifferenceDegreeeValue.setText(Float
+						.toString(bearingDifference));
+
+				if (bearingDifference > Constants.DIFF_DEGREE) {
+					mAccelSituation = Constants.BRAKE_DETECTED;
+					mBackground.setBackgroundResource(R.color.dark_red);
+
+					// TODO: To make sure if it's a brake.
+					decelerationMovingAverageTime.pushValue(
+							(float) mLinearAccelerationMagnitude, new Date());
+
+					/*
+					 * mFinalProgressBar.setProgressDrawable(getResources().
+					 * getDrawable ( R.drawable.progress_bar_vahid_red));
+					 */
+				} else {
+					mAccelSituation = Constants.ACCEL_DETECTED;
+					mBackground.setBackgroundResource(R.color.dark_green);
+					decelerationMovingAverageTime.clearValues();
+					/*
+					 * mFinalProgressBar.setProgressDrawable(getResources().
+					 * getDrawable ( R.drawable.progress_bar_vahid_green));
+					 */
+				}
+			} else {
+				mAccelSituation = Constants.NO_MOVE_DETECTED;
+				mBackground.setBackgroundResource(R.color.White);
+				decelerationMovingAverageTime.clearValues();
+			}
+
+			// write values to file.
+			if (mSavingToProcessedFile) {
+				// saving current time
+				Date date = new Date();
+				mCsvProcessedFile.writeToFile(Long.toString(date.getTime()),
+						false);
+
+				mCsvProcessedFile.writeToFile(mCurrentAccelerationBearing,
+						false);
+				mCsvProcessedFile.writeToFile(mCurrentMovementBearing, false);
+				mCsvProcessedFile.writeToFile(
+						(float) mLinearAccelerationMagnitude, false);
+				mCsvProcessedFile.writeToFile(mAccelSituation, true);
+			}
+
+		}
+
 	}
 
 }
