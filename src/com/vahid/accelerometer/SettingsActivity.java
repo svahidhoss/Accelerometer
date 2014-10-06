@@ -50,7 +50,7 @@ public class SettingsActivity extends Activity {
 		// set edit text views
 		etPrecision.setText("" + Constants.ACCEL_THRESHOLD);
 		etDelay.setText("" + Constants.WINDOW_SIZE_IN_MILI_SEC);
-		etWindowSize.setText("" + Constants.WINDOW_SIZE);
+		etWindowSize.setText("" + Constants.WINDOW_SIZE_SMA_FILTER);
 		etManualBearing.setText("" + Constants.MANUAL_BEARING);
 
 	}
@@ -98,12 +98,12 @@ public class SettingsActivity extends Activity {
 			// "Error saving, try again", Toast.LENGTH_SHORT).show();
 		}
 		try {
-			Constants.WINDOW_SIZE = Integer.parseInt(etWindowSize.getText()
+			Constants.WINDOW_SIZE_SMA_FILTER = Integer.parseInt(etWindowSize.getText()
 					.toString());
 
 		} catch (Exception e) {
 			// TODO: handle exception
-			Constants.WINDOW_SIZE = 20;
+			Constants.WINDOW_SIZE_SMA_FILTER = 20;
 			// Toast.makeText(getApplicationContext(),
 			// "Error saving, try again", Toast.LENGTH_SHORT).show();
 		}
@@ -130,7 +130,7 @@ public class SettingsActivity extends Activity {
 				getApplicationContext(),
 				"Saved!\n  *brake precision = " + Constants.ACCEL_THRESHOLD
 						+ "\n  *delay = " + Constants.WINDOW_SIZE_IN_MILI_SEC
-						+ "\n  *window size= " + Constants.WINDOW_SIZE
+						+ "\n  *window size= " + Constants.WINDOW_SIZE_SMA_FILTER
 						+ "\n  *Manual Bearing= " + Constants.MANUAL_BEARING,
 				Toast.LENGTH_SHORT).show();
 

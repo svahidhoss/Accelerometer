@@ -8,7 +8,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".SettingsActivity" >
 
-   <LinearLayout
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical" >
@@ -42,20 +42,18 @@
                 android:id="@+id/textViewPrecision"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignTop="@+id/linearLayout1"
                 android:layout_marginLeft="20dp"
-                android:layout_weight="3"
-                android:text="precision"
+                android:layout_weight="1.2"
+                android:text="Brake Precision"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
                 android:id="@+id/editTextPrecisionID"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:ems="10"
-                android:gravity="right"
+                android:gravity="end"
                 android:inputType="numberDecimal"
                 android:text="0.5" >
 
@@ -73,7 +71,6 @@
                 android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
                 android:layout_marginLeft="20dp"
                 android:layout_weight="1.24"
                 android:text="brake window (ms)"
@@ -85,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:ems="10"
-                android:gravity="right"
+                android:gravity="end"
                 android:inputType="number"
                 android:text="1000" >
 
@@ -103,9 +100,8 @@
                 android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
                 android:layout_marginLeft="20dp"
-                android:layout_weight="1.24"
+                android:layout_weight="1.25"
                 android:text="filtering window"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -113,16 +109,16 @@
                 android:id="@+id/editTextWindowSizeID"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:ems="10"
-                android:gravity="right"
+                android:gravity="end"
                 android:inputType="number"
                 android:text="20" >
 
                 <requestFocus />
             </EditText>
         </LinearLayout>
-        
+
         <LinearLayout
             android:id="@+id/linearLayout4"
             android:layout_width="fill_parent"
@@ -133,9 +129,8 @@
                 android:id="@+id/textView4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
                 android:layout_marginLeft="20dp"
-                android:layout_weight="1.24"
+                android:layout_weight="1.25"
                 android:text="Manual Bear. (debug)"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -145,7 +140,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:ems="10"
-                android:gravity="right"
+                android:gravity="end"
                 android:inputType="number"
                 android:text="0" >
 
@@ -197,8 +192,6 @@
                 android:layout_marginLeft="20dp"
                 android:text="  Save  " />
         </LinearLayout>
-
-
     </LinearLayout>
 
 </LinearLayout>

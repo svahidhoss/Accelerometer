@@ -14,6 +14,7 @@ import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
+import com.vahid.accelerometer.filter.MovingMedian;
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
@@ -611,19 +612,19 @@ public class MainActivity extends Activity {
 					mCsvSensorsFile.closeCaptureFile();
 					displayMsg += "\n" + mCsvSensorsFile.getCaptureFileName();
 				}
-				
+
 				// 2.Closing the Processed file.
 				this.mSavingToProcessedFile = false;
 				mCsvProcessedFile.closeCaptureFile();
 				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
-				
+
 				// 3.Closing the location file
 				if (mCsvLocationFile != null) {
 					myLocationListener.disableSaveToFile();
 					mCsvLocationFile.closeCaptureFile();
 					displayMsg += "\n" + mCsvLocationFile.getCaptureFileName();
 				}
-				
+
 				// 4.update UI
 				checkBoxSaveToFile
 						.setText(R.string.checkBoxSaveToFileInitialMsg);
@@ -947,29 +948,33 @@ public class MainActivity extends Activity {
 	 */
 	private void initiateMovingAverages() {
 		// earth linear acceleration initiating
-		elaMovingAverageX = new MovingAverage2(Constants.WINDOW_SIZE);
-		elaMovingAverageY = new MovingAverage2(Constants.WINDOW_SIZE);
-		elaMovingAverageZ = new MovingAverage2(Constants.WINDOW_SIZE);
+		elaMovingAverageX = new MovingAverage2(
+				Constants.WINDOW_SIZE_MEDIAN_FILTER);
+		elaMovingAverageY = new MovingAverage2(
+				Constants.WINDOW_SIZE_MEDIAN_FILTER);
+		elaMovingAverageZ = new MovingAverage2(
+				Constants.WINDOW_SIZE_MEDIAN_FILTER);
 
 		// true linear acceleration initiating
-		tlaMovingAverageX = new MovingAverage(Constants.WINDOW_SIZE);
-		tlaMovingAverageY = new MovingAverage(Constants.WINDOW_SIZE);
-		tlaMovingAverageZ = new MovingAverage(Constants.WINDOW_SIZE);
+		tlaMovingAverageX = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
+		tlaMovingAverageY = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
+		tlaMovingAverageZ = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
 
 		// used for smoothing the linear acceleration mag.
-		laMagMovingAverage = new MovingAverage(Constants.WINDOW_SIZE);
+		laMagMovingAverage = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
 
 		// used for smoothing the bearing values.
-		mCurAccBearingMovingAverage = new MovingAverage(Constants.WINDOW_SIZE);
-		mCurMovBearingMovingAverage = new MovingAverage(Constants.WINDOW_SIZE);
+		mCurAccBearingMovingAverage = new MovingAverage(
+				Constants.WINDOW_SIZE_SMA_FILTER);
+		mCurMovBearingMovingAverage = new MovingAverage(
+				Constants.WINDOW_SIZE_SMA_FILTER);
 
 		decelerationMovingAverageTime = new MovingAverageTime(
 				Constants.WINDOW_SIZE_IN_MILI_SEC, mHandler);
 	}
 
 	/**
-	 * Sound the alarm for a few seconds, then stop.
-	 * 
+	 * Function that is called to start receiving of GPS fix values .
 	 */
 	private void activateLocationUpdatesFromGPS() {
 		ReqLocUpdatesFromGPSTask reqLocUpdatesFromGPSTask = new ReqLocUpdatesFromGPSTask();
@@ -996,24 +1001,6 @@ public class MainActivity extends Activity {
 
 	}
 
-	private final class StopReqLocUpdatesFromGPSTask implements Runnable {
-		StopReqLocUpdatesFromGPSTask(ScheduledFuture<?> aSchedFuture) {
-			fSchedFuture = aSchedFuture;
-		}
-
-		@Override
-		public void run() {
-			// mGpsExecutor.cancel(DONT_INTERRUPT_IF_RUNNING);
-			/*
-			 * Note that this Task also performs cleanup, by asking the
-			 * scheduler to shutdown gracefully.
-			 */
-			mGpsExecutor.shutdown();
-		}
-
-		private ScheduledFuture<?> fSchedFuture;
-	}
-
 	/**
 	 * Show weather a brake or acceleration has occurred, it considers if the
 	 * acceleration magnitude on y (North) and x (East) is more than a certain
@@ -1029,7 +1016,8 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-
+			// only display if the mag. of linear acceleration is more than the
+			// threshold.
 			if (mLinearAccelerationMagnitude >= Constants.ACCEL_THRESHOLD) {
 				float bearingDifference = MathUtil
 						.getBearingsAbsoluteDifference(

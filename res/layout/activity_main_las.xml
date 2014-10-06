@@ -123,7 +123,7 @@
         android:max="50"
         android:minHeight="20dp"
         android:progress="0"
-        android:progressDrawable="@drawable/progress_bar_vahid_green" />
+        android:progressDrawable="@drawable/progress_bar_vahid_blue" />
 
     <View
         android:layout_width="match_parent"

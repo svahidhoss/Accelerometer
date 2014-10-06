@@ -40,10 +40,6 @@ public class AccelerationEventListener implements SensorEventListener,
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
 
-	// TODO testing the orientation values
-	// private float[] orientationValuesRadian = new float[] { 0, 0, 0 };
-	// private float[] orientationValuesDegrees = new float[] { 0, 0, 0 };
-	// private float[] outRotationMatrix = new float[16];
 
 	private double trueAccelerationMagnitude;
 	private float magneticBearing;
