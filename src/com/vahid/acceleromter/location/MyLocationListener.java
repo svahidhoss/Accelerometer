@@ -1,6 +1,7 @@
 package com.vahid.acceleromter.location;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import com.vahid.accelerometer.filter.MovingAverage;
@@ -78,10 +79,19 @@ public class MyLocationListener implements LocationListener,
 				bearingFromMagneticNorth).sendToTarget();
 
 		if (savingToFile && mCsvLocationFile != null) {
-			mCsvLocationFile.writeToFile(bearing, false);
+			// current time stamp
+			Date date = new Date();
+			mCsvLocationFile.writeToFile(Long.toString(date.getTime()), false);
+			
+			mCsvLocationFile.writeToFile((float) location.getLatitude(), false);
+			mCsvLocationFile.writeToFile((float) location.getLongitude(), false);
 			mCsvLocationFile.writeToFile(location.getSpeed(), false);
+			// GPS recieved Time
+			mCsvLocationFile.writeToFile(location.getTime(), false);
+			mCsvLocationFile.writeToFile(bearing, false);
+			mCsvLocationFile.writeToFile(magneticDeclination, false);
 			mCsvLocationFile.writeToFile(bearingFromMagneticNorth, false);
-			mCsvLocationFile.writeToFile(location.getTime(), true);
+			
 		}
 		// latMovingAverage.pushValue(location.);
 		// if (locations.size() >= 10) {

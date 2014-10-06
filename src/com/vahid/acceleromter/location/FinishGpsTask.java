@@ -1,13 +1,11 @@
 package com.vahid.acceleromter.location;
 
-import java.util.concurrent.Callable;
-
-public class FinishGpsTask<V> implements Callable<V> {
+public class FinishGpsTask implements Runnable {
 
 	@Override
-	public V call() throws Exception {
+	public void run() {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 }

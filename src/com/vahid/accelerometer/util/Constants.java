@@ -22,6 +22,7 @@ public class Constants {
 	/** GPS values **/
 	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(5);
 	public static float GPS_MIN_DISTANCE_METER = 5;
+	public static long SHUT_DOWN_AFTER = 20;
 
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds

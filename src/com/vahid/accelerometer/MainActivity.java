@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
@@ -50,7 +51,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class MainActivity extends Activity implements Runnable {
+public class MainActivity extends Activity {
 
 	/**** for communication between activities ****/
 	private static final int REQUEST_ENABLE_BT = 1;
@@ -325,24 +326,9 @@ public class MainActivity extends Activity implements Runnable {
 
 		}
 
-		// we are ready for GPS
+		// we are ready for GPS, Only used when we have the GPS.
 		if (Constants.GPS_MODULE_EXISTS) {
-			myLocationListener = new MyLocationListener(
-					getApplicationContext(), mHandler);
-			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			mLocationManager.requestLocationUpdates(
-					LocationManager.GPS_PROVIDER,
-					Constants.GPS_MIN_TIME_MIL_SEC,
-					Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
-			// Creates a thread pool of size 1 to schedule commands to run
-			// periodically
-			mGpsExecutor = Executors.newScheduledThreadPool(1);
-			mGpsExecutor.scheduleAtFixedRate(this, 0, Constants.RUNNING_PERIOD,
-					TimeUnit.MILLISECONDS);
-			// TODO check this?
-			// provider = myLocationManager.getBestProvider(criteria, false);
-			// Location loc = myLocationManager
-			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			activateLocationUpdatesFromGPS();
 		}
 
 		// we are also ready to use the sensor and send the information of the
@@ -656,6 +642,8 @@ public class MainActivity extends Activity implements Runnable {
 	 * This handler is used to enable communication with the threads.
 	 */
 	private final Handler mHandler = new Handler() {
+		private int bearingCounter = 0;
+
 		@Override
 		public void handleMessage(Message msg) {
 			mCurrentBTState = msg.what;
@@ -761,7 +749,15 @@ public class MainActivity extends Activity implements Runnable {
 					mCurrentMovementBearing = Math.abs((Float) msg.obj);
 					// mCurMovBearingMovingAverage
 					// .pushValue(mCurrentMovementBearing);
+					bearingCounter++;
 				}
+				
+				// if the counter of getting GPS bearings is more than 5 and not 0
+				// stop the scheduler!
+				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5) {
+					mGpsExecutor.shutdown();
+				}
+				
 				break;
 			case Constants.BRAKE_DETECTED_MSG:
 				// float f = (Float) msg.obj;
@@ -978,9 +974,61 @@ public class MainActivity extends Activity implements Runnable {
 				Constants.WINDOW_SIZE_IN_MILI_SEC, mHandler);
 	}
 
-	@Override
-	public void run() {
-		// TODO
+	/** Sound the alarm for a few seconds, then stop. */
+	private void activateLocationUpdatesFromGPS() {
+		myLocationListener = new MyLocationListener(getApplicationContext(),
+				mHandler);
+		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		// mLocationManager.requestLocationUpdates(
+		// LocationManager.GPS_PROVIDER,
+		// Constants.GPS_MIN_TIME_MIL_SEC,
+		// Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
+		// Creates a thread pool of size 1 to schedule commands to run
+		// periodically
+		Runnable reqLoUpdatesFromGPSTask = new ReqLocUpdatesFromGPSTask();
+		mGpsExecutor = Executors.newScheduledThreadPool(1);
+		mGpsExecutor.scheduleAtFixedRate(reqLoUpdatesFromGPSTask, 0,
+				Constants.RUNNING_PERIOD, TimeUnit.MILLISECONDS);
+		// TODO check this?
+		// provider = myLocationManager.getBestProvider(criteria, false);
+		// Location loc = myLocationManager
+		// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+		// Runnable StopReqLocUpdatesFromGPSTask = new
+		// StopReqLocUpdatesFromGPSTask(soundAlarmFuture);
+		// mGpsExecutor.schedule(stopAlarm, Constants.SHUT_DOWN_AFTER,
+		// TimeUnit.SECONDS);
 
 	}
+
+	private final class ReqLocUpdatesFromGPSTask implements Runnable {
+
+		@Override
+		public void run() {
+			mLocationManager.requestLocationUpdates(
+					LocationManager.GPS_PROVIDER,
+					Constants.GPS_MIN_TIME_MIL_SEC,
+					Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
+		}
+
+	}
+
+	private final class StopReqLocUpdatesFromGPSTask implements Runnable {
+		StopReqLocUpdatesFromGPSTask(ScheduledFuture<?> aSchedFuture) {
+			fSchedFuture = aSchedFuture;
+		}
+
+		@Override
+		public void run() {
+			// mGpsExecutor.cancel(DONT_INTERRUPT_IF_RUNNING);
+			/*
+			 * Note that this Task also performs cleanup, by asking the
+			 * scheduler to shutdown gracefully.
+			 */
+			mGpsExecutor.shutdown();
+		}
+
+		private ScheduledFuture<?> fSchedFuture;
+	}
+
 }
