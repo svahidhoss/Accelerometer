@@ -66,69 +66,10 @@
         </TextView>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/zAxisLinearLayout"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:id="@+id/zAxisTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="z-axis Linear Acceleration: "
-            android:textSize="16sp" >
-        </TextView>
-
-        <TextView
-            android:id="@+id/zAxisValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0.0"
-            android:textSize="16sp" >
-        </TextView>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/finalLinearLayout"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center" >
-
-        <TextView
-            android:id="@+id/finalTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Accel. Mag.: "
-            android:textColor="@color/DarkBlue"
-            android:textSize="20sp" >
-        </TextView>
-
-        <TextView
-            android:id="@+id/finalValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0.0"
-            android:textColor="@color/DarkBlue"
-            android:textSize="20sp"
-            android:textStyle="bold" >
-        </TextView>
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/finalProgressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:indeterminate="false"
-        android:max="50"
-        android:minHeight="20dp"
-        android:progress="0"
-        android:progressDrawable="@drawable/progress_bar_vahid_blue" />
-
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="4dp"
         android:background="@android:color/black" />
 
     <TextView
@@ -187,50 +128,6 @@
         </TextView>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/differenceDegreeLayout"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="0dp" >
-
-        <TextView
-            android:id="@+id/differenceDegreeTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Degree Difference: "
-            android:textSize="16sp" >
-        </TextView>
-
-        <TextView
-            android:id="@+id/differenceDegreeeValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0.0"
-            android:textSize="16sp" >
-        </TextView>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/brakeLayout"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="0dp" >
-
-        <TextView
-            android:id="@+id/brakeTextView"
-            style="@style/bigTitleStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="No Brake." />
-
-        <TextView
-            android:id="@+id/brakeValueTextView"
-            style="@style/bigTitleStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-        </TextView>
-    </LinearLayout>
-
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dp"
@@ -264,5 +161,53 @@
         android:layout_height="wrap_content"
         android:prompt="@string/delay_rate_spinner_prompt" >
     </Spinner>
+
+    <LinearLayout
+        android:id="@+id/finalLinearLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center" >
+
+        <TextView
+            android:id="@+id/finalTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accel. Mag.: "
+            android:textColor="@color/DarkBlue"
+            android:textSize="20sp" >
+        </TextView>
+
+        <TextView
+            android:id="@+id/finalValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.0"
+            android:textColor="@color/DarkBlue"
+            android:textSize="20sp"
+            android:textStyle="bold" >
+        </TextView>
+    </LinearLayout>
+
+<!--     <ProgressBar
+        android:id="@+id/finalProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        android:max="50"
+        android:minHeight="20dp"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress_bar_vahid_blue" /> -->
+
+    <com.vahid.accelerometer.util.VerticalProgressBar
+        android:id="@+id/finalProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:minHeight="50dp"
+        android:minWidth="200dp"
+        android:progress="25"
+        android:max="50"
+        android:progressDrawable="@drawable/progress_bar_vahid_blue" />
 
 </LinearLayout>

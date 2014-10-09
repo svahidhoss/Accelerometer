@@ -3,7 +3,6 @@ package com.vahid.accelerometer;
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 
-import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
@@ -13,7 +12,6 @@ import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.SensorManager;
@@ -34,16 +32,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class ConnectedDebugActivity extends Activity {
-
+public class ConnectedBarsActivity extends Activity {
 	/**** Defining view fields ****/
 	private LinearLayout mBackground;
 	// 2. Connected views
-	// private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
 	private ProgressBar mFinalProgressBar;
-	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
-	private TextView tvRotationDegreeValue, tvAccelerationDegreeValue,
-			tvDifferenceDegreeeValue, tvBrake, tvBrakeValue;
+	private TextView tvXAxisValue, tvYAxisValue, tvFinalValue;
+	private TextView tvRotationDegreeValue, tvAccelerationDegreeValue, tvBrake,
+			tvBrakeValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
@@ -234,14 +230,12 @@ public class ConnectedDebugActivity extends Activity {
 
 		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
-		tvZAxisValue = (TextView) findViewById(R.id.zAxisValue);
 
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
 		mFinalProgressBar = (ProgressBar) findViewById(R.id.finalProgressBar);
 
 		tvRotationDegreeValue = (TextView) findViewById(R.id.rotationDegreeeValue);
 		tvAccelerationDegreeValue = (TextView) findViewById(R.id.accelerationDegreeeValue);
-		tvDifferenceDegreeeValue = (TextView) findViewById(R.id.differenceDegreeeValue);
 
 		tvBrake = (TextView) findViewById(R.id.brakeTextView);
 		tvBrakeValue = (TextView) findViewById(R.id.brakeValueTextView);
@@ -417,11 +411,10 @@ public class ConnectedDebugActivity extends Activity {
 				// 3.Update the UI (set the value ) as the text of every
 				// TextView
 				tvXAxisValue.setText(MathUtil.round(
-						elaMovingAverageX.getMovingAverage(), 6));
+						elaMovingAverageX.getMovingAverage(), 4));
 				tvYAxisValue.setText(MathUtil.round(
-						elaMovingAverageY.getMovingAverage(), 6));
-				tvZAxisValue.setText(MathUtil.round(
-						elaMovingAverageZ.getMovingAverage(), 6));
+						elaMovingAverageY.getMovingAverage(), 4));
+
 
 				// 4. calculate the linear acceleration mag. (-z)
 				mLinearAccelerationMagnitude = MathUtil
@@ -530,7 +523,6 @@ public class ConnectedDebugActivity extends Activity {
 			float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
 					mCurrentAccelerationBearing, mCurrentMovementBearing);
 			// update UI, for debugging.
-			tvDifferenceDegreeeValue.setText(Float.toString(bearingDifference));
 			// check if the values are more than threshold
 			if (mLinearAccelerationMagnitude >= Constants.ACCEL_THRESHOLD) {
 				if (bearingDifference > Constants.DIFF_DEGREE_BRAKE) {
@@ -549,7 +541,8 @@ public class ConnectedDebugActivity extends Activity {
 					// Very smart, if the degree is more than path_change(40)
 					// and less than brake (90) this is most prob. a direction
 					// change.
-					if (Constants.GPS_MODULE_EXISTS && bearingDifference >= Constants.DIFF_DEGREE_PATH_CHANGE) {
+					if (Constants.GPS_MODULE_EXISTS
+							&& bearingDifference >= Constants.DIFF_DEGREE_PATH_CHANGE) {
 						activateLocationUpdatesFromGPS();
 					}
 					mAccelSituation = Constants.ACCEL_DETECTED;
@@ -584,4 +577,5 @@ public class ConnectedDebugActivity extends Activity {
 		}
 
 	}
+
 }

@@ -45,4 +45,13 @@
         android:src="@drawable/ic_wrong"
         android:visibility="gone" />
 
+    <Button
+        android:id="@+id/buttonConnectBars"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/buttonConnect"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="49dp"
+        android:text="Run Brake Detection" />
+
 </RelativeLayout>

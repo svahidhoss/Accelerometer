@@ -29,7 +29,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,7 +50,7 @@ public class MainActivity extends Activity {
 
 	/**** Defining view fields ****/
 	// 1.Initial views
-	private Button btnConnect, btnCheck;
+	private Button btnConnect, btnCheck, btnConnectBars;
 	private TextView tvState;
 	private MenuItem miSearchOption;
 
