@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// include setContentView, listener for the button, state, etc
-		initViewsNotConnected();
+		initViews();
 	}
 
 	@Override
@@ -102,6 +102,7 @@ public class MainActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
+		// set the miSearchOption as the first item of the menu. 
 		miSearchOption = menu.getItem(1);
 		return true;
 	}
@@ -110,8 +111,8 @@ public class MainActivity extends Activity {
 	 * 1st Important function of this activity. Initializes the views of this
 	 * activity when no device is connected.
 	 */
-	private void initViewsNotConnected() {
-		setContentView(R.layout.activity_main_not_connected);
+	private void initViews() {
+		setContentView(R.layout.activity_main);
 
 		btnConnect = (Button) findViewById(R.id.buttonConnect);
 		tvState = (TextView) findViewById(R.id.textViewNotConnected);
@@ -124,7 +125,6 @@ public class MainActivity extends Activity {
 				else {
 					// run
 					runConnectedDebugActivity();
-
 					return;
 				}
 			}
@@ -174,19 +174,19 @@ public class MainActivity extends Activity {
 						Toast.makeText(getApplicationContext(),
 								"Bluetooth turned off", Toast.LENGTH_SHORT)
 								.show();
-						initViewsNotConnected();
+						initViews();
 					}
 					if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0) == BluetoothAdapter.STATE_ON) {
 						Toast.makeText(getApplicationContext(),
 								"Bluetooth turned ON", Toast.LENGTH_SHORT)
 								.show();
-						initViewsNotConnected();
+						initViews();
 					}
 
 				} else if (BluetoothDevice.ACTION_ACL_DISCONNECTED
 						.equals(action)) {
 					// check this
-					// we recieve this information also from the connectThread
+					// we receive this information also from the connectThread
 					// and the connectedThread.
 
 					// Toast.makeText(getApplicationContext(),
@@ -259,7 +259,7 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_settings:
+		case R.id.settings_option:
 			Intent intentSettings = new Intent(this, SettingsActivity.class);
 			startActivityForResult(intentSettings,
 					Constants.REQUEST_SETTINGS_CHANGE);
@@ -279,9 +279,6 @@ public class MainActivity extends Activity {
 		case R.id.about_option:
 			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
 					Toast.LENGTH_SHORT).show();
-			if (!Constants.BT_MODULE_EXISTS) {
-				// initViewsConnectedLinearAcceleration();
-			}
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -316,7 +313,7 @@ public class MainActivity extends Activity {
 				Toast.makeText(getApplicationContext(),
 						getString(R.string.msgUnableToConnect),
 						Toast.LENGTH_SHORT).show();
-				initViewsNotConnected();
+				initViews();
 				miSearchOption.setIcon(R.drawable.menu_connect_icon);
 				miSearchOption.setTitle(R.string.connect);
 				break;

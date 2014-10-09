@@ -22,6 +22,8 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -42,8 +44,7 @@ public class ConnectedDebugActivity extends Activity {
 	// private SeekBar xAxisSeekBar, yAxisSeekBar, zAxisSeekBar;
 	private ProgressBar mFinalProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvZAxisValue, tvFinalValue;
-	private TextView tvXTrueAxisValue, tvYTrueAxisValue, tvZTrueAxisValue,
-			tvRotationDegreeValue, tvAccelerationDegreeValue,
+	private TextView tvRotationDegreeValue, tvAccelerationDegreeValue,
 			tvDifferenceDegreeeValue, tvBrake, tvBrakeValue;
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
@@ -83,8 +84,6 @@ public class ConnectedDebugActivity extends Activity {
 	private MovingAverage2 elaMovingAverageX, elaMovingAverageY,
 			elaMovingAverageZ;
 	private MovingAverage laMagMovingAverage;
-	private MovingAverage tlaMovingAverageX, tlaMovingAverageY,
-			tlaMovingAverageZ;
 	private MovingAverage mCurAccBearingMovingAverage,
 			mCurMovBearingMovingAverage;
 
@@ -97,6 +96,33 @@ public class ConnectedDebugActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		initViewsConnectedLinearAcceleration();
+
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the connected_menu; this adds items to the action bar if it
+		// is present.
+		getMenuInflater().inflate(R.menu.connected_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.settings_option:
+			Intent intentSettings = new Intent(this, SettingsActivity.class);
+			startActivityForResult(intentSettings,
+					Constants.REQUEST_SETTINGS_CHANGE);
+			return true;
+
+		case R.id.about_option:
+			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
+					Toast.LENGTH_SHORT).show();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 
 	}
 
@@ -142,12 +168,7 @@ public class ConnectedDebugActivity extends Activity {
 				mGpsExecutor.shutdown();
 			}
 
-			// Remove the listener you previously added to location manager, if
-			// not
-			// null, e.g. GPS not used in debugging
-			if (mLocationManager != null) {
-				mLocationManager.removeUpdates(myLocationListener);
-			}
+			deactivateLocationUpdatesFromGPS();
 		}
 
 		if (mAccelerationEventListener != null) {
@@ -182,7 +203,7 @@ public class ConnectedDebugActivity extends Activity {
 		 * Toast.LENGTH_SHORT).show(); }
 		 */
 
-		setContentView(R.layout.activity_main_las);
+		setContentView(R.layout.activity_connected_debug);
 		// initiate moving averages
 		initiateMovingAverages();
 
@@ -211,12 +232,6 @@ public class ConnectedDebugActivity extends Activity {
 		mAccelerationEventListener.registerSensors(mCurrentDelayRate);
 
 		// retrieve all the needed components
-		// TODO correct later
-		/*
-		 * xAxisSeekBar = (SeekBar) findViewById(R.id.xAxisBar); yAxisSeekBar =
-		 * (SeekBar) findViewById(R.id.yAxisBar); zAxisSeekBar = (SeekBar)
-		 * findViewById(R.id.zAxisBar);
-		 */
 		mBackground = (LinearLayout) findViewById(R.id.activity_main_las);
 
 		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
@@ -225,10 +240,6 @@ public class ConnectedDebugActivity extends Activity {
 
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
 		mFinalProgressBar = (ProgressBar) findViewById(R.id.finalProgressBar);
-
-		tvXTrueAxisValue = (TextView) findViewById(R.id.xAxisTrueValue);
-		tvYTrueAxisValue = (TextView) findViewById(R.id.yAxisTrueValue);
-		tvZTrueAxisValue = (TextView) findViewById(R.id.zAxisTrueValue);
 
 		tvRotationDegreeValue = (TextView) findViewById(R.id.rotationDegreeeValue);
 		tvAccelerationDegreeValue = (TextView) findViewById(R.id.accelerationDegreeeValue);
@@ -255,11 +266,6 @@ public class ConnectedDebugActivity extends Activity {
 		elaMovingAverageZ = new MovingAverage2(
 				Constants.WINDOW_SIZE_MEDIAN_FILTER);
 
-		// true linear acceleration initiating
-		tlaMovingAverageX = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
-		tlaMovingAverageY = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
-		tlaMovingAverageZ = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
-
 		// used for smoothing the linear acceleration mag.
 		laMagMovingAverage = new MovingAverage(Constants.WINDOW_SIZE_SMA_FILTER);
 
@@ -271,34 +277,6 @@ public class ConnectedDebugActivity extends Activity {
 
 		decelerationMovingAverageTime = new MovingAverageTime(
 				Constants.WINDOW_SIZE_IN_MILI_SEC, mHandler);
-	}
-
-	/**
-	 * Function that is called to start receiving of GPS fix values .
-	 */
-	private void activateLocationUpdatesFromGPS() {
-		RequestLocationGPSUpdatesTask reqLocUpdatesFromGPSTask = new RequestLocationGPSUpdatesTask();
-		reqLocUpdatesFromGPSTask.run();
-	}
-
-	private final class RequestLocationGPSUpdatesTask implements Runnable {
-		@Override
-		public void run() {
-			// Creates a thread pool of size 1 to schedule commands to run
-			// periodically
-			myLocationListener = new MyLocationListener(
-					getApplicationContext(), mHandler);
-			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			// TODO check this?
-			// provider = myLocationManager.getBestProvider(criteria, false);
-			// Location loc = myLocationManager
-			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			mLocationManager.requestLocationUpdates(
-					LocationManager.GPS_PROVIDER,
-					Constants.GPS_MIN_TIME_MIL_SEC,
-					Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
-		}
-
 	}
 
 	/**
@@ -462,27 +440,6 @@ public class ConnectedDebugActivity extends Activity {
 				// 6. Detect the situation
 				new DisplayDetectedSituationTask().run();
 
-				// TODO we don't need this rotation imho
-				/*
-				 * trueLinearAccelerationValues = AlexMath.convertReference(
-				 * earthLinearAccelerationValues, mCurrentMovementBearing);
-				 * tlaMovingAverageX.pushValue(trueLinearAccelerationValues[0]);
-				 * tlaMovingAverageY.pushValue(trueLinearAccelerationValues[1]);
-				 * tlaMovingAverageZ.pushValue(trueLinearAccelerationValues[2]);
-				 * 
-				 * // set the value as the text of every TextView
-				 * tvXTrueAxisValue.setText(Float.toString(tlaMovingAverageX
-				 * .getMovingAverage()));
-				 * tvYTrueAxisValue.setText(Float.toString(tlaMovingAverageY
-				 * .getMovingAverage())); // display the current situation if
-				 * there's a brake.
-				 * displayDetectedSituation(tlaMovingAverageX.detectSituation(),
-				 * tlaMovingAverageY.detectSituation());
-				 * 
-				 * tvZTrueAxisValue.setText(Float.toString(tlaMovingAverageZ
-				 * .getMovingAverage()));
-				 */
-
 				tvRotationDegreeValue.setText(Float
 						.toString(mCurrentMovementBearing));
 				tvAccelerationDegreeValue.setText(Float
@@ -519,6 +476,43 @@ public class ConnectedDebugActivity extends Activity {
 		}
 
 	};
+
+	/**
+	 * Function that is called to start receiving of GPS fix values .
+	 */
+	private void activateLocationUpdatesFromGPS() {
+		RequestLocationGPSUpdatesTask reqLocUpdatesFromGPSTask = new RequestLocationGPSUpdatesTask();
+		reqLocUpdatesFromGPSTask.run();
+	}
+
+	/**
+	 * Function that is called to stop receiving of GPS fix values by removing
+	 * the listener previously added to location manager.
+	 */
+	private void deactivateLocationUpdatesFromGPS() {
+		// if not null, e.g. GPS was not used in debugging.
+		if (mLocationManager != null) {
+			mLocationManager.removeUpdates(myLocationListener);
+		}
+	}
+
+	private final class RequestLocationGPSUpdatesTask implements Runnable {
+		@Override
+		public void run() {
+			myLocationListener = new MyLocationListener(
+					getApplicationContext(), mHandler);
+			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			// TODO check this?
+			// provider = myLocationManager.getBestProvider(criteria, false);
+			// Location loc = myLocationManager
+			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			mLocationManager.requestLocationUpdates(
+					LocationManager.GPS_PROVIDER,
+					Constants.GPS_MIN_TIME_MIL_SEC,
+					Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
+		}
+
+	}
 
 	/**
 	 * Show weather a brake or acceleration has occurred, it considers if the
