@@ -27,6 +27,7 @@
 
     <!-- Main Activity Option Menu -->
     <string name="settings">Settings</string>
+    <string name="connectedActivity">Connected Activity</string>
     <string name="connect">Find Devices</string>
     <string name="about">About Us</string>
     <string name="delay_rate_spinner_prompt">Choose a delay rate</string>

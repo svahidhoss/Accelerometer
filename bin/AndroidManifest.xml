@@ -30,6 +30,11 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="com.vahid.accelerometer.ConnectedDebugActivity"
+            android:label="@string/connectedActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
             android:name="com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity"
             android:label="@string/activity_bluetooth_devices_title"
             android:screenOrientation="portrait"

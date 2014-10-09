@@ -15,6 +15,12 @@ public class Constants {
 	
 	public static float MANUAL_BEARING = 0f;
 	
+	/**** for communication between activities ****/
+	// Used in both Main and Connected activity. 
+	public static final int REQUEST_ENABLE_BT = 1;
+	public static final int REQUEST_CONNECT_DEVICE = 2;
+	public static final int REQUEST_SETTINGS_CHANGE = 3;
+	
 	
 	/** General Variables **/
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
