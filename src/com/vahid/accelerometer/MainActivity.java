@@ -1,20 +1,13 @@
 package com.vahid.accelerometer;
 
 import java.util.Calendar;
-import java.util.Date;
-import java.util.concurrent.ScheduledExecutorService;
 
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
-import com.vahid.accelerometer.filter.MovingAverage;
-import com.vahid.accelerometer.filter.MovingAverage2;
-import com.vahid.accelerometer.filter.MovingAverageTime;
-import com.vahid.accelerometer.filter.MovingMedian;
+
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
-import com.vahid.accelerometer.util.CsvFileWriter;
-import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -27,8 +20,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.SensorManager;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -37,17 +28,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemSelectedListener;
 
 public class MainActivity extends Activity {
 	// used for exiting on pressing back double
@@ -308,8 +293,6 @@ public class MainActivity extends Activity {
 	 * This handler is used to enable communication with the threads.
 	 */
 	private final Handler mHandler = new Handler() {
-		private int bearingCounter = 0;
-
 		@Override
 		public void handleMessage(Message msg) {
 			mCurrentBTState = msg.what;

@@ -22,7 +22,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -114,30 +113,20 @@ public class ConnectedDebugActivity extends Activity {
 						SettingsActivity.SET_BEARING));
 			}
 			break;
-			// TODO no bt for now.
-/*		case Constants.REQUEST_ENABLE_BT:
-			if (resultCode == RESULT_CANCELED) {
-				Toast.makeText(this, R.string.bt_required, Toast.LENGTH_SHORT)
-						.show();
-			}
-			if (resultCode == RESULT_OK) {
-				Toast.makeText(this, "Bluetooth is enabled.",
-						Toast.LENGTH_SHORT).show();
-				if (Constants.BT_MODULE_EXISTS) {
-					runBluetoothDevicesActivity();
-				}
-			}
-			break;
-		case Constants.REQUEST_CONNECT_DEVICE:
-			if (resultCode == RESULT_OK) {
-				String passedAddress = data.getExtras().getString(
-						BluetoothDevicesActivity.EXTRA_ADDRESS);
-
-				connectBluetoothDevice(passedAddress);
-			} else {
-				initViewsNotConnected();
-			}
-			break;*/
+		// TODO no bt for now.
+		/*
+		 * case Constants.REQUEST_ENABLE_BT: if (resultCode == RESULT_CANCELED)
+		 * { Toast.makeText(this, R.string.bt_required, Toast.LENGTH_SHORT)
+		 * .show(); } if (resultCode == RESULT_OK) { Toast.makeText(this,
+		 * "Bluetooth is enabled.", Toast.LENGTH_SHORT).show(); if
+		 * (Constants.BT_MODULE_EXISTS) { runBluetoothDevicesActivity(); } }
+		 * break; case Constants.REQUEST_CONNECT_DEVICE: if (resultCode ==
+		 * RESULT_OK) { String passedAddress = data.getExtras().getString(
+		 * BluetoothDevicesActivity.EXTRA_ADDRESS);
+		 * 
+		 * connectBluetoothDevice(passedAddress); } else {
+		 * initViewsNotConnected(); } break;
+		 */
 		default:
 			break;
 		}
@@ -186,11 +175,12 @@ public class ConnectedDebugActivity extends Activity {
 	 */
 	private void initViewsConnectedLinearAcceleration() {
 		// TODO enable after BT
-		/*		if (Constants.BT_MODULE_EXISTS) {
-			Toast.makeText(getApplicationContext(),
-					getString(R.string.title_connected) + mDeviceName,
-					Toast.LENGTH_SHORT).show();
-		}*/
+		/*
+		 * if (Constants.BT_MODULE_EXISTS) {
+		 * Toast.makeText(getApplicationContext(),
+		 * getString(R.string.title_connected) + mDeviceName,
+		 * Toast.LENGTH_SHORT).show(); }
+		 */
 
 		setContentView(R.layout.activity_main_las);
 		// initiate moving averages
@@ -433,7 +423,6 @@ public class ConnectedDebugActivity extends Activity {
 
 		@Override
 		public void handleMessage(Message msg) {
-
 			switch (msg.what) {
 			case Constants.ACCEL_VALUE_MSG:
 				// 1. Receive the linear acceleration values
