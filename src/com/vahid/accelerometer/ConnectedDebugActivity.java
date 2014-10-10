@@ -425,7 +425,8 @@ public class ConnectedDebugActivity extends Activity {
 
 				// 4. calculate the linear acceleration mag. (-z)
 				mLinearAccelerationMagnitude = MathUtil
-						.getVectorMagnitudeMinusZ(earthLinearAccelerationValues);
+						.getVectorMagnitudeMinusZ(elaMovingAverageY.getMovingAverage(),
+								elaMovingAverageX.getMovingAverage());
 				// laMagMovingAverage
 				// .pushValue((float) mLinearAccelerationMagnitude);
 

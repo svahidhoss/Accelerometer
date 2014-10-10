@@ -171,6 +171,20 @@ public class MathUtil {
 	}
 
 	/**
+	 * Calculates the magnitude of a vector by using Pythagorean principle
+	 * without the Z element.
+	 * 
+	 * @param vectorComponents
+	 * @return The vector magnitude minus Z element.
+	 */
+	public static double getVectorMagnitudeMinusZ(double vectorComponentX,
+			double vectorComponentY) {
+		double result = Math.pow(vectorComponentX, 2)
+				+ Math.pow(vectorComponentY, 2);
+		return Math.sqrt(result);
+	}
+
+	/**
 	 * Method that calculates the current acceleration bearing. This is degree
 	 * between magnetic north and the vector composed of y (North) and x (East)
 	 * components of current linear acceleration.

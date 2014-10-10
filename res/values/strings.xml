@@ -20,14 +20,15 @@
     <!-- Main Activity Layout -->
     <string name="imageView1Desc">bluetooth image</string>
     <string name="imageViewWrong">wrong image</string>
-    <string name="buttonConnectTitle">Connect Now!</string>
+    <string name="buttonConnectTitle">Debug Activity</string>
     <string name="checkBoxSaveToFileInitialMsg">Start Saving to log files </string>
     <string name="checkBoxSaveToFileSavingMsg">Now Saving to files </string>
     <string name="checkBoxSaveToFileStoppedMsg">Finished Saving to files </string>
 
     <!-- Main Activity Option Menu -->
     <string name="settings">Settings</string>
-    <string name="connectedActivity">Connected Activity</string>
+    <string name="connectedActivity">Connected Debug Activity</string>
+    <string name="connectedBarsActivity">Bars Activity</string>
     <string name="connect">Find Devices</string>
     <string name="about">About Us</string>
     <string name="delay_rate_spinner_prompt">Choose a delay rate</string>

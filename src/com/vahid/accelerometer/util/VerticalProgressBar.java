@@ -31,13 +31,15 @@ public class VerticalProgressBar extends ProgressBar {
 	public VerticalProgressBar(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
-
+	
+	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(h, w, oldh, oldw);
 		this.x = w;
 		this.y = h;
 		this.z = oldw;
 		this.w = oldh;
+		invalidate();
 	}
 
 	@Override
@@ -47,6 +49,7 @@ public class VerticalProgressBar extends ProgressBar {
 		setMeasuredDimension(getMeasuredHeight(), getMeasuredWidth());
 	}
 
+	@Override
 	protected void onDraw(Canvas c) {
 		c.rotate(-90);
 		c.translate(-getHeight(), 0);
@@ -91,7 +94,6 @@ public class VerticalProgressBar extends ProgressBar {
 		else
 			super.setProgress(0);
 		onSizeChanged(x, y, z, w);
-//		invalidate();
 
 	}
 }

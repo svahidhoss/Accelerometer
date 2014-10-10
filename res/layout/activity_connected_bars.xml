@@ -188,26 +188,35 @@
         </TextView>
     </LinearLayout>
 
-<!--     <ProgressBar
-        android:id="@+id/finalProgressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/barsLinearLayout"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:indeterminate="false"
-        android:max="50"
-        android:minHeight="20dp"
-        android:progress="0"
-        android:progressDrawable="@drawable/progress_bar_vahid_blue" /> -->
+        android:gravity="center" >
 
-    <com.vahid.accelerometer.util.VerticalProgressBar
-        android:id="@+id/finalProgressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:minHeight="50dp"
-        android:minWidth="200dp"
-        android:progress="25"
-        android:max="50"
-        android:progressDrawable="@drawable/progress_bar_vahid_blue" />
+        <com.vahid.accelerometer.util.VerticalProgressBar
+            android:id="@+id/brakeProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:max="50"
+            android:minHeight="50dp"
+            android:minWidth="200dp"
+            android:progress="0"
+            android:progressDrawable="@drawable/progress_bar_vahid_red" />
+
+        <com.vahid.accelerometer.util.VerticalProgressBar
+            android:id="@+id/accelProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
+            android:max="50"
+            android:minHeight="50dp"
+            android:minWidth="200dp"
+            android:progress="0"
+            android:progressDrawable="@drawable/progress_bar_vahid_green" />
+    </LinearLayout>
 
 </LinearLayout>

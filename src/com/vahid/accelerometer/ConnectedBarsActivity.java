@@ -36,7 +36,7 @@ public class ConnectedBarsActivity extends Activity {
 	/**** Defining view fields ****/
 	private LinearLayout mBackground;
 	// 2. Connected views
-	private ProgressBar mFinalProgressBar;
+	private ProgressBar mAccelProgressBar, mBrakeProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvFinalValue;
 	private TextView tvRotationDegreeValue, tvAccelerationDegreeValue, tvBrake,
 			tvBrakeValue;
@@ -75,8 +75,7 @@ public class ConnectedBarsActivity extends Activity {
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
 	// Moving Averages
-	private MovingAverage2 elaMovingAverageX, elaMovingAverageY,
-			elaMovingAverageZ;
+	private MovingAverage2 elaMovingAverageX, elaMovingAverageY;
 	private MovingAverage laMagMovingAverage;
 	private MovingAverage mCurAccBearingMovingAverage,
 			mCurMovBearingMovingAverage;
@@ -197,7 +196,7 @@ public class ConnectedBarsActivity extends Activity {
 		 * Toast.LENGTH_SHORT).show(); }
 		 */
 
-		setContentView(R.layout.activity_connected_debug);
+		setContentView(R.layout.activity_connected_bars);
 		// initiate moving averages
 		initiateMovingAverages();
 
@@ -232,13 +231,15 @@ public class ConnectedBarsActivity extends Activity {
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
 
 		tvFinalValue = (TextView) findViewById(R.id.finalValue);
-		mFinalProgressBar = (ProgressBar) findViewById(R.id.finalProgressBar);
+
+		mBrakeProgressBar = (ProgressBar) findViewById(R.id.brakeProgressBar);
+		mAccelProgressBar = (ProgressBar) findViewById(R.id.accelProgressBar);
 
 		tvRotationDegreeValue = (TextView) findViewById(R.id.rotationDegreeeValue);
 		tvAccelerationDegreeValue = (TextView) findViewById(R.id.accelerationDegreeeValue);
 
-		tvBrake = (TextView) findViewById(R.id.brakeTextView);
-		tvBrakeValue = (TextView) findViewById(R.id.brakeValueTextView);
+		// tvBrake = (TextView) findViewById(R.id.brakeTextView);
+		// tvBrakeValue = (TextView) findViewById(R.id.brakeValueTextView);
 
 		checkBoxSaveToFile = (CheckBox) findViewById(R.id.checkBoxSaveToFile);
 
@@ -254,8 +255,6 @@ public class ConnectedBarsActivity extends Activity {
 		elaMovingAverageX = new MovingAverage2(
 				Constants.WINDOW_SIZE_MEDIAN_FILTER);
 		elaMovingAverageY = new MovingAverage2(
-				Constants.WINDOW_SIZE_MEDIAN_FILTER);
-		elaMovingAverageZ = new MovingAverage2(
 				Constants.WINDOW_SIZE_MEDIAN_FILTER);
 
 		// used for smoothing the linear acceleration mag.
@@ -381,7 +380,6 @@ public class ConnectedBarsActivity extends Activity {
 				Toast.makeText(this, displayMsg, Toast.LENGTH_SHORT).show();
 			}
 			break;
-
 		}
 	}
 
@@ -401,32 +399,36 @@ public class ConnectedBarsActivity extends Activity {
 				// 2. calculate the actual acceleration bearing
 				elaMovingAverageX.pushValue(earthLinearAccelerationValues[0]);
 				elaMovingAverageY.pushValue(earthLinearAccelerationValues[1]);
-				elaMovingAverageZ.pushValue(earthLinearAccelerationValues[2]);
 
 				mCurrentAccelerationBearing = MathUtil
 						.calculateCurrentAccelerationBearing(
 								elaMovingAverageY.getMovingAverage(),
 								elaMovingAverageX.getMovingAverage());
 
-				// 3.Update the UI (set the value ) as the text of every
-				// TextView
+				// 3.Update the UI (set the value ) as the text of TextViews
 				tvXAxisValue.setText(MathUtil.round(
 						elaMovingAverageX.getMovingAverage(), 4));
 				tvYAxisValue.setText(MathUtil.round(
 						elaMovingAverageY.getMovingAverage(), 4));
 
-
 				// 4. calculate the linear acceleration mag. (-z)
+				/*
+				 * mLinearAccelerationMagnitude = MathUtil
+				 * .getVectorMagnitudeMinusZ(earthLinearAccelerationValues);
+				 */
+				// TODO changing it!
 				mLinearAccelerationMagnitude = MathUtil
-						.getVectorMagnitudeMinusZ(earthLinearAccelerationValues);
-				// laMagMovingAverage
-				// .pushValue((float) mLinearAccelerationMagnitude);
+						.getVectorMagnitudeMinusZ(
+								elaMovingAverageX.getMovingAverage(),
+								elaMovingAverageY.getMovingAverage());
 
-				// 5. updating the UI with Acceleration Magnitude
-				tvFinalValue.setText(MathUtil.round(
-						mLinearAccelerationMagnitude, 3));
-				int progressPercentage = (int) (mLinearAccelerationMagnitude * 5);
-				mFinalProgressBar.setProgress(progressPercentage);
+				/*
+				 * // 5. updating the UI with Acceleration Magnitude
+				 * tvFinalValue.setText(MathUtil.round(
+				 * mLinearAccelerationMagnitude, 3)); int progressPercentage =
+				 * (int) (mLinearAccelerationMagnitude * 5);
+				 * mFinalProgressBar.setProgress(progressPercentage);
+				 */
 
 				// 6. Detect the situation
 				new DisplayDetectedSituationTask().run();
@@ -510,8 +512,7 @@ public class ConnectedBarsActivity extends Activity {
 	 * acceleration magnitude on y (North) and x (East) is more than a certain
 	 * threshold and if it's been going on for more than a certain time.
 	 * 
-	 * Later on it decides to logs the values if saving to file has been
-	 * enabled.
+	 * Later on it starts to log values if saving to file has been enabled.
 	 * 
 	 * @author Vahid
 	 *
@@ -520,6 +521,11 @@ public class ConnectedBarsActivity extends Activity {
 
 		@Override
 		public void run() {
+			// 5. updating the UI with Acceleration Magnitude
+			tvFinalValue.setText(MathUtil
+					.round(mLinearAccelerationMagnitude, 3));
+			int progressPercentage = (int) (mLinearAccelerationMagnitude * 5);
+
 			float bearingDifference = MathUtil.getBearingsAbsoluteDifference(
 					mCurrentAccelerationBearing, mCurrentMovementBearing);
 			// update UI, for debugging.
@@ -527,16 +533,15 @@ public class ConnectedBarsActivity extends Activity {
 			if (mLinearAccelerationMagnitude >= Constants.ACCEL_THRESHOLD) {
 				if (bearingDifference > Constants.DIFF_DEGREE_BRAKE) {
 					mAccelSituation = Constants.BRAKE_DETECTED;
-					mBackground.setBackgroundResource(R.color.dark_red);
+					// mBackground.setBackgroundResource(R.color.dark_red);
 
 					// TODO: To make sure if it's a brake.
 					decelerationMovingAverageTime.pushValue(
 							(float) mLinearAccelerationMagnitude, new Date());
+					// so it seems they're different?
+					mAccelProgressBar.setProgress(0);
+					mBrakeProgressBar.setProgress(progressPercentage);
 
-					/*
-					 * mFinalProgressBar.setProgressDrawable(getResources().
-					 * getDrawable ( R.drawable.progress_bar_vahid_red));
-					 */
 				} else {
 					// Very smart, if the degree is more than path_change(40)
 					// and less than brake (90) this is most prob. a direction
@@ -546,17 +551,19 @@ public class ConnectedBarsActivity extends Activity {
 						activateLocationUpdatesFromGPS();
 					}
 					mAccelSituation = Constants.ACCEL_DETECTED;
-					mBackground.setBackgroundResource(R.color.dark_green);
+					// mBackground.setBackgroundResource(R.color.dark_green);
 					decelerationMovingAverageTime.clearValues();
-					/*
-					 * mFinalProgressBar.setProgressDrawable(getResources().
-					 * getDrawable ( R.drawable.progress_bar_vahid_green));
-					 */
+
+					// so it seems they're different?
+					mBrakeProgressBar.setProgress(0);
+					mAccelProgressBar.setProgress(progressPercentage);
+
 				}
 			} else {
 				mAccelSituation = Constants.NO_MOVE_DETECTED;
-				mBackground.setBackgroundResource(R.color.White);
 				decelerationMovingAverageTime.clearValues();
+				mBrakeProgressBar.setProgress(0);
+				mAccelProgressBar.setProgress(0);
 			}
 
 			// write values to file.

@@ -5,7 +5,7 @@ import java.util.Calendar;
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
-
+import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
 
@@ -101,7 +101,7 @@ public class MainActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
-		// set the miSearchOption as the first item of the menu. 
+		// set the miSearchOption as the first item of the menu.
 		miSearchOption = menu.getItem(1);
 		return true;
 	}
@@ -114,24 +114,14 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		btnConnect = (Button) findViewById(R.id.buttonConnect);
-		tvState = (TextView) findViewById(R.id.textViewNotConnected);
+		btnConnectBars = (Button) findViewById(R.id.buttonConnectBars);
 
-		btnConnect.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (Constants.BT_MODULE_EXISTS)
-					initializeBluetooth();
-				else {
-					// run
-					runConnectedDebugActivity();
-					return;
-				}
-			}
-		});
+		tvState = (TextView) findViewById(R.id.textViewNotConnected);
 
 		setStatus(R.string.title_not_connected);
 
-		if (mBluetoothAdapter == null) {
+		// if we need to use BT
+		if (Constants.BT_MODULE_EXISTS && mBluetoothAdapter == null) {
 			noBluetoothDetected();
 		} else {
 			btnConnect.setVisibility(View.VISIBLE);
@@ -145,6 +135,29 @@ public class MainActivity extends Activity {
 			}
 		}
 
+	}
+
+	/**
+	 * Manages all the clicks on the buttons of this Activity.
+	 * 
+	 * @param view
+	 */
+	public void onButtonClicked(View view) {
+		switch (view.getId()) {
+		case R.id.buttonConnect:
+			// open the file if set true, otherwise close it.
+			if (Constants.BT_MODULE_EXISTS)
+				initializeBluetooth();
+			else {
+				runConnectedDebugActivity();
+				return;
+			}
+			break;
+		case R.id.buttonConnectBars:
+			// open the file if set true, otherwise close it.
+			runConnectedBarsActivity();
+			break;
+		}
 	}
 
 	/**
@@ -462,6 +475,15 @@ public class MainActivity extends Activity {
 	 */
 	private void runConnectedDebugActivity() {
 		Intent intent = new Intent(this, ConnectedDebugActivity.class);
+		startActivity(intent);
+	}
+
+	
+	/**
+	 * Runs the connected bar activity.
+	 */
+	private void runConnectedBarsActivity() {
+		Intent intent = new Intent(this, ConnectedBarsActivity.class);
 		startActivity(intent);
 	}
 
