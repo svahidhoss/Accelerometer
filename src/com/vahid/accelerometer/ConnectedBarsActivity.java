@@ -214,6 +214,8 @@ public class ConnectedBarsActivity extends Activity {
 
 		// we are ready for GPS, Only used when we have the GPS.
 		if (Constants.GPS_MODULE_EXISTS) {
+			myLocationListener = new MyLocationListener(
+					getApplicationContext(), mHandler);
 			activateLocationUpdatesFromGPS();
 		}
 
@@ -474,8 +476,18 @@ public class ConnectedBarsActivity extends Activity {
 	 * Function that is called to start receiving of GPS fix values .
 	 */
 	private void activateLocationUpdatesFromGPS() {
-		RequestLocationGPSUpdatesTask reqLocUpdatesFromGPSTask = new RequestLocationGPSUpdatesTask();
-		reqLocUpdatesFromGPSTask.run();
+		if (mLocationManager != null) {
+			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			// TODO check this?
+			// provider = myLocationManager.getBestProvider(criteria, false);
+			// Location loc = myLocationManager
+			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			mLocationManager.requestLocationUpdates(
+					LocationManager.GPS_PROVIDER,
+					Constants.GPS_MIN_TIME_MIL_SEC,
+					Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
+		}
+
 	}
 
 	/**
@@ -489,23 +501,6 @@ public class ConnectedBarsActivity extends Activity {
 		}
 	}
 
-	private final class RequestLocationGPSUpdatesTask implements Runnable {
-		@Override
-		public void run() {
-			myLocationListener = new MyLocationListener(
-					getApplicationContext(), mHandler);
-			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			// TODO check this?
-			// provider = myLocationManager.getBestProvider(criteria, false);
-			// Location loc = myLocationManager
-			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			mLocationManager.requestLocationUpdates(
-					LocationManager.GPS_PROVIDER,
-					Constants.GPS_MIN_TIME_MIL_SEC,
-					Constants.GPS_MIN_DISTANCE_METER, myLocationListener);
-		}
-
-	}
 
 	/**
 	 * Show weather a brake or acceleration has occurred, it considers if the
@@ -546,10 +541,10 @@ public class ConnectedBarsActivity extends Activity {
 					// Very smart, if the degree is more than path_change(40)
 					// and less than brake (90) this is most prob. a direction
 					// change.
-					if (Constants.GPS_MODULE_EXISTS
+/*					if (Constants.GPS_MODULE_EXISTS
 							&& bearingDifference >= Constants.DIFF_DEGREE_PATH_CHANGE) {
 						activateLocationUpdatesFromGPS();
-					}
+					}*/
 					mAccelSituation = Constants.ACCEL_DETECTED;
 					// mBackground.setBackgroundResource(R.color.dark_green);
 					decelerationMovingAverageTime.clearValues();
