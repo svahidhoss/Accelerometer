@@ -476,7 +476,7 @@ public class ConnectedBarsActivity extends Activity {
 	 * Function that is called to start receiving of GPS fix values .
 	 */
 	private void activateLocationUpdatesFromGPS() {
-		if (mLocationManager != null) {
+		if (mLocationManager == null) {
 			mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 			// TODO check this?
 			// provider = myLocationManager.getBestProvider(criteria, false);
@@ -513,7 +513,6 @@ public class ConnectedBarsActivity extends Activity {
 	 *
 	 */
 	private final class DisplayDetectedSituationTask implements Runnable {
-
 		@Override
 		public void run() {
 			// 5. updating the UI with Acceleration Magnitude
