@@ -448,13 +448,13 @@ public class ConnectedBarsActivity extends Activity {
 					mCurrentMovementBearing = Math.abs((Float) msg.obj);
 					// mCurMovBearingMovingAverage
 					// .pushValue(mCurrentMovementBearing);
-					bearingCounter++;
+//					bearingCounter++;
 				}
 
 				// if the counter of getting GPS bearings is more than 5 and not
 				// 0
 				// stop the scheduler!
-				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5) {
+				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5 && mGpsExecutor != null) {
 					mGpsExecutor.shutdown();
 				}
 
