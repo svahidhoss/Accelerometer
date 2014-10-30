@@ -3,6 +3,8 @@ package com.vahid.accelerometer;
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 
+import com.vahid.accelerometer.bluetooth.ConnectThread;
+import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
@@ -12,6 +14,9 @@ import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.SensorManager;
@@ -43,6 +48,16 @@ public class ConnectedBarsActivity extends Activity {
 	/* the Spinner component for delay rate */
 	private Spinner delayRateChooser;
 	private CheckBox checkBoxSaveToFile;
+
+	/**** Bluethooth related fields ****/
+	private BluetoothAdapter mBluetoothAdapter;
+	private BroadcastReceiver mReceiver;
+
+	private ConnectThread mConnectThread = null;
+	private ConnectedThread mConnectedThread = null;
+	private String mDeviceName = "";
+
+	private static int mCurrentBTState = Constants.STATE_DISCONNECTED;
 
 	/**** Save to file view fields ****/
 	private CsvFileWriter mCsvSensorsFile, mCsvLocationFile, mCsvProcessedFile;
@@ -132,20 +147,7 @@ public class ConnectedBarsActivity extends Activity {
 						SettingsActivity.SET_BEARING));
 			}
 			break;
-		// TODO no bt for now.
-		/*
-		 * case Constants.REQUEST_ENABLE_BT: if (resultCode == RESULT_CANCELED)
-		 * { Toast.makeText(this, R.string.bt_required, Toast.LENGTH_SHORT)
-		 * .show(); } if (resultCode == RESULT_OK) { Toast.makeText(this,
-		 * "Bluetooth is enabled.", Toast.LENGTH_SHORT).show(); if
-		 * (Constants.BT_MODULE_EXISTS) { runBluetoothDevicesActivity(); } }
-		 * break; case Constants.REQUEST_CONNECT_DEVICE: if (resultCode ==
-		 * RESULT_OK) { String passedAddress = data.getExtras().getString(
-		 * BluetoothDevicesActivity.EXTRA_ADDRESS);
-		 * 
-		 * connectBluetoothDevice(passedAddress); } else {
-		 * initViewsNotConnected(); } break;
-		 */
+
 		default:
 			break;
 		}
@@ -188,35 +190,34 @@ public class ConnectedBarsActivity extends Activity {
 	 * activity when a device gets connected.
 	 */
 	private void initViewsConnectedLinearAcceleration() {
-		// TODO enable after BT
-		/*
-		 * if (Constants.BT_MODULE_EXISTS) {
-		 * Toast.makeText(getApplicationContext(),
-		 * getString(R.string.title_connected) + mDeviceName,
-		 * Toast.LENGTH_SHORT).show(); }
-		 */
 
 		setContentView(R.layout.activity_connected_bars);
 		// initiate moving averages
 		initiateMovingAverages();
-
-		// This instance of ConnectedThread is the one that we are going to
-		// use write(). We don't need to start the Thread, because we are not
-		// going to use read(). [write is not a blocking method].
-		// TODO
-		/*
-		 * if (Constants.BT_MODULE_EXISTS) { BluetoothSocket mSocket =
-		 * mConnectThread.getBluetoothSocket(); mConnectedThread = new
-		 * ConnectedThread(mSocket, mHandler);
-		 * 
-		 * }
-		 */
 
 		// we are ready for GPS, Only used when we have the GPS.
 		if (Constants.GPS_MODULE_EXISTS) {
 			myLocationListener = new MyLocationListener(
 					getApplicationContext(), mHandler);
 			activateLocationUpdatesFromGPS();
+		}
+
+		// if we need to use BT
+		if (Constants.BT_MODULE_EXISTS) {
+			// TODO enable after BT
+
+			Toast.makeText(getApplicationContext(),
+					getString(R.string.title_connected) + mDeviceName,
+					Toast.LENGTH_SHORT).show();
+
+			// This instance of ConnectedThread is the one that we are going to
+			// use write(). We don't need to start the Thread, because we are
+			// not
+			// going to use read(). [write is not a blocking method].
+			// TODO
+			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
+			mConnectedThread = new ConnectedThread(mSocket, mHandler);
+
 		}
 
 		// we are also ready to use the sensor and send the information of the
@@ -448,13 +449,14 @@ public class ConnectedBarsActivity extends Activity {
 					mCurrentMovementBearing = Math.abs((Float) msg.obj);
 					// mCurMovBearingMovingAverage
 					// .pushValue(mCurrentMovementBearing);
-//					bearingCounter++;
+					// bearingCounter++;
 				}
 
 				// if the counter of getting GPS bearings is more than 5 and not
 				// 0
 				// stop the scheduler!
-				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5 && mGpsExecutor != null) {
+				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5
+						&& mGpsExecutor != null) {
 					mGpsExecutor.shutdown();
 				}
 
@@ -501,7 +503,6 @@ public class ConnectedBarsActivity extends Activity {
 		}
 	}
 
-
 	/**
 	 * Show weather a brake or acceleration has occurred, it considers if the
 	 * acceleration magnitude on y (North) and x (East) is more than a certain
@@ -536,14 +537,16 @@ public class ConnectedBarsActivity extends Activity {
 					mAccelProgressBar.setProgress(0);
 					mBrakeProgressBar.setProgress(progressPercentage);
 
+					writeToBluetoothDevice(progressPercentage);
 				} else {
 					// Very smart, if the degree is more than path_change(40)
 					// and less than brake (90) this is most prob. a direction
 					// change.
-/*					if (Constants.GPS_MODULE_EXISTS
-							&& bearingDifference >= Constants.DIFF_DEGREE_PATH_CHANGE) {
-						activateLocationUpdatesFromGPS();
-					}*/
+					/*
+					 * if (Constants.GPS_MODULE_EXISTS && bearingDifference >=
+					 * Constants.DIFF_DEGREE_PATH_CHANGE) {
+					 * activateLocationUpdatesFromGPS(); }
+					 */
 					mAccelSituation = Constants.ACCEL_DETECTED;
 					// mBackground.setBackgroundResource(R.color.dark_green);
 					decelerationMovingAverageTime.clearValues();
@@ -577,6 +580,17 @@ public class ConnectedBarsActivity extends Activity {
 
 		}
 
+	}
+
+	/**
+	 * function that gets called when sending the byte magnitude values to the
+	 * Bluetooth connected module.
+	 * 
+	 * @param magnitude
+	 */
+	private void writeToBluetoothDevice(double magnitude) {
+		byte[] resultBytes = MathUtil.doubleToByteArray(magnitude);
+		mConnectedThread.write(resultBytes);
 	}
 
 }

@@ -10,7 +10,7 @@ public class Constants {
 	public static boolean DEBUG = true;
 	public static String LOG_TAG = "Debugging Tag";
 	// Used in cases of no BT module
-	public static boolean BT_MODULE_EXISTS = false;
+	public static boolean BT_MODULE_EXISTS = true;
 	public static boolean GPS_MODULE_EXISTS = true;
 	
 	public static float MANUAL_BEARING = 0f;

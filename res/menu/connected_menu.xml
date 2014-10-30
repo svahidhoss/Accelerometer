@@ -5,7 +5,11 @@
         android:icon="@drawable/menu_settings_icon"
         android:showAsAction="always|withText"
         android:title="@string/settings"/>
-
+    <item
+        android:id="@+id/search_option"
+        android:icon="@drawable/menu_connect_icon"
+        android:showAsAction="ifRoom"
+        android:title="@string/connect"/>
     <item
         android:id="@+id/about_option"
         android:icon="@drawable/menu_about_icon"

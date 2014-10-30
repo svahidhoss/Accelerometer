@@ -34,6 +34,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+	private static final String CONNECTED_THREAD = "connected thread";
+
 	// used for exiting on pressing back double
 	private boolean doubleBackToExitIsPressedOnce = false;
 
@@ -396,10 +398,10 @@ public class MainActivity extends Activity {
 
 		// ---with the idea of write this data and send by bluetooth,
 		// first it's necessary to covert them to byte...
-		byte[] x = MathUtil.toByteArray(acceleromterValues[0]);
-		byte[] y = MathUtil.toByteArray(acceleromterValues[1]);
-		byte[] z = MathUtil.toByteArray(acceleromterValues[2]);
-		byte[] mod_byte = MathUtil.toByteArray(magnitude);
+		byte[] x = MathUtil.doubleToByteArray(acceleromterValues[0]);
+		byte[] y = MathUtil.doubleToByteArray(acceleromterValues[1]);
+		byte[] z = MathUtil.doubleToByteArray(acceleromterValues[2]);
+		byte[] mod_byte = MathUtil.doubleToByteArray(magnitude);
 		byte[] xyz_and_Mod = new byte[8 * 4];
 
 		xyz_and_Mod = MathUtil.concatenateBytes(
@@ -407,7 +409,7 @@ public class MainActivity extends Activity {
 				mod_byte);
 		// ---
 
-		byte[] moduleRealByte = MathUtil.toByteArray(moduleReal);
+		byte[] moduleRealByte = MathUtil.doubleToByteArray(moduleReal);
 		byte[] all = new byte[8 * 4 + 8];
 		all = MathUtil.concatenateBytes(xyz_and_Mod, moduleRealByte);
 
@@ -485,6 +487,12 @@ public class MainActivity extends Activity {
 	private void runConnectedBarsActivity() {
 		Intent intent = new Intent(this, ConnectedBarsActivity.class);
 		startActivity(intent);
+		
+		Intent intentData = new Intent(this, ConnectedBarsActivity.class);
+		// sending back the mConne to main activity using intents		
+//		intentData.putExtra
+
+		setResult(Activity.RESULT_OK, intentData);
 	}
 
 }
