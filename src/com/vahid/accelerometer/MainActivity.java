@@ -5,7 +5,6 @@ import java.util.Calendar;
 import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
-import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
 
@@ -26,7 +25,6 @@ import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -34,8 +32,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-	private static final String CONNECTED_THREAD = "connected thread";
-
 	// used for exiting on pressing back double
 	private boolean doubleBackToExitIsPressedOnce = false;
 
@@ -52,7 +48,7 @@ public class MainActivity extends Activity {
 
 	/**** Defining view fields ****/
 	// 1.Initial views
-	private Button btnConnect, btnCheck, btnConnectBars;
+	private Button btnConnectBT, btnCheck, btnRunBarsAct;
 	private TextView tvState;
 	private MenuItem miSearchOption;
 
@@ -115,8 +111,8 @@ public class MainActivity extends Activity {
 	private void initViews() {
 		setContentView(R.layout.activity_main);
 
-		btnConnect = (Button) findViewById(R.id.buttonConnect);
-		btnConnectBars = (Button) findViewById(R.id.buttonConnectBars);
+		btnConnectBT = (Button) findViewById(R.id.btnConnectBT);
+		btnRunBarsAct = (Button) findViewById(R.id.btnRunBarsAct);
 
 		tvState = (TextView) findViewById(R.id.textViewNotConnected);
 
@@ -126,14 +122,14 @@ public class MainActivity extends Activity {
 		if (Constants.BT_MODULE_EXISTS && mBluetoothAdapter == null) {
 			noBluetoothDetected();
 		} else {
-			btnConnect.setVisibility(View.VISIBLE);
+			btnConnectBT.setVisibility(View.VISIBLE);
 
 			if (!mBluetoothAdapter.isEnabled()) {
 				tvState.setText("Bluetooth is turned OFF");
-				btnConnect.setText(" Turn ON Bluetooth ");
+				btnConnectBT.setText(" Turn ON Bluetooth ");
 			} else if (mBluetoothAdapter.isEnabled()) {
 				tvState.setText("Not Connected");
-				btnConnect.setText(" Connect Now ");
+				btnConnectBT.setText(" Connect Now ");
 			}
 		}
 
@@ -146,7 +142,7 @@ public class MainActivity extends Activity {
 	 */
 	public void onButtonClicked(View view) {
 		switch (view.getId()) {
-		case R.id.buttonConnect:
+		case R.id.btnConnectBT:
 			// open the file if set true, otherwise close it.
 			if (Constants.BT_MODULE_EXISTS)
 				initializeBluetooth();
@@ -155,7 +151,7 @@ public class MainActivity extends Activity {
 				return;
 			}
 			break;
-		case R.id.buttonConnectBars:
+		case R.id.btnRunBarsAct:
 			// open the file if set true, otherwise close it.
 			runConnectedBarsActivity();
 			break;
@@ -310,7 +306,7 @@ public class MainActivity extends Activity {
 
 			switch (msg.what) {
 			case Constants.STATE_CONNECTED:
-				runConnectedDebugActivity();
+				runConnected();
 				setStatus(getString(R.string.title_connected) + mDeviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
@@ -344,7 +340,7 @@ public class MainActivity extends Activity {
 	 * app then closes.
 	 */
 	private void noBluetoothDetected() {
-		btnConnect.setVisibility(View.GONE);
+		btnConnectBT.setVisibility(View.GONE);
 		tvState.setText("Device does not support Bluetooth");
 		ImageView ivError = (ImageView) findViewById(R.id.imageViewWrong);
 		ivError.setVisibility(View.VISIBLE);
@@ -385,48 +381,6 @@ public class MainActivity extends Activity {
 				});
 		alertDialog.create();
 		alertDialog.show();
-	}
-
-	private void writeToBluetoothDevice(double magnitude) {
-		// ****writing also the module when brake is real.
-		double moduleReal;
-		if (breakReal) {
-			moduleReal = magnitude;
-		} else {
-			moduleReal = 0;
-		}
-
-		// ---with the idea of write this data and send by bluetooth,
-		// first it's necessary to covert them to byte...
-		byte[] x = MathUtil.doubleToByteArray(acceleromterValues[0]);
-		byte[] y = MathUtil.doubleToByteArray(acceleromterValues[1]);
-		byte[] z = MathUtil.doubleToByteArray(acceleromterValues[2]);
-		byte[] mod_byte = MathUtil.doubleToByteArray(magnitude);
-		byte[] xyz_and_Mod = new byte[8 * 4];
-
-		xyz_and_Mod = MathUtil.concatenateBytes(
-				MathUtil.concatenateBytes(MathUtil.concatenateBytes(x, y), z),
-				mod_byte);
-		// ---
-
-		byte[] moduleRealByte = MathUtil.doubleToByteArray(moduleReal);
-		byte[] all = new byte[8 * 4 + 8];
-		all = MathUtil.concatenateBytes(xyz_and_Mod, moduleRealByte);
-
-		mConnectedThread.write(all);
-		// ********write angles
-		/*
-		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =
-		 * mmath.toByteArray(orientationValues[1]); byte[] roll =
-		 * mmath.toByteArray(orientationValues[2]); byte[] anglesByte =
-		 * mmath.concatenateBytes(mmath.concatenateBytes(az, pitch), roll);
-		 * 
-		 * connected.write(mmath.concatenateBytes(anglesByte, mod_byte));
-		 */
-		// /****end write angles
-
-		// *****end***writing also the module when brake is real.
-
 	}
 
 	/**
@@ -480,19 +434,105 @@ public class MainActivity extends Activity {
 		startActivity(intent);
 	}
 
-	
 	/**
 	 * Runs the connected bar activity.
 	 */
 	private void runConnectedBarsActivity() {
 		Intent intent = new Intent(this, ConnectedBarsActivity.class);
 		startActivity(intent);
-		
-		Intent intentData = new Intent(this, ConnectedBarsActivity.class);
-		// sending back the mConne to main activity using intents		
-//		intentData.putExtra
+	}
 
-		setResult(Activity.RESULT_OK, intentData);
+	private void writeToBluetoothDevice(double magnitude) {
+		// ****writing also the module when brake is real.
+		double moduleReal;
+		if (breakReal) {
+			moduleReal = magnitude;
+		} else {
+			moduleReal = 0;
+		}
+
+		// ---with the idea of write this data and send by bluetooth,
+		// first it's necessary to covert them to byte...
+		byte[] x = MathUtil.doubleToByteArray(acceleromterValues[0]);
+		byte[] y = MathUtil.doubleToByteArray(acceleromterValues[1]);
+		byte[] z = MathUtil.doubleToByteArray(acceleromterValues[2]);
+		byte[] mod_byte = MathUtil.doubleToByteArray(magnitude);
+		byte[] xyz_and_Mod = new byte[8 * 4];
+
+		xyz_and_Mod = MathUtil.concatenateBytes(
+				MathUtil.concatenateBytes(MathUtil.concatenateBytes(x, y), z),
+				mod_byte);
+		// ---
+
+		byte[] moduleRealByte = MathUtil.doubleToByteArray(moduleReal);
+		byte[] all = new byte[8 * 4 + 8];
+		all = MathUtil.concatenateBytes(xyz_and_Mod, moduleRealByte);
+
+		mConnectedThread.write(all);
+		// ********write angles
+		/*
+		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =
+		 * mmath.toByteArray(orientationValues[1]); byte[] roll =
+		 * mmath.toByteArray(orientationValues[2]); byte[] anglesByte =
+		 * mmath.concatenateBytes(mmath.concatenateBytes(az, pitch), roll);
+		 * 
+		 * connected.write(mmath.concatenateBytes(anglesByte, mod_byte));
+		 */
+		// /****end write angles
+
+		// *****end***writing also the module when brake is real.
+
+	}
+
+	private void runConnected() {
+		// TODO Auto-generated method stub
+
+		Toast.makeText(getApplicationContext(),
+				"Connected with " + mDeviceName + "!", Toast.LENGTH_SHORT)
+				.show();
+
+		setContentView(R.layout.activity_main);
+
+		// *******
+		BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
+		mConnectedThread = new ConnectedThread(mSocket, mHandler); // this
+																	// instance
+																	// of
+																	// ConnectedThread
+																	// is the
+																	// one that
+																	// we are
+																	// going to
+																	// use to
+																	// write()
+		// we don't need to start the Thread, because we are going to write, not
+		// to read() [write is not a blocking method]
+		// *******
+
+		/**
+		 * we are ready to use the sensor and send the information of the
+		 * brakings, so...
+		 */
+		// ******SENSORS***********
+		// initializeSensors();
+		// ******END SENSORS*******
+
+		// ******example temp**********
+		/*
+		 * Button b = (Button) findViewById(R.id.button1);
+		 * 
+		 * b.setOnClickListener(new OnClickListener() {
+		 * 
+		 * @Override public void onClick(View v) {
+		 * mConnectedThread.write(MathUtil.toByteArray(60));
+		 * 
+		 * 
+		 * 
+		 * } });
+		 */
+
+		// ********end**example******
+
 	}
 
 }

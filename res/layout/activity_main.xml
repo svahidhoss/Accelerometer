@@ -26,14 +26,14 @@
         android:textColor="@android:color/holo_green_dark" />
 
     <Button
-        android:id="@+id/buttonConnect"
+        android:id="@+id/btnConnectBT"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="120dp"
         android:onClick="onButtonClicked"
-        android:text="@string/buttonConnectTitle" />
+        android:text="@string/btnConnectBtTitle" />
 
     <ImageView
         android:id="@+id/imageViewWrong"
@@ -47,13 +47,13 @@
         android:visibility="gone" />
 
     <Button
-        android:id="@+id/buttonConnectBars"
+        android:id="@+id/btnRunBarsAct"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/buttonConnect"
+        android:layout_alignTop="@+id/btnConnectBT"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
         android:onClick="onButtonClicked"
-        android:text="Run Brake Detection" />
+        android:text="@string/btnRunBarsActTitle" />
 
 </RelativeLayout>

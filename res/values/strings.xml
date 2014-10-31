@@ -20,7 +20,8 @@
     <!-- Main Activity Layout -->
     <string name="imageView1Desc">bluetooth image</string>
     <string name="imageViewWrong">wrong image</string>
-    <string name="buttonConnectTitle">Debug Activity</string>
+    <string name="btnConnectBtTitle">Debug Activity</string>
+    <string name="btnRunBarsActTitle">Run Brake Detection</string>
     <string name="checkBoxSaveToFileInitialMsg">Start Saving to log files </string>
     <string name="checkBoxSaveToFileSavingMsg">Now Saving to files </string>
     <string name="checkBoxSaveToFileStoppedMsg">Finished Saving to files </string>
