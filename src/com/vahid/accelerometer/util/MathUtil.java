@@ -3,6 +3,8 @@ package com.vahid.accelerometer.util;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.hardware.SensorManager;
 
@@ -219,6 +221,21 @@ public class MathUtil {
 		} else {
 			return (360 - difference);
 		}
+	}
+	
+	public static String[] getDeviceNamesToReturn(String original) {
+		String[] returnString = new String[2];
+		// anything between . and another .
+		Pattern namePattern = Pattern.compile("\\..{1,}\\.");
+		Matcher namePatternMatch = namePattern.matcher(original);
+		if (namePatternMatch.find()) {
+			// device name
+			returnString[0] = original.substring(namePatternMatch.start() + 1,
+					namePatternMatch.end() - 1);
+			// device group name
+			returnString[1] = original.substring(namePatternMatch.end());
+		}
+		return returnString;
 	}
 
 	// public static String getDate() {

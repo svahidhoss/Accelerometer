@@ -50,7 +50,6 @@ public class MainActivity extends Activity {
 	// 1.Initial views
 	private Button btnConnectBT, btnCheck, btnRunBarsAct;
 	private TextView tvState;
-	private MenuItem miSearchOption;
 
 	// Sensor Values: it's important to initialize them.
 	private float[] acceleromterValues = new float[] { 0, 0, 0 };
@@ -98,9 +97,8 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		// set the miSearchOption as the first item of the menu.
-		miSearchOption = menu.getItem(1);
+		getMenuInflater().inflate(R.menu.main_menu, menu);
+
 		return true;
 	}
 
@@ -115,8 +113,6 @@ public class MainActivity extends Activity {
 		btnRunBarsAct = (Button) findViewById(R.id.btnRunBarsAct);
 
 		tvState = (TextView) findViewById(R.id.textViewNotConnected);
-
-		setStatus(R.string.title_not_connected);
 
 		// if we need to use BT
 		if (Constants.BT_MODULE_EXISTS && mBluetoothAdapter == null) {
@@ -144,12 +140,12 @@ public class MainActivity extends Activity {
 		switch (view.getId()) {
 		case R.id.btnConnectBT:
 			// open the file if set true, otherwise close it.
-			if (Constants.BT_MODULE_EXISTS)
-				initializeBluetooth();
-			else {
+//			if (Constants.BT_MODULE_EXISTS)
+//				initializeBluetooth();
+//			else {
 				runConnectedDebugActivity();
-				return;
-			}
+//				return;
+//			}
 			break;
 		case R.id.btnRunBarsAct:
 			// open the file if set true, otherwise close it.
@@ -158,96 +154,19 @@ public class MainActivity extends Activity {
 		}
 	}
 
+
+
+
+	
 	/**
-	 * Method that checks if the device supports Bluetooth, asks for enabling it
-	 * if not already, find devices with BluetoothDevices.class and registers
-	 * the required Receivers.
+	 * Dialog that is displayed when no bluetooth is found on the device. The
+	 * app then closes.
 	 */
-	private void initializeBluetooth() {
-		if (mBluetoothAdapter == null) {
-			noBluetoothDetected();
-			return;
-		} else if (!mBluetoothAdapter.isEnabled()) {
-			enableBluetoothDialog();
-		} else {
-			runBluetoothDevicesActivity();
-		}
-
-		mReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
-				if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-
-					if (intent.getIntExtra(
-							BluetoothAdapter.EXTRA_PREVIOUS_STATE, 0) == BluetoothAdapter.STATE_ON) {
-						Toast.makeText(getApplicationContext(),
-								"Bluetooth turned off", Toast.LENGTH_SHORT)
-								.show();
-						initViews();
-					}
-					if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0) == BluetoothAdapter.STATE_ON) {
-						Toast.makeText(getApplicationContext(),
-								"Bluetooth turned ON", Toast.LENGTH_SHORT)
-								.show();
-						initViews();
-					}
-
-				} else if (BluetoothDevice.ACTION_ACL_DISCONNECTED
-						.equals(action)) {
-					// check this
-					// we receive this information also from the connectThread
-					// and the connectedThread.
-
-					// Toast.makeText(getApplicationContext(),
-					// "Conexion was lost - broadcast",
-					// Toast.LENGTH_SHORT).show();
-					// notConnected();
-					// return;
-				} else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
-					// connected();
-				}
-
-			}
-		};
-		IntentFilter filter;
-		filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-		registerReceiver(mReceiver, filter);
-		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED); //
-		registerReceiver(mReceiver, filter);
-		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
-		registerReceiver(mReceiver, filter);
-
-	}
-
-	/**
-	 * Starts Bluetooth Devices Activity so that the user can look for and
-	 * select the device (its MAC address) so that it can connect to it.
-	 */
-	private void runBluetoothDevicesActivity() {
-		// If requestCode >= 0, it will be returned in onActivityResult() when
-		// the activity exits.
-		startActivityForResult(
-				new Intent(this, BluetoothDevicesActivity.class),
-				Constants.REQUEST_CONNECT_DEVICE);
-	}
-
-	/**
-	 * Establishes the Bluetooth connection with the passed device address.
-	 * 
-	 * @param address
-	 */
-	private void connectBluetoothDevice(String address) {
-		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-
-		mConnectThread = new ConnectThread(device, mHandler);
-		mConnectThread.start();
-
-		mDeviceName = device.getName();
-		// the receiver (mReceiver) is waiting for the signal of
-		// "device connected" to use the connection, and call connected().
-		// connected() initialize also the ConnectedThread instance (- connected
-		// = new ConnectedThread(BleutoothSocket) -)
+	private void noBluetoothDetected() {
+		btnConnectBT.setVisibility(View.GONE);
+		tvState.setText("Device does not support Bluetooth");
+		ImageView ivError = (ImageView) findViewById(R.id.imageViewWrong);
+		ivError.setVisibility(View.VISIBLE);
 	}
 
 	/**
@@ -275,17 +194,6 @@ public class MainActivity extends Activity {
 					Constants.REQUEST_SETTINGS_CHANGE);
 			return true;
 
-		case R.id.search_option:
-			if (mCurrentBTState == Constants.STATE_DISCONNECTED) {
-				initializeBluetooth();
-				return true;
-			} else {
-				if (mConnectedThread != null) {
-					mConnectedThread.cancel();
-				}
-				return true;
-			}
-
 		case R.id.about_option:
 			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
 					Toast.LENGTH_SHORT).show();
@@ -305,28 +213,6 @@ public class MainActivity extends Activity {
 			mCurrentBTState = msg.what;
 
 			switch (msg.what) {
-			case Constants.STATE_CONNECTED:
-				runConnected();
-				setStatus(getString(R.string.title_connected) + mDeviceName);
-				// change the connect icon on the activity.
-				if (miSearchOption != null) {
-					miSearchOption.setIcon(R.drawable.menu_disconnect_icon);
-					miSearchOption.setTitle(R.string.disconnect);
-				}
-				break;
-			case Constants.STATE_CONNECTING:
-				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
-				tvState.setText(R.string.title_connecting);
-				setStatus(R.string.title_connecting);
-				break;
-			case Constants.STATE_DISCONNECTED:
-				Toast.makeText(getApplicationContext(),
-						getString(R.string.msgUnableToConnect),
-						Toast.LENGTH_SHORT).show();
-				initViews();
-				miSearchOption.setIcon(R.drawable.menu_connect_icon);
-				miSearchOption.setTitle(R.string.connect);
-				break;
 
 			default:
 				break;
@@ -335,53 +221,7 @@ public class MainActivity extends Activity {
 
 	};
 
-	/**
-	 * Dialog that is displayed when no bluetooth is found on the device. The
-	 * app then closes.
-	 */
-	private void noBluetoothDetected() {
-		btnConnectBT.setVisibility(View.GONE);
-		tvState.setText("Device does not support Bluetooth");
-		ImageView ivError = (ImageView) findViewById(R.id.imageViewWrong);
-		ivError.setVisibility(View.VISIBLE);
-	}
 
-	/**
-	 * Dialog that asks from the user to enable the bluetooth.
-	 */
-	private void enableBluetoothDialog() {
-		AlertDialog.Builder alertDialog = new AlertDialog.Builder(
-				MainActivity.this);
-		// Setting Dialog Title
-		alertDialog.setTitle("Info!");
-		// Setting Dialog Message
-		alertDialog
-				.setMessage("Bluetooth must be enabled on the phone!\n\nDo you wish to continue?");
-		// Setting Icon to Dialog
-		alertDialog.setIcon(R.drawable.ic_warning);
-		// Setting OK Button
-		alertDialog.setPositiveButton("Yes",
-				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						// enable bluetooth
-						Intent enableBtIntent = new Intent(
-								BluetoothAdapter.ACTION_REQUEST_ENABLE);
-						startActivityForResult(enableBtIntent,
-								Constants.REQUEST_ENABLE_BT);
-					}
-				});
-		alertDialog.setNegativeButton("No",
-				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						Toast.makeText(MainActivity.this, R.string.bt_required,
-								Toast.LENGTH_SHORT).show();
-					}
-				});
-		alertDialog.create();
-		alertDialog.show();
-	}
 
 	/**
 	 * Using the following function of "clicking TWICE the back button to exit
@@ -403,26 +243,6 @@ public class MainActivity extends Activity {
 				doubleBackToExitIsPressedOnce = false;
 			}
 		}, 2000);
-	}
-
-	/**
-	 * Method used for setting up status title of the action bar.
-	 * 
-	 * @param subTitle
-	 */
-	private final void setStatus(CharSequence subTitle) {
-		final ActionBar actionBar = getActionBar();
-		actionBar.setSubtitle(subTitle);
-	}
-
-	/**
-	 * Method used for setting up status title of the action bar.
-	 * 
-	 * @param resourceId
-	 */
-	private final void setStatus(int resourceId) {
-		final ActionBar actionBar = getActionBar();
-		actionBar.setSubtitle(resourceId);
 	}
 
 	/**
@@ -481,57 +301,6 @@ public class MainActivity extends Activity {
 		// /****end write angles
 
 		// *****end***writing also the module when brake is real.
-
-	}
-
-	private void runConnected() {
-		// TODO Auto-generated method stub
-
-		Toast.makeText(getApplicationContext(),
-				"Connected with " + mDeviceName + "!", Toast.LENGTH_SHORT)
-				.show();
-
-		setContentView(R.layout.activity_main);
-
-		// *******
-		BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
-		mConnectedThread = new ConnectedThread(mSocket, mHandler); // this
-																	// instance
-																	// of
-																	// ConnectedThread
-																	// is the
-																	// one that
-																	// we are
-																	// going to
-																	// use to
-																	// write()
-		// we don't need to start the Thread, because we are going to write, not
-		// to read() [write is not a blocking method]
-		// *******
-
-		/**
-		 * we are ready to use the sensor and send the information of the
-		 * brakings, so...
-		 */
-		// ******SENSORS***********
-		// initializeSensors();
-		// ******END SENSORS*******
-
-		// ******example temp**********
-		/*
-		 * Button b = (Button) findViewById(R.id.button1);
-		 * 
-		 * b.setOnClickListener(new OnClickListener() {
-		 * 
-		 * @Override public void onClick(View v) {
-		 * mConnectedThread.write(MathUtil.toByteArray(60));
-		 * 
-		 * 
-		 * 
-		 * } });
-		 */
-
-		// ********end**example******
 
 	}
 

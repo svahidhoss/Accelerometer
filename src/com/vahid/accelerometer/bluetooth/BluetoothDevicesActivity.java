@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.vahid.accelerometer.R;
 import com.vahid.accelerometer.util.Constants;
+import com.vahid.accelerometer.util.MathUtil;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -31,8 +32,10 @@ public class BluetoothDevicesActivity extends Activity implements
 
 	private static final int REQUEST_ENABLE_BT = 1;
 
-	// TODO what's this?
-	public static final String EXTRA_ADDRESS = "resultActivityExtraAddress";
+	// Return Intent extra
+	public static String EXTRA_DEVICE_ADDRESS = "device_address";
+	public static String EXTRA_DEVICE_NAME = "device_name";
+	public static String EXTRA_DEVICE_GROUP_NAME = "device_group_name";
 
 	private BluetoothAdapter mBluetoothAdapter;
 	private Set<BluetoothDevice> pairedDevices;
@@ -214,7 +217,7 @@ public class BluetoothDevicesActivity extends Activity implements
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.connected_menu, menu);
 		return true;
 	}
 
@@ -233,14 +236,19 @@ public class BluetoothDevicesActivity extends Activity implements
 				&& auxString != getString(R.string.noDevicePaired)) {
 			if (mBluetoothAdapter.isDiscovering()) {
 				mBluetoothAdapter.cancelDiscovery();
-
 			}
-
+			
+			String deviceNameDeviceGroup = auxString.substring(0, auxString.length()
+					- Constants.MAC_ADDRESS_CHAR_LENGTH - 1);
+			String names[] = MathUtil.getDeviceNamesToReturn(deviceNameDeviceGroup);
 			String address = auxString.substring(auxString.length()
 					- Constants.MAC_ADDRESS_CHAR_LENGTH);
+			
 
 			Intent intentData = new Intent();
-			intentData.putExtra(EXTRA_ADDRESS, address);
+			intentData.putExtra(EXTRA_DEVICE_ADDRESS, address);
+			intentData.putExtra(EXTRA_DEVICE_NAME, names[0]);
+			intentData.putExtra(EXTRA_DEVICE_GROUP_NAME, names[1]);
 
 			setResult(Activity.RESULT_OK, intentData);
 

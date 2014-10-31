@@ -1,8 +1,8 @@
 package com.vahid.accelerometer;
 
 import java.util.Date;
-import java.util.concurrent.ScheduledExecutorService;
 
+import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
@@ -13,12 +13,17 @@ import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.acceleromter.location.MyLocationListener;
 
+import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -30,7 +35,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -39,7 +43,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 
 public class ConnectedBarsActivity extends Activity {
 	/**** Defining view fields ****/
-	private LinearLayout mBackground;
+	private MenuItem miSearchOption;
 	// 2. Connected views
 	private ProgressBar mAccelProgressBar, mBrakeProgressBar;
 	private TextView tvXAxisValue, tvYAxisValue, tvFinalValue;
@@ -56,6 +60,7 @@ public class ConnectedBarsActivity extends Activity {
 	private ConnectThread mConnectThread = null;
 	private ConnectedThread mConnectedThread = null;
 	private String mDeviceName = "";
+	private String mDeviceGroupName = "";
 
 	private static int mCurrentBTState = Constants.STATE_DISCONNECTED;
 
@@ -69,7 +74,6 @@ public class ConnectedBarsActivity extends Activity {
 	/**** Location Related fields ****/
 	private MyLocationListener myLocationListener;
 	private LocationManager mLocationManager;
-	private ScheduledExecutorService mGpsExecutor;
 
 	/**** Sensor Related Fields ****/
 	// private SensorManager mSensorManager;
@@ -91,8 +95,7 @@ public class ConnectedBarsActivity extends Activity {
 
 	// Moving Averages
 	private MovingAverage2 elaMovingAverageX, elaMovingAverageY;
-	private MovingAverage laMagMovingAverage;
-	private MovingAverage mCurAccBearingMovingAverage,
+	private MovingAverage laMagMovingAverage, mCurAccBearingMovingAverage,
 			mCurMovBearingMovingAverage;
 
 	// Used for loading values in this list to execute the average deceleration
@@ -103,7 +106,26 @@ public class ConnectedBarsActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		initViewsConnectedLinearAcceleration();
+		initiateViews();
+
+		if (Constants.BT_MODULE_EXISTS) {
+			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+			setStatus(R.string.title_not_connected);
+			Toast.makeText(getApplicationContext(),
+					getString(R.string.title_connected) + mDeviceName,
+					Toast.LENGTH_SHORT).show();
+			initializeBluetooth();
+		} else {
+			// if no bluetooth needed go straight to using sensors.
+			initiateSensors();
+		}
+
+		// we are ready for GPS, Only used when we have the GPS.
+		if (Constants.GPS_MODULE_EXISTS) {
+			myLocationListener = new MyLocationListener(
+					getApplicationContext(), mHandler);
+			activateLocationUpdatesFromGPS();
+		}
 
 	}
 
@@ -112,6 +134,8 @@ public class ConnectedBarsActivity extends Activity {
 		// Inflate the connected_menu; this adds items to the action bar if it
 		// is present.
 		getMenuInflater().inflate(R.menu.connected_menu, menu);
+		// set the miSearchOption as the first item of the menu.
+		miSearchOption = menu.getItem(1);
 		return true;
 	}
 
@@ -123,6 +147,16 @@ public class ConnectedBarsActivity extends Activity {
 			startActivityForResult(intentSettings,
 					Constants.REQUEST_SETTINGS_CHANGE);
 			return true;
+		case R.id.search_option:
+			if (mCurrentBTState == Constants.STATE_DISCONNECTED) {
+				initializeBluetooth();
+				return true;
+			} else {
+				if (mConnectedThread != null) {
+					mConnectedThread.cancel();
+				}
+				return true;
+			}
 
 		case R.id.about_option:
 			Toast.makeText(this, "Car Brake Detector Demo\nBy Vahid",
@@ -139,8 +173,8 @@ public class ConnectedBarsActivity extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 
 		switch (requestCode) {
-		// when information comes manually from the settings activity. (when GPS
-		// is deactivated).
+		// when movement bearing information comes manually from the settings
+		// activity. (when GPS is deactivated).
 		case Constants.REQUEST_SETTINGS_CHANGE:
 			if (resultCode == RESULT_OK) {
 				mCurrentMovementBearing = Math.abs(data.getExtras().getFloat(
@@ -148,6 +182,22 @@ public class ConnectedBarsActivity extends Activity {
 			}
 			break;
 
+		case Constants.REQUEST_CONNECT_DEVICE:
+			if (resultCode == RESULT_OK) {
+				String deviceAddress = data.getExtras().getString(
+						BluetoothDevicesActivity.EXTRA_DEVICE_ADDRESS);
+				mDeviceName = data.getExtras().getString(
+						BluetoothDevicesActivity.EXTRA_DEVICE_NAME);
+				mDeviceGroupName = data.getExtras().getString(
+						BluetoothDevicesActivity.EXTRA_DEVICE_GROUP_NAME);
+				// need to connect to device here
+				connectBluetoothDevice(deviceAddress);
+			}
+			if (resultCode == RESULT_CANCELED) {
+				// TODO
+				// was not able to connect, do you want to continue anyway?
+			}
+			break;
 		default:
 			break;
 		}
@@ -158,11 +208,6 @@ public class ConnectedBarsActivity extends Activity {
 		super.onStop();
 
 		if (Constants.GPS_MODULE_EXISTS) {
-			// shutdown the GPS Executor immediately
-			if (mGpsExecutor != null) {
-				mGpsExecutor.shutdown();
-			}
-
 			deactivateLocationUpdatesFromGPS();
 		}
 
@@ -189,46 +234,10 @@ public class ConnectedBarsActivity extends Activity {
 	 * 2nd Important function of this activity. Initializes the views of this
 	 * activity when a device gets connected.
 	 */
-	private void initViewsConnectedLinearAcceleration() {
-
+	private void initiateViews() {
 		setContentView(R.layout.activity_connected_bars);
-		// initiate moving averages
+		// initiate moving averages for filtering sensor values.
 		initiateMovingAverages();
-
-		// we are ready for GPS, Only used when we have the GPS.
-		if (Constants.GPS_MODULE_EXISTS) {
-			myLocationListener = new MyLocationListener(
-					getApplicationContext(), mHandler);
-			activateLocationUpdatesFromGPS();
-		}
-
-		// if we need to use BT
-		if (Constants.BT_MODULE_EXISTS) {
-			// TODO enable after BT
-
-			Toast.makeText(getApplicationContext(),
-					getString(R.string.title_connected) + mDeviceName,
-					Toast.LENGTH_SHORT).show();
-
-			// This instance of ConnectedThread is the one that we are going to
-			// use write(). We don't need to start the Thread, because we are
-			// not
-			// going to use read(). [write is not a blocking method].
-			// TODO
-			BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
-			mConnectedThread = new ConnectedThread(mSocket, mHandler);
-
-		}
-
-		// we are also ready to use the sensor and send the information of the
-		// brakes, so...
-		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		mAccelerationEventListener = new AccelerationEventListener(mHandler);
-		mAccelerationEventListener.initializeSensors(mSensorManager);
-		mAccelerationEventListener.registerSensors(mCurrentDelayRate);
-
-		// retrieve all the needed components
-		mBackground = (LinearLayout) findViewById(R.id.activity_main_las);
 
 		tvXAxisValue = (TextView) findViewById(R.id.xAxisValue);
 		tvYAxisValue = (TextView) findViewById(R.id.yAxisValue);
@@ -271,6 +280,18 @@ public class ConnectedBarsActivity extends Activity {
 
 		decelerationMovingAverageTime = new MovingAverageTime(
 				Constants.WINDOW_SIZE_IN_MILI_SEC, mHandler);
+	}
+
+	/**
+	 * Initiating the needed sensors for sensing brakes.
+	 */
+	private void initiateSensors() {
+		// we are also ready to use the sensor and send the information of the
+		// brakes, so...
+		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+		mAccelerationEventListener = new AccelerationEventListener(mHandler);
+		mAccelerationEventListener.initializeSensors(mSensorManager);
+		mAccelerationEventListener.registerSensors(mCurrentDelayRate);
 	}
 
 	/**
@@ -395,6 +416,28 @@ public class ConnectedBarsActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
+			case Constants.STATE_CONNECTED:
+				runConnected();
+				setStatus(getString(R.string.title_connected) + mDeviceName);
+				// change the connect icon on the activity.
+				if (miSearchOption != null) {
+					miSearchOption.setIcon(R.drawable.menu_disconnect_icon);
+					miSearchOption.setTitle(R.string.disconnect);
+				}
+				break;
+			case Constants.STATE_CONNECTING:
+				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
+				tvState.setText(R.string.title_connecting);
+				setStatus(R.string.title_connecting);
+				break;
+			case Constants.STATE_DISCONNECTED:
+				Toast.makeText(getApplicationContext(),
+						getString(R.string.msgUnableToConnect),
+						Toast.LENGTH_SHORT).show();
+				// initViews();
+				miSearchOption.setIcon(R.drawable.menu_connect_icon);
+				miSearchOption.setTitle(R.string.connect);
+				break;
 			case Constants.ACCEL_VALUE_MSG:
 				// 1. Receive the linear acceleration values
 				earthLinearAccelerationValues = (float[]) msg.obj;
@@ -414,26 +457,19 @@ public class ConnectedBarsActivity extends Activity {
 				tvYAxisValue.setText(MathUtil.round(
 						elaMovingAverageY.getMovingAverage(), 4));
 
-				// 4. calculate the linear acceleration mag. (-z)
+				// 4. calculate the linear acceleration magnitude. (-z)
 				/*
 				 * mLinearAccelerationMagnitude = MathUtil
 				 * .getVectorMagnitudeMinusZ(earthLinearAccelerationValues);
 				 */
-				// TODO changing it!
+
+				// We're using the average values instead of the direct values.
 				mLinearAccelerationMagnitude = MathUtil
 						.getVectorMagnitudeMinusZ(
 								elaMovingAverageX.getMovingAverage(),
 								elaMovingAverageY.getMovingAverage());
 
-				/*
-				 * // 5. updating the UI with Acceleration Magnitude
-				 * tvFinalValue.setText(MathUtil.round(
-				 * mLinearAccelerationMagnitude, 3)); int progressPercentage =
-				 * (int) (mLinearAccelerationMagnitude * 5);
-				 * mFinalProgressBar.setProgress(progressPercentage);
-				 */
-
-				// 6. Detect the situation
+				// 5. Detect the situation
 				new DisplayDetectedSituationTask().run();
 
 				tvRotationDegreeValue.setText(Float
@@ -453,11 +489,9 @@ public class ConnectedBarsActivity extends Activity {
 				}
 
 				// if the counter of getting GPS bearings is more than 5 and not
-				// 0
-				// stop the scheduler!
-				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5
-						&& mGpsExecutor != null) {
-					mGpsExecutor.shutdown();
+				// 0 stop the scheduler!
+				if (Constants.GPS_MODULE_EXISTS && bearingCounter > 5) {
+					// TODO your smart algorithm!
 				}
 
 				break;
@@ -536,8 +570,9 @@ public class ConnectedBarsActivity extends Activity {
 					// so it seems they're different?
 					mAccelProgressBar.setProgress(0);
 					mBrakeProgressBar.setProgress(progressPercentage);
-
-					writeToBluetoothDevice(progressPercentage);
+					if (Constants.BT_MODULE_EXISTS) {
+						writeToBluetoothDevice(progressPercentage);
+					}
 				} else {
 					// Very smart, if the degree is more than path_change(40)
 					// and less than brake (90) this is most prob. a direction
@@ -583,7 +618,7 @@ public class ConnectedBarsActivity extends Activity {
 	}
 
 	/**
-	 * function that gets called when sending the byte magnitude values to the
+	 * Method that is called when sending the byte magnitude values to the
 	 * Bluetooth connected module.
 	 * 
 	 * @param magnitude
@@ -593,4 +628,214 @@ public class ConnectedBarsActivity extends Activity {
 		mConnectedThread.write(resultBytes);
 	}
 
+	private void runConnected() {
+		Toast.makeText(getApplicationContext(),
+				"Connected with " + mDeviceName + "!", Toast.LENGTH_SHORT)
+				.show();
+
+		// *******
+
+		// This instance of ConnectedThread is the one that we are going to
+		// use write(). We don't need to start the Thread, because we are
+		// not going to use read(). [write is not a blocking method].
+		BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
+		mConnectedThread = new ConnectedThread(mSocket, mHandler);
+
+		// *******
+
+		/**
+		 * we are ready to use the sensor and send the information of the
+		 * braking, so...
+		 */
+		// ******SENSORS***********
+		// initializeSensors();
+		// ******END SENSORS*******
+
+		// ******example temp**********
+		/*
+		 * Button b = (Button) findViewById(R.id.button1);
+		 * 
+		 * b.setOnClickListener(new OnClickListener() {
+		 * 
+		 * @Override public void onClick(View v) {
+		 * mConnectedThread.write(MathUtil.toByteArray(60));
+		 * 
+		 * 
+		 * 
+		 * } });
+		 */
+
+		// ********end**example******
+
+	}
+
+	/**
+	 * Method that checks if the device supports Bluetooth, asks for enabling it
+	 * if not already, find devices with BluetoothDevices.class and registers
+	 * the required Receivers.
+	 */
+	private void initializeBluetooth() {
+		if (mBluetoothAdapter == null) {
+			noBluetoothDetected();
+			return;
+		} else if (!mBluetoothAdapter.isEnabled()) {
+			enableBluetoothDialog();
+		} else {
+			// search for devices.
+			runBluetoothDevicesActivity();
+		}
+
+		mReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();
+				if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+
+					if (intent.getIntExtra(
+							BluetoothAdapter.EXTRA_PREVIOUS_STATE, 0) == BluetoothAdapter.STATE_ON) {
+						Toast.makeText(getApplicationContext(),
+								"Bluetooth turned off", Toast.LENGTH_SHORT)
+								.show();
+						initiateViews();
+					}
+					if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0) == BluetoothAdapter.STATE_ON) {
+						Toast.makeText(getApplicationContext(),
+								"Bluetooth turned ON", Toast.LENGTH_SHORT)
+								.show();
+						initiateViews();
+					}
+
+				} else if (BluetoothDevice.ACTION_ACL_DISCONNECTED
+						.equals(action)) {
+					// check this
+					// we receive this information also from the connectThread
+					// and the connectedThread.
+
+					// Toast.makeText(getApplicationContext(),
+					// "Conexion was lost - broadcast",
+					// Toast.LENGTH_SHORT).show();
+					// notConnected();
+					// return;
+				} else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+					// connected();
+				}
+
+			}
+		};
+		IntentFilter filter;
+		filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+		registerReceiver(mReceiver, filter);
+		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED); //
+		registerReceiver(mReceiver, filter);
+		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+		registerReceiver(mReceiver, filter);
+
+	}
+
+	/**
+	 * Dialog that is displayed when no bluetooth is found on the device. The
+	 * app then closes.
+	 */
+	private void noBluetoothDetected() {
+		// TODO
+		/*
+		 * btnConnectBT.setVisibility(View.GONE);
+		 * tvState.setText("Device does not support Bluetooth");
+		 */
+		Toast.makeText(getApplicationContext(), R.id.imageViewWrong,
+				Toast.LENGTH_SHORT).show();
+		// ImageView ivError = (ImageView) findViewById(R.id.imageViewWrong);
+		// ivError.setVisibility(View.VISIBLE);
+	}
+
+	/**
+	 * Dialog that asks from the user to enable the bluetooth.
+	 */
+	private void enableBluetoothDialog() {
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+				ConnectedBarsActivity.this);
+		// Setting Dialog Title
+		alertDialog.setTitle("Info!");
+		// Setting Dialog Message
+		alertDialog
+				.setMessage("Bluetooth must be enabled on the phone!\n\nDo you wish to continue?");
+		// Setting Icon to Dialog
+		alertDialog.setIcon(R.drawable.ic_warning);
+		// Setting OK Button
+		alertDialog.setPositiveButton("Yes",
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// enable bluetooth
+						Intent enableBtIntent = new Intent(
+								BluetoothAdapter.ACTION_REQUEST_ENABLE);
+						startActivityForResult(enableBtIntent,
+								Constants.REQUEST_ENABLE_BT);
+					}
+				});
+		alertDialog.setNegativeButton("No",
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Toast.makeText(ConnectedBarsActivity.this,
+								R.string.bt_required, Toast.LENGTH_SHORT)
+								.show();
+					}
+				});
+		alertDialog.create();
+		alertDialog.show();
+	}
+
+	/**
+	 * Establishes the Bluetooth connection with the passed device address.
+	 * 
+	 * @param address
+	 */
+	private void connectBluetoothDevice(String address) {
+		BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+
+		mConnectThread = new ConnectThread(device, mHandler);
+		mConnectThread.start();
+		// use sensors!
+		initiateSensors();
+
+		// TODO remove?
+		mDeviceName = device.getName();
+		// the receiver (mReceiver) is waiting for the signal of
+		// "device connected" to use the connection, and call connected().
+		// connected() initialize also the ConnectedThread instance (- connected
+		// = new ConnectedThread(BleutoothSocket) -)
+	}
+
+	/**
+	 * Method used for setting up status title of the action bar.
+	 * 
+	 * @param subTitle
+	 */
+	private final void setStatus(CharSequence subTitle) {
+		final ActionBar actionBar = getActionBar();
+		actionBar.setSubtitle(subTitle);
+	}
+
+	/**
+	 * Method used for setting up status title of the action bar.
+	 * 
+	 * @param resourceId
+	 */
+	private final void setStatus(int resourceId) {
+		final ActionBar actionBar = getActionBar();
+		actionBar.setSubtitle(resourceId);
+	}
+
+	/**
+	 * Starts Bluetooth Devices Activity so that the user can look for and
+	 * select the device (its MAC address) so that it can connect to it.
+	 */
+	private void runBluetoothDevicesActivity() {
+		// If requestCode >= 0, it will be returned in onActivityResult() when
+		// the activity exits.
+		startActivityForResult(
+				new Intent(this, BluetoothDevicesActivity.class),
+				Constants.REQUEST_CONNECT_DEVICE);
+	}
 }
