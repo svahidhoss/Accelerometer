@@ -12,48 +12,44 @@ public class Constants {
 	// Used in cases of no BT module
 	public static boolean BT_MODULE_EXISTS = true;
 	public static boolean GPS_MODULE_EXISTS = true;
-	
+
 	public static float MANUAL_BEARING = 0f;
-	
+
 	/**** for communication between activities ****/
-	// Used in both Main and Connected activity. 
+	// Used in both Main and Connected activity.
 	public static final int REQUEST_ENABLE_BT = 1;
 	public static final int REQUEST_CONNECT_DEVICE = 2;
 	public static final int REQUEST_SETTINGS_CHANGE = 3;
-	
-	
+
 	/** General Variables **/
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
 
 	/** GPS values **/
-	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(3);
-	public static long SHUT_DOWN_AFTER_SEC = 20;
+	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(5);
 	public static float GPS_MIN_DISTANCE_METER = 5;
+	public static long SHUT_DOWN_AFTER_SEC = 20;
 
 	/** Path Change Detection **/
 	public static final float DIFF_DEGREE_PATH_CHANGE = 40;
-	
+
 	/** Brake detection **/
 	// low pass filter: moving average - app 4 Seconds
-	public static int WINDOW_SIZE_SMA_FILTER = 10;
+	public static int WINDOW_SIZE_SMA_FILTER = 20;
 	public static int WINDOW_SIZE_MEDIAN_FILTER = 5;
-	public static long WINDOW_SIZE_IN_MILI_SEC = TimeUnit.SECONDS
-			.toMillis(1);
-	public static long RUNNING_PERIOD = TimeUnit.MILLISECONDS
-			.toMillis(1);
+	public static long WINDOW_SIZE_IN_MILI_SEC = TimeUnit.SECONDS.toMillis(1);
+	public static long RUNNING_PERIOD = TimeUnit.MILLISECONDS.toMillis(1);
 	// The brake threshold based on heuristic 1 m/s2
 	public static float ACCEL_THRESHOLD = 1f;
 	public static float BRAKE_THRESHOLD = -ACCEL_THRESHOLD;
-	
+
 	// difference in degree values
 	public static final float DIFF_DEGREE_BRAKE = 90;
-	
+
 	// Three situations of brake condition
 	public static final int BRAKE_DETECTED = -1;
 	public static final int NO_MOVE_DETECTED = 0;
 	public static final int ACCEL_DETECTED = 1;
 
-	
 	/** Sensor Accelerometer Rates **/
 	public static final int DELAY_RATES[] = {
 			SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI,
@@ -66,6 +62,11 @@ public class Constants {
 	// MY_UUID is the app's UUID string, also used by the server code?
 	public static final UUID MY_UUID = UUID
 			.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
+
+	// Standard //SerialPortService ID
+	public static final UUID uuid = UUID
+			.fromString("00001101-0000-1000-8000-00805f9b34fb");
+	
 	// public static final UUID MY_UUID = UUID
 	// .fromString("00001105-0000-1000-8000-00805F9B34FB");
 
@@ -83,9 +84,7 @@ public class Constants {
 	public static final int MOVEMENT_BEARING_MSG = 5;
 	public static final int DECLINATION_MSG = 6;
 	public static final int BRAKE_DETECTED_MSG = 7;
-	
-	
-	
+
 	/**** Settings related constants ****/
 	public static long marginMilliseconds = 300;
 	public static float accelerationPrecision = (float) 0.9;
@@ -93,7 +92,7 @@ public class Constants {
 												// acceleration (if it is
 												// braking or accelerating) (=0
 												// by the moment)
-	
+
 	// ****calculate angles average
 	public static int delta = 30; // acceptable error in each angle.
 	public static int nIter = 10; // number of iteration to actualize the

@@ -238,17 +238,16 @@ public class BluetoothDevicesActivity extends Activity implements
 				mBluetoothAdapter.cancelDiscovery();
 			}
 			
-			String deviceNameDeviceGroup = auxString.substring(0, auxString.length()
+			String deviceName = auxString.substring(0, auxString.length()
 					- Constants.MAC_ADDRESS_CHAR_LENGTH - 1);
-			String names[] = MathUtil.getDeviceNamesToReturn(deviceNameDeviceGroup);
+
 			String address = auxString.substring(auxString.length()
 					- Constants.MAC_ADDRESS_CHAR_LENGTH);
 			
 
 			Intent intentData = new Intent();
 			intentData.putExtra(EXTRA_DEVICE_ADDRESS, address);
-			intentData.putExtra(EXTRA_DEVICE_NAME, names[0]);
-			intentData.putExtra(EXTRA_DEVICE_GROUP_NAME, names[1]);
+			intentData.putExtra(EXTRA_DEVICE_NAME, deviceName);
 
 			setResult(Activity.RESULT_OK, intentData);
 

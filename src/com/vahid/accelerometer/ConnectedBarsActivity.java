@@ -55,12 +55,11 @@ public class ConnectedBarsActivity extends Activity {
 
 	/**** Bluethooth related fields ****/
 	private BluetoothAdapter mBluetoothAdapter;
-	private BroadcastReceiver mReceiver;
+	private BroadcastReceiver mBroadcastReceiver;
 
 	private ConnectThread mConnectThread = null;
 	private ConnectedThread mConnectedThread = null;
 	private String mDeviceName = "";
-	private String mDeviceGroupName = "";
 
 	private static int mCurrentBTState = Constants.STATE_DISCONNECTED;
 
@@ -111,9 +110,6 @@ public class ConnectedBarsActivity extends Activity {
 		if (Constants.BT_MODULE_EXISTS) {
 			mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 			setStatus(R.string.title_not_connected);
-			Toast.makeText(getApplicationContext(),
-					getString(R.string.title_connected) + mDeviceName,
-					Toast.LENGTH_SHORT).show();
 			initializeBluetooth();
 		} else {
 			// if no bluetooth needed go straight to using sensors.
@@ -188,8 +184,6 @@ public class ConnectedBarsActivity extends Activity {
 						BluetoothDevicesActivity.EXTRA_DEVICE_ADDRESS);
 				mDeviceName = data.getExtras().getString(
 						BluetoothDevicesActivity.EXTRA_DEVICE_NAME);
-				mDeviceGroupName = data.getExtras().getString(
-						BluetoothDevicesActivity.EXTRA_DEVICE_GROUP_NAME);
 				// need to connect to device here
 				connectBluetoothDevice(deviceAddress);
 			}
@@ -202,11 +196,37 @@ public class ConnectedBarsActivity extends Activity {
 			break;
 		}
 	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+	}
+	
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		// unregister the receivers
+//		if (mBroadcastReceiver != null) {
+//			unregisterReceiver(mBroadcastReceiver);
+//		}
+	}
 
+	
 	@Override
 	protected void onStop() {
 		super.onStop();
 
+		// disconnect the thread first
+		if (mConnectedThread != null) {
+			mConnectThread.cancel();
+		}
+		
+		// unregister the receivers
+		if (mBroadcastReceiver != null) {
+			unregisterReceiver(mBroadcastReceiver);
+		}
+		
 		if (Constants.GPS_MODULE_EXISTS) {
 			deactivateLocationUpdatesFromGPS();
 		}
@@ -417,7 +437,21 @@ public class ConnectedBarsActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case Constants.STATE_CONNECTED:
-				runConnected();
+				mCurrentBTState = msg.what;
+				
+				// This instance of ConnectedThread is the one that we are going to
+				// use write(). We don't need to start the Thread, because we are
+				// not going to use read(). [write is not a blocking method].
+				BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
+				mConnectedThread = new ConnectedThread(mSocket, mHandler);
+				
+				// use sensors
+				initiateSensors();
+				
+				Toast.makeText(getApplicationContext(),
+						getString(R.string.title_connected) + mDeviceName,
+						Toast.LENGTH_SHORT).show();
+				
 				setStatus(getString(R.string.title_connected) + mDeviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
@@ -426,11 +460,13 @@ public class ConnectedBarsActivity extends Activity {
 				}
 				break;
 			case Constants.STATE_CONNECTING:
-				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
-				tvState.setText(R.string.title_connecting);
+/*				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
+				tvState.setText(R.string.title_connecting);*/	
+				mCurrentBTState = msg.what;
 				setStatus(R.string.title_connecting);
 				break;
 			case Constants.STATE_DISCONNECTED:
+				mCurrentBTState = msg.what;
 				Toast.makeText(getApplicationContext(),
 						getString(R.string.msgUnableToConnect),
 						Toast.LENGTH_SHORT).show();
@@ -628,109 +664,7 @@ public class ConnectedBarsActivity extends Activity {
 		mConnectedThread.write(resultBytes);
 	}
 
-	private void runConnected() {
-		Toast.makeText(getApplicationContext(),
-				"Connected with " + mDeviceName + "!", Toast.LENGTH_SHORT)
-				.show();
 
-		// *******
-
-		// This instance of ConnectedThread is the one that we are going to
-		// use write(). We don't need to start the Thread, because we are
-		// not going to use read(). [write is not a blocking method].
-		BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
-		mConnectedThread = new ConnectedThread(mSocket, mHandler);
-
-		// *******
-
-		/**
-		 * we are ready to use the sensor and send the information of the
-		 * braking, so...
-		 */
-		// ******SENSORS***********
-		// initializeSensors();
-		// ******END SENSORS*******
-
-		// ******example temp**********
-		/*
-		 * Button b = (Button) findViewById(R.id.button1);
-		 * 
-		 * b.setOnClickListener(new OnClickListener() {
-		 * 
-		 * @Override public void onClick(View v) {
-		 * mConnectedThread.write(MathUtil.toByteArray(60));
-		 * 
-		 * 
-		 * 
-		 * } });
-		 */
-
-		// ********end**example******
-
-	}
-
-	/**
-	 * Method that checks if the device supports Bluetooth, asks for enabling it
-	 * if not already, find devices with BluetoothDevices.class and registers
-	 * the required Receivers.
-	 */
-	private void initializeBluetooth() {
-		if (mBluetoothAdapter == null) {
-			noBluetoothDetected();
-			return;
-		} else if (!mBluetoothAdapter.isEnabled()) {
-			enableBluetoothDialog();
-		} else {
-			// search for devices.
-			runBluetoothDevicesActivity();
-		}
-
-		mReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
-				if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-
-					if (intent.getIntExtra(
-							BluetoothAdapter.EXTRA_PREVIOUS_STATE, 0) == BluetoothAdapter.STATE_ON) {
-						Toast.makeText(getApplicationContext(),
-								"Bluetooth turned off", Toast.LENGTH_SHORT)
-								.show();
-						initiateViews();
-					}
-					if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0) == BluetoothAdapter.STATE_ON) {
-						Toast.makeText(getApplicationContext(),
-								"Bluetooth turned ON", Toast.LENGTH_SHORT)
-								.show();
-						initiateViews();
-					}
-
-				} else if (BluetoothDevice.ACTION_ACL_DISCONNECTED
-						.equals(action)) {
-					// check this
-					// we receive this information also from the connectThread
-					// and the connectedThread.
-
-					// Toast.makeText(getApplicationContext(),
-					// "Conexion was lost - broadcast",
-					// Toast.LENGTH_SHORT).show();
-					// notConnected();
-					// return;
-				} else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
-					// connected();
-				}
-
-			}
-		};
-		IntentFilter filter;
-		filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-		registerReceiver(mReceiver, filter);
-		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED); //
-		registerReceiver(mReceiver, filter);
-		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
-		registerReceiver(mReceiver, filter);
-
-	}
 
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
@@ -786,6 +720,7 @@ public class ConnectedBarsActivity extends Activity {
 		alertDialog.show();
 	}
 
+	
 	/**
 	 * Establishes the Bluetooth connection with the passed device address.
 	 * 
@@ -796,15 +731,77 @@ public class ConnectedBarsActivity extends Activity {
 
 		mConnectThread = new ConnectThread(device, mHandler);
 		mConnectThread.start();
-		// use sensors!
-		initiateSensors();
-
+		
 		// TODO remove?
 		mDeviceName = device.getName();
+
 		// the receiver (mReceiver) is waiting for the signal of
 		// "device connected" to use the connection, and call connected().
 		// connected() initialize also the ConnectedThread instance (- connected
 		// = new ConnectedThread(BleutoothSocket) -)
+	}
+	
+	
+	/**
+	 * Method that checks if the device supports Bluetooth, asks for enabling it
+	 * if not already, find devices with BluetoothDevices.class and registers
+	 * the required Receivers.
+	 */
+	private void initializeBluetooth() {
+		if (mBluetoothAdapter == null) {
+			noBluetoothDetected();
+			return;
+		} else if (!mBluetoothAdapter.isEnabled()) {
+			enableBluetoothDialog();
+		} else {
+			// search for devices.
+			runBluetoothDevicesActivity();
+		}
+
+		mBroadcastReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();
+				if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+
+					if (intent.getIntExtra(
+							BluetoothAdapter.EXTRA_PREVIOUS_STATE, 0) == BluetoothAdapter.STATE_ON) {
+						Toast.makeText(getApplicationContext(),
+								"Bluetooth turned off", Toast.LENGTH_SHORT)
+								.show();
+						initiateViews();
+					}
+					if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0) == BluetoothAdapter.STATE_ON) {
+						Toast.makeText(getApplicationContext(),
+								"Bluetooth turned ON", Toast.LENGTH_SHORT)
+								.show();
+						initiateViews();
+					}
+
+				} else if (BluetoothDevice.ACTION_ACL_DISCONNECTED
+						.equals(action)) {
+					// check this
+					// we receive this information also from the connectThread
+					// and the connectedThread.
+
+					// Toast.makeText(getApplicationContext(),
+					// "Conexion was lost - broadcast",
+					// Toast.LENGTH_SHORT).show();
+					// notConnected();
+					// return;
+				} else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+					// connected();
+				}
+
+			}
+		};
+		IntentFilter filter;
+		filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+		registerReceiver(mBroadcastReceiver, filter);
+		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED); //
+		registerReceiver(mBroadcastReceiver, filter);
+		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+		registerReceiver(mBroadcastReceiver, filter);
 	}
 
 	/**

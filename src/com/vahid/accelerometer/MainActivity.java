@@ -2,26 +2,14 @@ package com.vahid.accelerometer;
 
 import java.util.Calendar;
 
-import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
-import com.vahid.accelerometer.bluetooth.ConnectThread;
-import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.accelerometer.util.Constants;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,17 +26,11 @@ public class MainActivity extends Activity {
 	/**** Bluethooth related fields ****/
 	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
 			.getDefaultAdapter();
-	private BroadcastReceiver mReceiver;
 
-	private ConnectThread mConnectThread = null;
-	private ConnectedThread mConnectedThread = null;
-	private String mDeviceName = "";
-
-	private static int mCurrentBTState = Constants.STATE_DISCONNECTED;
 
 	/**** Defining view fields ****/
 	// 1.Initial views
-	private Button btnConnectBT, btnCheck, btnRunBarsAct;
+	private Button btnConnectBT, btnCheck, btnRunBarsActivity;
 	private TextView tvState;
 
 	// Sensor Values: it's important to initialize them.
@@ -91,14 +73,12 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		finilizeAll();
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main_menu, menu);
-
 		return true;
 	}
 
@@ -110,7 +90,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		btnConnectBT = (Button) findViewById(R.id.btnConnectBT);
-		btnRunBarsAct = (Button) findViewById(R.id.btnRunBarsAct);
+		btnRunBarsActivity = (Button) findViewById(R.id.btnRunBarsAct);
 
 		tvState = (TextView) findViewById(R.id.textViewNotConnected);
 
@@ -154,9 +134,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-
-
-
 	
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
@@ -169,21 +146,6 @@ public class MainActivity extends Activity {
 		ivError.setVisibility(View.VISIBLE);
 	}
 
-	/**
-	 * Method that stops everything.
-	 */
-	private void finilizeAll() {
-		// disconnect the thread first
-		if (mConnectedThread != null) {
-			mConnectThread.cancel();
-		}
-
-		// unregister the receivers
-		if (mReceiver != null) {
-			this.unregisterReceiver(mReceiver);
-		}
-
-	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -204,22 +166,7 @@ public class MainActivity extends Activity {
 
 	}
 
-	/**
-	 * This handler is used to enable communication with the threads.
-	 */
-	private final Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			mCurrentBTState = msg.what;
 
-			switch (msg.what) {
-
-			default:
-				break;
-			}
-		}
-
-	};
 
 
 
@@ -288,7 +235,8 @@ public class MainActivity extends Activity {
 		byte[] all = new byte[8 * 4 + 8];
 		all = MathUtil.concatenateBytes(xyz_and_Mod, moduleRealByte);
 
-		mConnectedThread.write(all);
+//		mConnectedThread.write(all);
+		
 		// ********write angles
 		/*
 		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =

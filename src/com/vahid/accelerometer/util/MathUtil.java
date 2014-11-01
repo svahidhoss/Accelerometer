@@ -238,11 +238,4 @@ public class MathUtil {
 		return returnString;
 	}
 
-	// public static String getDate() {
-	// SimpleDateFormat formatter = new SimpleDateFormat(
-	// "yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
-	// Date now = new Date();
-	// return formatter.format(now);
-	// }
-
 }
