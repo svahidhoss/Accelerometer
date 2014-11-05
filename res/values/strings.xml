@@ -13,7 +13,7 @@
     <string name="activity_bluetooth_devices_title">Select a device to connect</string>
     <string name="title_not_connected">not connected</string>
     <string name="title_connecting">connecting&#8230;</string>
-    <string name="title_connected">connected to </string>
+    <string name="title_connected">connected to&#32;</string>
     <string name="noDevicePaired">No paired device was found.</string>
     <string name="noDeviceFound">No device was found.</string>
 

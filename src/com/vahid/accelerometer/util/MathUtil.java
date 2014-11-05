@@ -1,8 +1,6 @@
 package com.vahid.accelerometer.util;
 
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,6 +93,18 @@ public class MathUtil {
 	public static byte[] doubleToByteArray(double value) {
 		byte[] bytes = new byte[8];
 		ByteBuffer.wrap(bytes).putDouble(value);
+		return bytes;
+	}
+
+	public static byte[] floatToByteArray(float value) {
+		byte[] bytes = new byte[4];
+		ByteBuffer.wrap(bytes).putFloat(value);
+		return bytes;
+	}
+	
+	public static byte[] intToByteArray(int value) {
+		byte[] bytes = new byte[4];
+		ByteBuffer.wrap(bytes).putInt(value);
 		return bytes;
 	}
 
@@ -222,7 +232,7 @@ public class MathUtil {
 			return (360 - difference);
 		}
 	}
-	
+
 	public static String[] getDeviceNamesToReturn(String original) {
 		String[] returnString = new String[2];
 		// anything between . and another .

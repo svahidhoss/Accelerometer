@@ -9,9 +9,10 @@ public class Constants {
 	/** Debug related constants */
 	public static boolean DEBUG = true;
 	public static String LOG_TAG = "Debugging Tag";
+	public static int MAX_ACCEL = 10;
 	// Used in cases of no BT module
 	public static boolean BT_MODULE_EXISTS = true;
-	public static boolean GPS_MODULE_EXISTS = true;
+	public static boolean GPS_MODULE_EXISTS = false;
 
 	public static float MANUAL_BEARING = 0f;
 
@@ -60,11 +61,11 @@ public class Constants {
 
 	/**** Bluetooth related fields ****/
 	// MY_UUID is the app's UUID string, also used by the server code?
-	public static final UUID MY_UUID = UUID
-			.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
+//	public static final UUID MY_UUID = UUID
+//			.fromString("04c6032b-0000-4000-8000-00805f9b34fc");
 
-	// Standard //SerialPortService ID
-	public static final UUID uuid = UUID
+	// Standard SerialPortService ID
+	public static final UUID MY_UUID = UUID
 			.fromString("00001101-0000-1000-8000-00805f9b34fb");
 	
 	// public static final UUID MY_UUID = UUID

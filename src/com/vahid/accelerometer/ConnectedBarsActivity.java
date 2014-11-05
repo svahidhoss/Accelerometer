@@ -196,23 +196,21 @@ public class ConnectedBarsActivity extends Activity {
 			break;
 		}
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
 	}
-	
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
 		// unregister the receivers
-//		if (mBroadcastReceiver != null) {
-//			unregisterReceiver(mBroadcastReceiver);
-//		}
+		// if (mBroadcastReceiver != null) {
+		// unregisterReceiver(mBroadcastReceiver);
+		// }
 	}
 
-	
 	@Override
 	protected void onStop() {
 		super.onStop();
@@ -221,12 +219,12 @@ public class ConnectedBarsActivity extends Activity {
 		if (mConnectedThread != null) {
 			mConnectThread.cancel();
 		}
-		
+
 		// unregister the receivers
 		if (mBroadcastReceiver != null) {
 			unregisterReceiver(mBroadcastReceiver);
 		}
-		
+
 		if (Constants.GPS_MODULE_EXISTS) {
 			deactivateLocationUpdatesFromGPS();
 		}
@@ -438,21 +436,25 @@ public class ConnectedBarsActivity extends Activity {
 			switch (msg.what) {
 			case Constants.STATE_CONNECTED:
 				mCurrentBTState = msg.what;
-				
-				// This instance of ConnectedThread is the one that we are going to
-				// use write(). We don't need to start the Thread, because we are
+
+				// This instance of ConnectedThread is the one that we are going
+				// to
+				// use write(). We don't need to start the Thread, because we
+				// are
 				// not going to use read(). [write is not a blocking method].
 				BluetoothSocket mSocket = mConnectThread.getBluetoothSocket();
 				mConnectedThread = new ConnectedThread(mSocket, mHandler);
-				
+
 				// use sensors
 				initiateSensors();
-				
-				Toast.makeText(getApplicationContext(),
-						getString(R.string.title_connected) + mDeviceName,
+
+				Toast.makeText(
+						getApplicationContext(),
+						getString(R.string.title_connected) + " " + mDeviceName,
 						Toast.LENGTH_SHORT).show();
-				
-				setStatus(getString(R.string.title_connected) + mDeviceName);
+
+				setStatus(getString(R.string.title_connected) + " "
+						+ mDeviceName);
 				// change the connect icon on the activity.
 				if (miSearchOption != null) {
 					miSearchOption.setIcon(R.drawable.menu_disconnect_icon);
@@ -460,8 +462,11 @@ public class ConnectedBarsActivity extends Activity {
 				}
 				break;
 			case Constants.STATE_CONNECTING:
-/*				TextView tvState = (TextView) findViewById(R.id.textViewNotConnected);
-				tvState.setText(R.string.title_connecting);*/	
+				/*
+				 * TextView tvState = (TextView)
+				 * findViewById(R.id.textViewNotConnected);
+				 * tvState.setText(R.string.title_connecting);
+				 */
 				mCurrentBTState = msg.what;
 				setStatus(R.string.title_connecting);
 				break;
@@ -606,8 +611,10 @@ public class ConnectedBarsActivity extends Activity {
 					// so it seems they're different?
 					mAccelProgressBar.setProgress(0);
 					mBrakeProgressBar.setProgress(progressPercentage);
+
+					// sending the brake intensity to BT module-Arduino
 					if (Constants.BT_MODULE_EXISTS) {
-						writeToBluetoothDevice(progressPercentage);
+						writeToBluetoothDevice(mLinearAccelerationMagnitude);
 					}
 				} else {
 					// Very smart, if the degree is more than path_change(40)
@@ -623,13 +630,21 @@ public class ConnectedBarsActivity extends Activity {
 					decelerationMovingAverageTime.clearValues();
 
 					// so it seems they're different?
+					if (Constants.BT_MODULE_EXISTS) {
+						writeToBluetoothDevice(0);
+					}
 					mBrakeProgressBar.setProgress(0);
+
 					mAccelProgressBar.setProgress(progressPercentage);
 
 				}
 			} else {
 				mAccelSituation = Constants.NO_MOVE_DETECTED;
 				decelerationMovingAverageTime.clearValues();
+
+				if (Constants.BT_MODULE_EXISTS) {
+					writeToBluetoothDevice(0);
+				}
 				mBrakeProgressBar.setProgress(0);
 				mAccelProgressBar.setProgress(0);
 			}
@@ -660,11 +675,17 @@ public class ConnectedBarsActivity extends Activity {
 	 * @param magnitude
 	 */
 	private void writeToBluetoothDevice(double magnitude) {
-		byte[] resultBytes = MathUtil.doubleToByteArray(magnitude);
-		mConnectedThread.write(resultBytes);
+		// calculate light intensity to be used for wpm display of light amount
+		int lightIntensity = (int) (magnitude * 255 / Constants.MAX_ACCEL);
+		byte[] resultBytes = MathUtil.intToByteArray(lightIntensity);
+
+		/*
+		 * byte[] resultBytes = MathUtil.doubleToByteArray(magnitude); float
+		 * tempMagnitude = (float) magnitude; byte[] resultBytes2 =
+		 * MathUtil.floatToByteArray(tempMagnitude);
+		 */
+		mConnectedThread.write(resultBytes[3]);
 	}
-
-
 
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
@@ -720,7 +741,6 @@ public class ConnectedBarsActivity extends Activity {
 		alertDialog.show();
 	}
 
-	
 	/**
 	 * Establishes the Bluetooth connection with the passed device address.
 	 * 
@@ -731,17 +751,14 @@ public class ConnectedBarsActivity extends Activity {
 
 		mConnectThread = new ConnectThread(device, mHandler);
 		mConnectThread.start();
-		
-		// TODO remove?
-		mDeviceName = device.getName();
 
-		// the receiver (mReceiver) is waiting for the signal of
+		// mDeviceName = device.getName();
+		// The receiver (mReceiver) is waiting for the signal of
 		// "device connected" to use the connection, and call connected().
-		// connected() initialize also the ConnectedThread instance (- connected
-		// = new ConnectedThread(BleutoothSocket) -)
+		// connected() initialize also the ConnectedThread instance
+		// (- connected = new ConnectedThread(BleutoothSocket) -)
 	}
-	
-	
+
 	/**
 	 * Method that checks if the device supports Bluetooth, asks for enabling it
 	 * if not already, find devices with BluetoothDevices.class and registers
