@@ -612,10 +612,6 @@ public class ConnectedBarsActivity extends Activity {
 					mAccelProgressBar.setProgress(0);
 					mBrakeProgressBar.setProgress(progressPercentage);
 
-					// sending the brake intensity to BT module-Arduino
-					if (Constants.BT_MODULE_EXISTS) {
-						writeToBluetoothDevice(mLinearAccelerationMagnitude);
-					}
 				} else {
 					// Very smart, if the degree is more than path_change(40)
 					// and less than brake (90) this is most prob. a direction
@@ -628,22 +624,23 @@ public class ConnectedBarsActivity extends Activity {
 					mAccelSituation = Constants.ACCEL_DETECTED;
 					// mBackground.setBackgroundResource(R.color.dark_green);
 					decelerationMovingAverageTime.clearValues();
-
-					// so it seems they're different?
-					if (Constants.BT_MODULE_EXISTS) {
-						writeToBluetoothDevice(0);
-					}
+					
 					mBrakeProgressBar.setProgress(0);
-
 					mAccelProgressBar.setProgress(progressPercentage);
 
 				}
+				
+				// sending the brake/acceleratiuon intensity to BT module-Arduino
+				if (Constants.BT_MODULE_EXISTS) {
+					writeToBluetoothDevice(mLinearAccelerationMagnitude, mAccelSituation);
+				}
+				
 			} else {
 				mAccelSituation = Constants.NO_MOVE_DETECTED;
 				decelerationMovingAverageTime.clearValues();
 
 				if (Constants.BT_MODULE_EXISTS) {
-					writeToBluetoothDevice(0);
+					writeToBluetoothDevice(0, mAccelSituation);
 				}
 				mBrakeProgressBar.setProgress(0);
 				mAccelProgressBar.setProgress(0);
@@ -673,10 +670,18 @@ public class ConnectedBarsActivity extends Activity {
 	 * Bluetooth connected module.
 	 * 
 	 * @param magnitude
+	 * @param accelDetected 
 	 */
-	private void writeToBluetoothDevice(double magnitude) {
-		// calculate light intensity to be used for wpm display of light amount
-		int lightIntensity = (int) (magnitude * 255 / Constants.MAX_ACCEL);
+	private void writeToBluetoothDevice(double magnitude, int accelSituation) {
+		// calculate light intensity to be used for pwm display of light amount
+		int lightIntensity = (int) (magnitude * Constants.MAX_LIGHT_LEVEL / Constants.MAX_ACCEL);
+		
+		// commented the use of green and red at the same time; not good results
+//		if (accelSituation == Constants.ACCEL_DETECTED) {
+//			// if accel. add 128 to it
+//			lightIntensity = lightIntensity + Constants.MAX_LIGHT_LEVEL;
+//		}
+
 		byte[] resultBytes = MathUtil.intToByteArray(lightIntensity);
 
 		/*
@@ -684,6 +689,8 @@ public class ConnectedBarsActivity extends Activity {
 		 * tempMagnitude = (float) magnitude; byte[] resultBytes2 =
 		 * MathUtil.floatToByteArray(tempMagnitude);
 		 */
+		
+		// only the last byte out of 4 bytes in int is important.
 		mConnectedThread.write(resultBytes[3]);
 	}
 

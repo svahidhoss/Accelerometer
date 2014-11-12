@@ -10,6 +10,9 @@ public class Constants {
 	public static boolean DEBUG = true;
 	public static String LOG_TAG = "Debugging Tag";
 	public static int MAX_ACCEL = 10;
+	// used for lighting the led.
+	public static int MAX_LIGHT_LEVEL = 255;
+	
 	// Used in cases of no BT module
 	public static boolean BT_MODULE_EXISTS = true;
 	public static boolean GPS_MODULE_EXISTS = false;
