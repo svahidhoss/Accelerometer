@@ -1,4 +1,4 @@
-package com.vahid.accelerometer;
+package com.vahid.accelerometer.sensors;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -40,7 +40,6 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 	private float[] rotationMatrix = new float[16];
 	private float[] rotationMatrixInverse = new float[16];
 
-
 	private double trueAccelerationMagnitude;
 	private float magneticBearing;
 
@@ -51,7 +50,6 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 	public AccelerationEventListener(Handler mHandler) {
 		this.mHandler = mHandler;
 	}
-
 
 	@Override
 	public void initializeSensors(SensorManager mSensorManager) {
@@ -74,11 +72,9 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 
 	}
 
-
 	@Override
 	public void registerSensors(int curDelayRate) {
 		mSensorManager.unregisterListener(this);
-
 
 		mSensorManager.registerListener(this, mMagneticField,
 				Constants.DELAY_RATES[curDelayRate]);
@@ -91,7 +87,6 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 		if (Constants.DEBUG)
 			Log.d(Constants.LOG_TAG, "sensors registered");
 	}
-
 
 	@Override
 	public void unregisterSensors() {
@@ -232,8 +227,7 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 					// current time stamp
 					Date date = new Date();
 					mCsvFile.writeToFile(Long.toString(date.getTime()), false);
-					
-					
+
 					mCsvFile.writeToFile(mLinearAccelerationValues, false);
 					// write the values of the true acceleration
 					mCsvFile.writeToFile(Arrays.copyOfRange(
@@ -295,7 +289,7 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 	@Override
 	public void setCsvFile(CsvFileWriter csvFile) {
 		this.mCsvFile = csvFile;
-/*		String names[] = { "Time", "LinearAcceleration - X",
+		String names[] = { "Time", "LinearAcceleration - X",
 				"LinearAcceleration - Y", "LinearAcceleration - Z",
 				"EarthLinearAcceleration - X", "EarthLinearAcceleration - Y",
 				"EarthLinearAcceleration - Z",
@@ -307,7 +301,7 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 				"rotation matrix[1,3]", "rotation matrix[3,0]",
 				"rotation matrix[3,1]", "rotation matrix[3,2]",
 				"rotation matrix[3,3]" };
-		mCsvFile.writeFileTitles(names);*/
+		mCsvFile.writeFileTitles(names);
 	}
 
 }

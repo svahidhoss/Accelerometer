@@ -40,6 +40,11 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
+            android:name="com.vahid.accelerometer.FixedAccelerationBarsActivity"
+            android:label="@string/fixedAccelerationBarsActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
             android:name="com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity"
             android:label="@string/activity_bluetooth_devices_title"
             android:screenOrientation="portrait"

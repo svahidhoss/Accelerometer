@@ -56,4 +56,13 @@
         android:onClick="onButtonClicked"
         android:text="@string/btnRunBarsActTitle" />
 
+    <Button
+        android:id="@+id/btnRunAccelAct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnRunBarsAct"
+        android:layout_centerHorizontal="true"
+        android:onClick="onButtonClicked"
+        android:text="Run Acceleration Activity" />
+
 </RelativeLayout>

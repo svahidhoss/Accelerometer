@@ -8,6 +8,7 @@ import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
+import com.vahid.accelerometer.sensors.FixedAccelerationEventListener;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MathUtil;
@@ -83,14 +84,12 @@ public class FixedAccelerationBarsActivity extends Activity {
 	private float[] mFixedrAccelerationValues = new float[] { 0, 0, 0 };
 	private double mAccelerationMagnitude;
 
-	// Calculation of Motion Direction for brake detection
-	private float mCurrentAccelerationBearing;
 
 	// current situation of the activity.
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
 	// Moving Averages
-	private MovingAverage2 accelerationMovingAverageX, accelerationMovingAverageY;
+	private MovingAverage2 mAccelerationMovingAverageX, mAccelerationMovingAverageY;
 	private MovingAverage laMagMovingAverage, mCurAccBearingMovingAverage,
 			mCurMovBearingMovingAverage;
 
@@ -248,9 +247,9 @@ public class FixedAccelerationBarsActivity extends Activity {
 	 */
 	private void initiateMovingAverages() {
 		// earth linear acceleration initiating
-		accelerationMovingAverageX = new MovingAverage2(
+		mAccelerationMovingAverageX = new MovingAverage2(
 				Constants.WINDOW_SIZE_MEDIAN_FILTER);
-		accelerationMovingAverageY = new MovingAverage2(
+		mAccelerationMovingAverageY = new MovingAverage2(
 				Constants.WINDOW_SIZE_MEDIAN_FILTER);
 
 		// used for smoothing the linear acceleration mag.
@@ -423,26 +422,19 @@ public class FixedAccelerationBarsActivity extends Activity {
 				mFixedrAccelerationValues = (float[]) msg.obj;
 
 				// 2. calculate the actual acceleration bearing
-				accelerationMovingAverageX.pushValue(mFixedrAccelerationValues[0]);
-				accelerationMovingAverageY.pushValue(mFixedrAccelerationValues[1]);
-				
-				mCurrentAccelerationBearing = MathUtil
-						.calculateCurrentAccelerationBearing(
-								accelerationMovingAverageX.getMovingAverage(),
-								accelerationMovingAverageY.getMovingAverage());
+				mAccelerationMovingAverageX.pushValue(mFixedrAccelerationValues[0]);
+				mAccelerationMovingAverageY.pushValue(mFixedrAccelerationValues[1]);
+
 
 				// 3.Update the UI (set the value ) as the text of TextViews
 				tvXAxisValue.setText(MathUtil.round(
-						accelerationMovingAverageX.getMovingAverage(), 4));
+						mAccelerationMovingAverageX.getMovingAverage(), 4));
 				tvYAxisValue.setText(MathUtil.round(
-						accelerationMovingAverageY.getMovingAverage(), 4));
+						mAccelerationMovingAverageY.getMovingAverage(), 4));
 
-				// 4. calculate the linear acceleration magnitude. (-z)
-				// We're using the average values instead of the direct values.
-				mAccelerationMagnitude = MathUtil
-						.getVectorMagnitudeMinusZ(
-								accelerationMovingAverageX.getMovingAverage(),
-								accelerationMovingAverageY.getMovingAverage());
+				// 4. calculate the linear acceleration magnitude. (only in y axis because the phone is fixed.)
+				// We're using the average values instead of the raw values.
+				mAccelerationMagnitude = Math.abs(mAccelerationMovingAverageY.getMovingAverage());
 
 				// 5. Detect the situation
 				new DisplayDetectedSituationTask().run();
@@ -484,7 +476,7 @@ public class FixedAccelerationBarsActivity extends Activity {
 			// update UI, for debugging.
 			// check if the values are more than threshold
 			if (mAccelerationMagnitude >= Constants.ACCEL_THRESHOLD) {
-				if (mCurrentAccelerationBearing > Constants.DIFF_DEGREE_BRAKE) {
+				if (mAccelerationMovingAverageY.getMovingAverage() < 0) {
 					mAccelSituation = Constants.BRAKE_DETECTED;
 					// mBackground.setBackgroundResource(R.color.dark_red);
 

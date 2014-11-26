@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
 
 	/**** Defining view fields ****/
 	// 1.Initial views
-	private Button btnConnectBT, btnCheck, btnRunBarsActivity;
+	private Button btnConnectBT, btnCheck, btnRunBarsActivity, btnRunAccelAct;
 	private TextView tvState;
 
 	// Sensor Values: it's important to initialize them.
@@ -91,6 +91,7 @@ public class MainActivity extends Activity {
 
 		btnConnectBT = (Button) findViewById(R.id.btnConnectBT);
 		btnRunBarsActivity = (Button) findViewById(R.id.btnRunBarsAct);
+		btnRunAccelAct = (Button) findViewById(R.id.btnRunAccelAct);
 
 		tvState = (TextView) findViewById(R.id.textViewNotConnected);
 
@@ -130,6 +131,9 @@ public class MainActivity extends Activity {
 		case R.id.btnRunBarsAct:
 			// open the file if set true, otherwise close it.
 			runConnectedBarsActivity();
+			break;
+		case R.id.btnRunAccelAct:
+			runAccelBarsActivity();
 			break;
 		}
 	}
@@ -206,6 +210,14 @@ public class MainActivity extends Activity {
 	 */
 	private void runConnectedBarsActivity() {
 		Intent intent = new Intent(this, ConnectedBarsActivity.class);
+		startActivity(intent);
+	}
+	
+	/**
+	 * Runs the Fixed Acceleration Bars Activity.
+	 */
+	private void runAccelBarsActivity() {
+		Intent intent = new Intent(this, FixedAccelerationBarsActivity.class);
 		startActivity(intent);
 	}
 
