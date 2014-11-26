@@ -16,7 +16,7 @@ import android.opengl.Matrix;
 import android.os.Handler;
 import android.util.Log;
 
-public class AccelerationEventListener implements SensorEventListener,
+public class AccelerationEventListener implements SensorEventListenerInterface,
 		CsvListenerInterface {
 
 	private Handler mHandler;
@@ -52,11 +52,8 @@ public class AccelerationEventListener implements SensorEventListener,
 		this.mHandler = mHandler;
 	}
 
-	/**
-	 * Method that initializes the sensors, after we're connected to the server.
-	 * 
-	 * @param mSensorManager
-	 */
+
+	@Override
 	public void initializeSensors(SensorManager mSensorManager) {
 		this.mSensorManager = mSensorManager;
 
@@ -77,18 +74,11 @@ public class AccelerationEventListener implements SensorEventListener,
 
 	}
 
-	/**
-	 * Register this class as sensor listener with the current delay rate.
-	 */
+
+	@Override
 	public void registerSensors(int curDelayRate) {
 		mSensorManager.unregisterListener(this);
 
-		// TODO change this
-		// mSensorManager.registerListener(this, mAccelerometer,
-		// delayRates[curDelayRate]);
-
-		// mSensorManager.registerListener(this, mOrientation,
-		// delayRates[curDelayRate]);
 
 		mSensorManager.registerListener(this, mMagneticField,
 				Constants.DELAY_RATES[curDelayRate]);
@@ -102,9 +92,8 @@ public class AccelerationEventListener implements SensorEventListener,
 			Log.d(Constants.LOG_TAG, "sensors registered");
 	}
 
-	/**
-	 * Unregisters the sensors on this activity.
-	 */
+
+	@Override
 	public void unregisterSensors() {
 		try {
 			// Be sure that this work in wake_lock (permission to work with

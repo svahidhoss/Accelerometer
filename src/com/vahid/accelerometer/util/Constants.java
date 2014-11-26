@@ -88,6 +88,7 @@ public class Constants {
 	public static final int MOVEMENT_BEARING_MSG = 5;
 	public static final int DECLINATION_MSG = 6;
 	public static final int BRAKE_DETECTED_MSG = 7;
+	public static final int FIXED_ACCEL_VALUE_MSG = 8;
 
 	/**** Settings related constants ****/
 	public static long marginMilliseconds = 300;
