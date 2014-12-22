@@ -17,8 +17,8 @@ public class MovingMedian {
 		this.index = 0;
 		this.size = size;
 
-		upperList = new LinkedList<Float>();
-		lowerList = new LinkedList<Float>();
+		upperList = new LinkedList<>();
+		lowerList = new LinkedList<>();
 
 		lowerQueue = new PriorityQueue<Float>(20, new Comparator<Float>() {
 
