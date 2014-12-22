@@ -117,8 +117,7 @@ public class FixedAccelerationEventListener implements
 				Date date = new Date();
 				mCsvFile.writeToFile(Long.toString(date.getTime()), false);
 				// writing both accelerometer and linear acceleration values in
-				// Y
-				// axis of the phone.
+				// Y axis of the phone.
 				mCsvFile.writeToFile(mAccelerationValues, false);
 				mCsvFile.writeToFile(mLinearAccelerationValues, false);
 

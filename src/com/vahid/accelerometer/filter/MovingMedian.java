@@ -1,6 +1,5 @@
 package com.vahid.accelerometer.filter;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -18,8 +17,8 @@ public class MovingMedian {
 		this.index = 0;
 		this.size = size;
 
-		upperList = new LinkedList<>();
-		lowerList = new LinkedList<>();
+		upperList = new LinkedList<Float>();
+		lowerList = new LinkedList<Float>();
 
 		lowerQueue = new PriorityQueue<Float>(20, new Comparator<Float>() {
 

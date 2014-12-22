@@ -24,7 +24,7 @@ public class MovingAverageTime {
 	private float mAverage;
 	private Date mStartDate;
 	private long mWindowTimeFrame;
-	private boolean oneMinuteOfValuesWithin = false;
+//	private boolean oneMinuteOfValuesWithin = false;
 	private Handler mHandler;
 	private boolean brakeDetected = true;
 
