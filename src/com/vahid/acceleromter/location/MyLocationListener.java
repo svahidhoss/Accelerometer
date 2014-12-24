@@ -92,7 +92,7 @@ public class MyLocationListener implements LocationListener,
 			mCsvFile.writeToFile(location.getTime(), false);
 			mCsvFile.writeToFile(bearing, false);
 			mCsvFile.writeToFile(magneticDeclination, false);
-			mCsvFile.writeToFile(bearingFromMagneticNorth, false);
+			mCsvFile.writeToFile(bearingFromMagneticNorth, true);
 
 		}
 		// latMovingAverage.pushValue(location.);
