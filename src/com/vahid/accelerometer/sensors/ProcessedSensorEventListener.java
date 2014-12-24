@@ -298,11 +298,11 @@ public class ProcessedSensorEventListener implements
 				"rotation matrix[0 1]", "rotation matrix[0 2]",
 				"rotation matrix[0 3]", "rotation matrix[1 0]",
 				"rotation matrix[1 1]", "rotation matrix[1 2]",
-				"rotation matrix[1 3]", "rotation matrix[3 0]",
+				"rotation matrix[1 3]", "rotation matrix[2 0]",
+				"rotation matrix[2 1]", "rotation matrix[2 2]",
+				"rotation matrix[2 3]", "rotation matrix[3 0]",
 				"rotation matrix[3 1]", "rotation matrix[3 2]",
-				"rotation matrix[3 3]", "rotation matrix[4 0]",
-				"rotation matrix[4 1]", "rotation matrix[4 2]",
-				"rotation matrix[4 3]" };
+				"rotation matrix[3 3]" };
 		mCsvFile.writeFileTitles(names);
 	}
 
