@@ -16,8 +16,8 @@ import android.opengl.Matrix;
 import android.os.Handler;
 import android.util.Log;
 
-public class AccelerationEventListener implements SensorEventListenerInterface,
-		CsvListenerInterface {
+public class ProcessedSensorEventListener implements
+		SensorEventListenerInterface, CsvListenerInterface {
 
 	private Handler mHandler;
 
@@ -47,7 +47,7 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 	private boolean savingToFile = false;
 	private CsvFileWriter mCsvFile;
 
-	public AccelerationEventListener(Handler mHandler) {
+	public ProcessedSensorEventListener(Handler mHandler) {
 		this.mHandler = mHandler;
 	}
 
@@ -294,13 +294,15 @@ public class AccelerationEventListener implements SensorEventListenerInterface,
 				"EarthLinearAcceleration - X", "EarthLinearAcceleration - Y",
 				"EarthLinearAcceleration - Z",
 				"Linear Acceleration Magnitude(phone)",
-				"Linear Acceleration Magnitude(earth)", "rotation matrix[0,0]",
-				"rotation matrix[0,1]", "rotation matrix[0,2]",
-				"rotation matrix[0,3]", "rotation matrix[1,0]",
-				"rotation matrix[1,1]", "rotation matrix[1,2]",
-				"rotation matrix[1,3]", "rotation matrix[3,0]",
-				"rotation matrix[3,1]", "rotation matrix[3,2]",
-				"rotation matrix[3,3]" };
+				"Linear Acceleration Magnitude(earth)", "rotation matrix[0 0]",
+				"rotation matrix[0 1]", "rotation matrix[0 2]",
+				"rotation matrix[0 3]", "rotation matrix[1 0]",
+				"rotation matrix[1 1]", "rotation matrix[1 2]",
+				"rotation matrix[1 3]", "rotation matrix[3 0]",
+				"rotation matrix[3 1]", "rotation matrix[3 2]",
+				"rotation matrix[3 3]", "rotation matrix[4 0]",
+				"rotation matrix[4 1]", "rotation matrix[4 2]",
+				"rotation matrix[4 3]" };
 		mCsvFile.writeFileTitles(names);
 	}
 

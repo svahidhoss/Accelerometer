@@ -209,7 +209,7 @@ public class MainActivity extends Activity {
 	 * Runs the connected bar activity.
 	 */
 	private void runConnectedBarsActivity() {
-		Intent intent = new Intent(this, ConnectedBarsActivity.class);
+		Intent intent = new Intent(this, ProcessedAccelerationBarsActivity.class);
 		startActivity(intent);
 	}
 	

@@ -7,7 +7,7 @@ import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
-import com.vahid.accelerometer.sensors.AccelerationEventListener;
+import com.vahid.accelerometer.sensors.ProcessedSensorEventListener;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MathUtil;
@@ -63,7 +63,7 @@ public class ConnectedDebugActivity extends Activity {
 
 	/**** Sensor Related Fields ****/
 	// private SensorManager mSensorManager;
-	private AccelerationEventListener mAccelerationEventListener;
+	private ProcessedSensorEventListener mAccelerationEventListener;
 	private int mCurrentDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
 	// Sensor Values: it's important to initialize them.
@@ -226,7 +226,7 @@ public class ConnectedDebugActivity extends Activity {
 		// we are also ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		mAccelerationEventListener = new AccelerationEventListener(mHandler);
+		mAccelerationEventListener = new ProcessedSensorEventListener(mHandler);
 		mAccelerationEventListener.initializeSensors(mSensorManager);
 		mAccelerationEventListener.registerSensors(mCurrentDelayRate);
 

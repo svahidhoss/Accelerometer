@@ -13,7 +13,7 @@ import android.hardware.SensorManager;
 import android.os.Handler;
 import android.util.Log;
 
-public class FixedAccelerationEventListener implements
+public class FixedAccelerationSensorEventListener implements
 		SensorEventListenerInterface, CsvListenerInterface {
 	private Handler mHandler;
 
@@ -30,7 +30,7 @@ public class FixedAccelerationEventListener implements
 	private boolean savingToFile = false;
 	private CsvFileWriter mCsvFile;
 
-	public FixedAccelerationEventListener(Handler mHandler) {
+	public FixedAccelerationSensorEventListener(Handler mHandler) {
 		this.mHandler = mHandler;
 	}
 

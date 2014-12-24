@@ -8,7 +8,7 @@ import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
-import com.vahid.accelerometer.sensors.AccelerationEventListener;
+import com.vahid.accelerometer.sensors.ProcessedSensorEventListener;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
 import com.vahid.accelerometer.util.MathUtil;
@@ -42,7 +42,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class ConnectedBarsActivity extends Activity {
+public class ProcessedAccelerationBarsActivity extends Activity {
 	/**** Defining view fields ****/
 	private MenuItem miSearchOption;
 	// 2. Connected views
@@ -65,7 +65,7 @@ public class ConnectedBarsActivity extends Activity {
 	private static int mCurrentBTState = Constants.STATE_DISCONNECTED;
 
 	/**** Save to file view fields ****/
-	private CsvFileWriter mCsvSensorsFile, mCsvLocationFile, mCsvProcessedFile;
+	private CsvFileWriter mCsvUnprocessedFile, mCsvLocationFile, mCsvProcessedFile;
 	// boolean to check if it should save to mCsvProcessedFile;
 	private boolean mSavingToProcessedFile = false;
 	// The Runnable task to detect if there's a brake and save to file.
@@ -77,7 +77,7 @@ public class ConnectedBarsActivity extends Activity {
 
 	/**** Sensor Related Fields ****/
 	// private SensorManager mSensorManager;
-	private AccelerationEventListener mAccelerationEventListener;
+	private ProcessedSensorEventListener mAccelerationEventListener;
 	private int mCurrentDelayRate = SensorManager.SENSOR_DELAY_NORMAL;
 
 	// Sensor Values: it's important to initialize them.
@@ -235,8 +235,8 @@ public class ConnectedBarsActivity extends Activity {
 		}
 
 		// close the captured file if not already
-		if (mCsvSensorsFile != null) {
-			mCsvSensorsFile.closeCaptureFile();
+		if (mCsvUnprocessedFile != null) {
+			mCsvUnprocessedFile.closeCaptureFile();
 			checkBoxSaveToFile.setText(R.string.checkBoxSaveToFileInitialMsg);
 		}
 
@@ -248,6 +248,92 @@ public class ConnectedBarsActivity extends Activity {
 			mCsvProcessedFile.closeCaptureFile();
 		}
 	}
+	
+	
+	
+	/**
+	 * Manages all the check boxes of this Activity.
+	 * 
+	 * @param view
+	 */
+	public void onCheckboxClicked(View view) {
+		// Is the view now checked?
+		boolean checked = ((CheckBox) view).isChecked();
+		String displayMsg;
+
+		// Check which checkbox was clicked
+		switch (view.getId()) {
+		case R.id.checkBoxSaveToFile:
+			// open the file if set true, otherwise close it.
+			if (checked) {
+				displayMsg = getString(R.string.checkBoxSaveToFileSavingMsg);
+				
+				// 1.write unprocessed values of linear acceleration values
+				mCsvUnprocessedFile = new CsvFileWriter("Unprocessed_Sensors");
+				mAccelerationEventListener.enableSaveToFile();
+				mAccelerationEventListener.setCsvFile(mCsvUnprocessedFile);
+				displayMsg += "\n" + mCsvUnprocessedFile.getCaptureFileName();
+
+				
+				// 2.Process file that saves values of bearings and car
+				// detection
+				mCsvProcessedFile = new CsvFileWriter("Processed_Sensors");
+				// writing names of the columns:
+				String names[] = { "Time", "Acceleration Bearing", "Movement Bearing",
+						"Acceleration Magnitude", "Acceleration Situation"};
+				mCsvProcessedFile.writeFileTitles(names);
+				
+				this.mSavingToProcessedFile = true;
+				
+				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
+
+				
+				// 3.If GPS is enabled run the csv file for GPS fixes.
+				if (myLocationListener != null) {
+					// created the file for saving location information
+					mCsvLocationFile = new CsvFileWriter("Location_Values");
+					myLocationListener.enableSaveToFile();
+					myLocationListener.setCsvFile(mCsvLocationFile);
+					displayMsg += "\n" + mCsvLocationFile.getCaptureFileName();
+				}
+
+				// 4.update UI
+				checkBoxSaveToFile
+						.setText(R.string.checkBoxSaveToFileSavingMsg);
+				Toast.makeText(this, displayMsg, Toast.LENGTH_SHORT).show();
+
+			} else {
+				displayMsg = getString(R.string.checkBoxSaveToFileStoppedMsg);
+				// 1.Closing the logging files as it had the same importance as
+				// creating them.
+				if (mCsvUnprocessedFile != null) {
+					mAccelerationEventListener.disableSaveToFile();
+					mCsvUnprocessedFile.closeCaptureFile();
+					displayMsg += "\n" + mCsvUnprocessedFile.getCaptureFileName();
+				}
+
+				// 2.Closing the Processed file.
+				this.mSavingToProcessedFile = false;
+				mCsvProcessedFile.closeCaptureFile();
+				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
+
+				// 3.Closing the location file
+				if (mCsvLocationFile != null) {
+					myLocationListener.disableSaveToFile();
+					mCsvLocationFile.closeCaptureFile();
+					displayMsg += "\n" + mCsvLocationFile.getCaptureFileName();
+				}
+
+				// 4.update UI
+				checkBoxSaveToFile
+						.setText(R.string.checkBoxSaveToFileInitialMsg);
+				Toast.makeText(this, displayMsg, Toast.LENGTH_SHORT).show();
+			}
+			break;
+		}
+	}
+	
+	
 
 	/**
 	 * 2nd Important function of this activity. Initializes the views of this
@@ -308,7 +394,7 @@ public class ConnectedBarsActivity extends Activity {
 		// we are also ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		mAccelerationEventListener = new AccelerationEventListener(mHandler);
+		mAccelerationEventListener = new ProcessedSensorEventListener(mHandler);
 		mAccelerationEventListener.initializeSensors(mSensorManager);
 		mAccelerationEventListener.registerSensors(mCurrentDelayRate);
 	}
@@ -353,78 +439,8 @@ public class ConnectedBarsActivity extends Activity {
 
 	}
 
-	/**
-	 * Manages all the check boxes of this Activity.
-	 * 
-	 * @param view
-	 */
-	public void onCheckboxClicked(View view) {
-		// Is the view now checked?
-		boolean checked = ((CheckBox) view).isChecked();
-		String displayMsg;
 
-		// Check which checkbox was clicked
-		switch (view.getId()) {
-		case R.id.checkBoxSaveToFile:
-			// open the file if set true, otherwise close it.
-			if (checked) {
-				displayMsg = getString(R.string.checkBoxSaveToFileSavingMsg);
-				// 1.write unprocessed values of linear acceleration values
-				mCsvSensorsFile = new CsvFileWriter("Sensors");
-				mAccelerationEventListener.enableSaveToFile();
-				mAccelerationEventListener.setCsvFile(mCsvSensorsFile);
-				displayMsg += "\n" + mCsvSensorsFile.getCaptureFileName();
-
-				// 2.Process file that saves values of bearings and car
-				// detection
-				mCsvProcessedFile = new CsvFileWriter("Process");
-				this.mSavingToProcessedFile = true;
-				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
-
-				// 3.If GPS is enabled run the csv file for GPS fixes.
-				if (myLocationListener != null) {
-					// created the file for saving location information
-					mCsvLocationFile = new CsvFileWriter("Location");
-					myLocationListener.enableSaveToFile();
-					myLocationListener.setCsvFile(mCsvLocationFile);
-					displayMsg += "\n" + mCsvLocationFile.getCaptureFileName();
-				}
-
-				// 4.update UI
-				checkBoxSaveToFile
-						.setText(R.string.checkBoxSaveToFileSavingMsg);
-				Toast.makeText(this, displayMsg, Toast.LENGTH_SHORT).show();
-
-			} else {
-				displayMsg = getString(R.string.checkBoxSaveToFileStoppedMsg);
-				// 1.Closing the logging files as it had the same importance as
-				// creating them.
-				if (mCsvSensorsFile != null) {
-					mAccelerationEventListener.disableSaveToFile();
-					mCsvSensorsFile.closeCaptureFile();
-					displayMsg += "\n" + mCsvSensorsFile.getCaptureFileName();
-				}
-
-				// 2.Closing the Processed file.
-				this.mSavingToProcessedFile = false;
-				mCsvProcessedFile.closeCaptureFile();
-				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
-
-				// 3.Closing the location file
-				if (mCsvLocationFile != null) {
-					myLocationListener.disableSaveToFile();
-					mCsvLocationFile.closeCaptureFile();
-					displayMsg += "\n" + mCsvLocationFile.getCaptureFileName();
-				}
-
-				// 4.update UI
-				checkBoxSaveToFile
-						.setText(R.string.checkBoxSaveToFileInitialMsg);
-				Toast.makeText(this, displayMsg, Toast.LENGTH_SHORT).show();
-			}
-			break;
-		}
-	}
+	
 
 	/**
 	 * This handler is used to enable communication with the threads.
@@ -716,7 +732,7 @@ public class ConnectedBarsActivity extends Activity {
 	 */
 	private void enableBluetoothDialog() {
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(
-				ConnectedBarsActivity.this);
+				ProcessedAccelerationBarsActivity.this);
 		// Setting Dialog Title
 		alertDialog.setTitle("Info!");
 		// Setting Dialog Message
@@ -740,7 +756,7 @@ public class ConnectedBarsActivity extends Activity {
 				new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						Toast.makeText(ConnectedBarsActivity.this,
+						Toast.makeText(ProcessedAccelerationBarsActivity.this,
 								R.string.bt_required, Toast.LENGTH_SHORT)
 								.show();
 					}

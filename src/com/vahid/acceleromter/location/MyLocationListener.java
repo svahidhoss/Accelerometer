@@ -1,10 +1,10 @@
 package com.vahid.acceleromter.location;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import com.vahid.accelerometer.filter.MovingAverage;
+//import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.util.CsvListenerInterface;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
@@ -29,16 +29,18 @@ public class MyLocationListener implements LocationListener,
 	private Location currentBestLocation;
 
 	// calculating the bearing to the north?
-	private ArrayList<Location> locations = new ArrayList<Location>();
-	private MovingAverage latMovingAverage = new MovingAverage(5);
-	private MovingAverage longMovingAverage = new MovingAverage(5);
+
+	// private ArrayList<Location> locations = new ArrayList<Location>();
+	// private MovingAverage latMovingAverage = new MovingAverage(5);
+	// private MovingAverage longMovingAverage = new MovingAverage(5);
+
 	private float bearing;
 	private float magneticDeclination;
 	private float bearingFromMagneticNorth;
 
 	// save to file view fields
 	private boolean savingToFile = false;
-	private CsvFileWriter mCsvLocationFile;
+	private CsvFileWriter mCsvFile;
 
 	public MyLocationListener(Context context, Handler mhHandler) {
 		parentContext = context;
@@ -78,20 +80,20 @@ public class MyLocationListener implements LocationListener,
 				Math.round(bearing), Math.round(magneticDeclination),
 				bearingFromMagneticNorth).sendToTarget();
 
-		if (savingToFile && mCsvLocationFile != null) {
+		if (savingToFile && mCsvFile != null) {
 			// current time stamp
 			Date date = new Date();
-			mCsvLocationFile.writeToFile(Long.toString(date.getTime()), false);
-			
-			mCsvLocationFile.writeToFile((float) location.getLatitude(), false);
-			mCsvLocationFile.writeToFile((float) location.getLongitude(), false);
-			mCsvLocationFile.writeToFile(location.getSpeed(), false);
+			mCsvFile.writeToFile(Long.toString(date.getTime()), false);
+
+			mCsvFile.writeToFile((float) location.getLatitude(), false);
+			mCsvFile.writeToFile((float) location.getLongitude(), false);
+			mCsvFile.writeToFile(location.getSpeed(), false);
 			// GPS recieved Time
-			mCsvLocationFile.writeToFile(location.getTime(), false);
-			mCsvLocationFile.writeToFile(bearing, false);
-			mCsvLocationFile.writeToFile(magneticDeclination, false);
-			mCsvLocationFile.writeToFile(bearingFromMagneticNorth, false);
-			
+			mCsvFile.writeToFile(location.getTime(), false);
+			mCsvFile.writeToFile(bearing, false);
+			mCsvFile.writeToFile(magneticDeclination, false);
+			mCsvFile.writeToFile(bearingFromMagneticNorth, false);
+
 		}
 		// latMovingAverage.pushValue(location.);
 		// if (locations.size() >= 10) {
@@ -135,12 +137,11 @@ public class MyLocationListener implements LocationListener,
 	}
 
 	@Override
-	public void setCsvFile(CsvFileWriter csvLocationFile) {
-		this.mCsvLocationFile = csvLocationFile;	
-		/*String names[] = { "Time", "Bearing - True North",
-				"GPS Speed", "Bearing - Magnetic North",
-				"GPS Time" };
-		csvLocationFile.writeFileTitles(names);*/
+	public void setCsvFile(CsvFileWriter csvFile) {
+		this.mCsvFile = csvFile;
+		String names[] = { "Time", "Latitude", "Longitude", "GPS Speed",
+				"GPS Time", "Bearing - True North", "Bearing - Magnetic North" };
+		mCsvFile.writeFileTitles(names);
 	}
 
 	/**

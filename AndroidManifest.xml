@@ -35,7 +35,7 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.vahid.accelerometer.ConnectedBarsActivity"
+            android:name="com.vahid.accelerometer.ProcessedAccelerationBarsActivity"
             android:label="@string/connectedBarsActivity"
             android:screenOrientation="portrait" >
         </activity>

@@ -14,8 +14,8 @@ public class Constants {
 	public static int MAX_LIGHT_LEVEL = 255;
 	
 	// Used in cases of no BT module
-	public static boolean BT_MODULE_EXISTS = true;
-	public static boolean GPS_MODULE_EXISTS = false;
+	public static boolean BT_MODULE_EXISTS = false;
+	public static boolean GPS_MODULE_EXISTS = true;
 
 	public static float MANUAL_BEARING = 0f;
 
