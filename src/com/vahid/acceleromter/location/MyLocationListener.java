@@ -22,11 +22,11 @@ public class MyLocationListener implements LocationListener,
 	// currently two minutes.
 	private static final long MAX_ACCEPTED_TIME = TimeUnit.SECONDS.toMillis(2);
 	// Main activity related fields
-	private Context parentContext;
+	private Context mParentContext;
 	private Handler mHandler;
 
 	// Used for determining best locations
-	private Location currentBestLocation;
+	private Location mCurrentBestLocation;
 
 	// calculating the bearing to the north?
 
@@ -34,16 +34,16 @@ public class MyLocationListener implements LocationListener,
 	// private MovingAverage latMovingAverage = new MovingAverage(5);
 	// private MovingAverage longMovingAverage = new MovingAverage(5);
 
-	private float bearing;
-	private float magneticDeclination;
-	private float bearingFromMagneticNorth;
+	private float mBearing;
+	private float mMagneticDeclination;
+	private float mBearingFromMagneticNorth;
 
 	// save to file view fields
-	private boolean savingToFile = false;
+	private boolean mSavingToFile = false;
 	private CsvFileWriter mCsvFile;
 
 	public MyLocationListener(Context context, Handler mhHandler) {
-		parentContext = context;
+		mParentContext = context;
 		this.mHandler = mhHandler;
 	}
 
@@ -58,29 +58,29 @@ public class MyLocationListener implements LocationListener,
 
 		// if it's the first time, or if the new location is better use it as
 		// the new best location.
-		if (isBetterLocation(location, currentBestLocation)
-				|| currentBestLocation == null) {
-			currentBestLocation = location;
+		if (isBetterLocation(location, mCurrentBestLocation)
+				|| mCurrentBestLocation == null) {
+			mCurrentBestLocation = location;
 		}
 
-		bearing = location.getBearing();
-		magneticDeclination = getMagneticDeclination(location);
-		bearingFromMagneticNorth = bearing - magneticDeclination;
+		mBearing = location.getBearing();
+		mMagneticDeclination = getMagneticDeclination(location);
+		mBearingFromMagneticNorth = mBearing - mMagneticDeclination;
 
 		String Text = "My current location is: \n" + "Latitude = "
 				+ location.getLatitude() + "\n" + "Longitude = "
 				+ location.getLongitude() + "\nMy Speed is: "
-				+ location.getSpeed() + "\nMy Bearing is: " + bearing
-				+ "\nMy Dclination is: " + magneticDeclination;
+				+ location.getSpeed() + "\nMy Bearing is: " + mBearing
+				+ "\nMy Dclination is: " + mMagneticDeclination;
 
-		Toast.makeText(parentContext, Text, Toast.LENGTH_SHORT).show();
+		Toast.makeText(mParentContext, Text, Toast.LENGTH_SHORT).show();
 
 		// sending back the degree between
 		mHandler.obtainMessage(Constants.MOVEMENT_BEARING_MSG,
-				Math.round(bearing), Math.round(magneticDeclination),
-				bearingFromMagneticNorth).sendToTarget();
+				Math.round(mBearing), Math.round(mMagneticDeclination),
+				mBearingFromMagneticNorth).sendToTarget();
 
-		if (savingToFile && mCsvFile != null) {
+		if (mSavingToFile && mCsvFile != null) {
 			// current time stamp
 			Date date = new Date();
 			mCsvFile.writeToFile(Long.toString(date.getTime()), false);
@@ -90,9 +90,9 @@ public class MyLocationListener implements LocationListener,
 			mCsvFile.writeToFile(location.getSpeed(), false);
 			// GPS recieved Time
 			mCsvFile.writeToFile(location.getTime(), false);
-			mCsvFile.writeToFile(bearing, false);
-			mCsvFile.writeToFile(magneticDeclination, false);
-			mCsvFile.writeToFile(bearingFromMagneticNorth, true);
+			mCsvFile.writeToFile(mBearing, false);
+			mCsvFile.writeToFile(mBearingFromMagneticNorth, false);
+			mCsvFile.writeToFile(mMagneticDeclination, true);
 
 		}
 		// latMovingAverage.pushValue(location.);
@@ -116,31 +116,32 @@ public class MyLocationListener implements LocationListener,
 	// phone)
 	@Override
 	public void onProviderEnabled(String provider) {
-		Toast.makeText(parentContext, "Gps Enabled", Toast.LENGTH_SHORT).show();
+		Toast.makeText(mParentContext, "Gps Enabled", Toast.LENGTH_SHORT).show();
 	}
 
 	// called when the status of the GPS provider changes
 	@Override
 	public void onProviderDisabled(String provider) {
-		Toast.makeText(parentContext, "Gps Disabled", Toast.LENGTH_SHORT)
+		Toast.makeText(mParentContext, "Gps Disabled", Toast.LENGTH_SHORT)
 				.show();
 	}
 
 	@Override
 	public void enableSaveToFile() {
-		this.savingToFile = true;
+		this.mSavingToFile = true;
 	}
 
 	@Override
 	public void disableSaveToFile() {
-		this.savingToFile = false;
+		this.mSavingToFile = false;
 	}
 
 	@Override
 	public void setCsvFile(CsvFileWriter csvFile) {
 		this.mCsvFile = csvFile;
 		String names[] = { "Time", "Latitude", "Longitude", "GPS Speed",
-				"GPS Time", "Bearing - True North", "Bearing - Magnetic North" };
+				"GPS Time", "Bearing - True North", "Bearing - Magnetic North",
+				"Magnetic Declination" };
 		mCsvFile.writeFileTitles(names);
 	}
 
