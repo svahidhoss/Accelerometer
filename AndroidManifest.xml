@@ -35,12 +35,12 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.vahid.accelerometer.ProcessedAccelerationBarsActivity"
+            android:name="com.vahid.accelerometer.ProcessingAccelerationActivity"
             android:label="@string/connectedBarsActivity"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.vahid.accelerometer.FixedAccelerationBarsActivity"
+            android:name="com.vahid.accelerometer.FixedPhoneAccelerationActivity"
             android:label="@string/fixedAccelerationBarsActivity"
             android:screenOrientation="portrait" >
         </activity>
