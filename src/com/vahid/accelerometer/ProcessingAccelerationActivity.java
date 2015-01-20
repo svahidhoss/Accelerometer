@@ -8,6 +8,7 @@ import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
+import com.vahid.accelerometer.filter.MovingMedian;
 import com.vahid.accelerometer.sensors.ProcessedSensorEventListener;
 import com.vahid.accelerometer.util.Constants;
 import com.vahid.accelerometer.util.CsvFileWriter;
@@ -65,7 +66,8 @@ public class ProcessingAccelerationActivity extends Activity {
 	private static int mCurrentBTState = Constants.STATE_DISCONNECTED;
 
 	/**** Save to file view fields ****/
-	private CsvFileWriter mCsvUnprocessedFile, mCsvLocationFile, mCsvProcessedFile;
+	private CsvFileWriter mCsvUnprocessedFile, mCsvLocationFile,
+			mCsvProcessedFile;
 	// boolean to check if it should save to mCsvProcessedFile;
 	private boolean mSavingToProcessedFile = false;
 	// The Runnable task to detect if there's a brake and save to file.
@@ -94,7 +96,7 @@ public class ProcessingAccelerationActivity extends Activity {
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
 	// Moving Averages
-	private MovingAverage2 elaMovingAverageX, elaMovingAverageY;
+	private MovingMedian elaMovingAverageX, elaMovingAverageY;
 	private MovingAverage laMagMovingAverage, mCurAccBearingMovingAverage,
 			mCurMovBearingMovingAverage;
 
@@ -248,9 +250,7 @@ public class ProcessingAccelerationActivity extends Activity {
 			mCsvProcessedFile.closeCaptureFile();
 		}
 	}
-	
-	
-	
+
 	/**
 	 * Manages all the check boxes of this Activity.
 	 * 
@@ -267,27 +267,26 @@ public class ProcessingAccelerationActivity extends Activity {
 			// open the file if set true, otherwise close it.
 			if (checked) {
 				displayMsg = getString(R.string.checkBoxSaveToFileSavingMsg);
-				
+
 				// 1.write unprocessed values of linear acceleration values
 				mCsvUnprocessedFile = new CsvFileWriter("Unprocessed_Sensors");
 				mAccelerationEventListener.enableSaveToFile();
 				mAccelerationEventListener.setCsvFile(mCsvUnprocessedFile);
 				displayMsg += "\n" + mCsvUnprocessedFile.getCaptureFileName();
 
-				
 				// 2.Process file that saves values of bearings and car
 				// detection
 				mCsvProcessedFile = new CsvFileWriter("Processed_Sensors");
 				// writing names of the columns:
-				String names[] = { "Time", "Acceleration Bearing", "Movement Bearing",
-						"Acceleration Magnitude", "Acceleration Situation"};
+				String names[] = { "Time", "Acceleration Bearing",
+						"Movement Bearing", "Acceleration Magnitude",
+						"Acceleration Situation" };
 				mCsvProcessedFile.writeFileTitles(names);
-				
+
 				this.mSavingToProcessedFile = true;
-				
+
 				displayMsg += "\n" + mCsvProcessedFile.getCaptureFileName();
 
-				
 				// 3.If GPS is enabled run the csv file for GPS fixes.
 				if (myLocationListener != null) {
 					// created the file for saving location information
@@ -309,7 +308,8 @@ public class ProcessingAccelerationActivity extends Activity {
 				if (mCsvUnprocessedFile != null) {
 					mAccelerationEventListener.disableSaveToFile();
 					mCsvUnprocessedFile.closeCaptureFile();
-					displayMsg += "\n" + mCsvUnprocessedFile.getCaptureFileName();
+					displayMsg += "\n"
+							+ mCsvUnprocessedFile.getCaptureFileName();
 				}
 
 				// 2.Closing the Processed file.
@@ -332,8 +332,6 @@ public class ProcessingAccelerationActivity extends Activity {
 			break;
 		}
 	}
-	
-	
 
 	/**
 	 * 2nd Important function of this activity. Initializes the views of this
@@ -369,9 +367,10 @@ public class ProcessingAccelerationActivity extends Activity {
 	 */
 	private void initiateMovingAverages() {
 		// earth linear acceleration initiating
-		elaMovingAverageX = new MovingAverage2(
+		// TODO temp changed to moving median for testing
+		elaMovingAverageX = new MovingMedian(
 				Constants.WINDOW_SIZE_MEDIAN_FILTER);
-		elaMovingAverageY = new MovingAverage2(
+		elaMovingAverageY = new MovingMedian(
 				Constants.WINDOW_SIZE_MEDIAN_FILTER);
 
 		// used for smoothing the linear acceleration mag.
@@ -380,8 +379,8 @@ public class ProcessingAccelerationActivity extends Activity {
 		// used for smoothing the bearing values.
 		mCurAccBearingMovingAverage = new MovingAverage(
 				Constants.WINDOW_SIZE_SMA_FILTER);
-		mCurMovBearingMovingAverage = new MovingAverage(
-				Constants.WINDOW_SIZE_SMA_FILTER);
+		// TODO temp changed to 1 for testing
+		mCurMovBearingMovingAverage = new MovingAverage(1);
 
 		decelerationMovingAverageTime = new MovingAverageTime(
 				Constants.WINDOW_SIZE_IN_MILI_SEC, mHandler);
@@ -438,9 +437,6 @@ public class ProcessingAccelerationActivity extends Activity {
 				});
 
 	}
-
-
-	
 
 	/**
 	 * This handler is used to enable communication with the threads.
@@ -506,14 +502,14 @@ public class ProcessingAccelerationActivity extends Activity {
 
 				mCurrentAccelerationBearing = MathUtil
 						.calculateCurrentAccelerationBearing(
-								elaMovingAverageY.getMovingAverage(),
-								elaMovingAverageX.getMovingAverage());
+								elaMovingAverageY.getAverage(),
+								elaMovingAverageX.getAverage());
 
 				// 3.Update the UI (set the value ) as the text of TextViews
 				tvXAxisValue.setText(MathUtil.round(
-						elaMovingAverageX.getMovingAverage(), 4));
+						elaMovingAverageX.getAverage(), 4));
 				tvYAxisValue.setText(MathUtil.round(
-						elaMovingAverageY.getMovingAverage(), 4));
+						elaMovingAverageY.getAverage(), 4));
 
 				// 4. calculate the linear acceleration magnitude. (-z)
 				/*
@@ -524,8 +520,8 @@ public class ProcessingAccelerationActivity extends Activity {
 				// We're using the average values instead of the direct values.
 				mLinearAccelerationMagnitude = MathUtil
 						.getVectorMagnitudeMinusZ(
-								elaMovingAverageX.getMovingAverage(),
-								elaMovingAverageY.getMovingAverage());
+								elaMovingAverageX.getAverage(),
+								elaMovingAverageY.getAverage());
 
 				// 5. Detect the situation
 				new DisplayDetectedSituationTask().run();
@@ -641,17 +637,19 @@ public class ProcessingAccelerationActivity extends Activity {
 					mAccelSituation = Constants.ACCEL_DETECTED;
 					// mBackground.setBackgroundResource(R.color.dark_green);
 					decelerationMovingAverageTime.clearValues();
-					
+
 					mBrakeProgressBar.setProgress(0);
 					mAccelProgressBar.setProgress(progressPercentage);
 
 				}
-				
-				// sending the brake/acceleratiuon intensity to BT module-Arduino
+
+				// sending the brake/acceleratiuon intensity to BT
+				// module-Arduino
 				if (Constants.BT_MODULE_EXISTS) {
-					writeToBluetoothDevice(mLinearAccelerationMagnitude, mAccelSituation);
+					writeToBluetoothDevice(mLinearAccelerationMagnitude,
+							mAccelSituation);
 				}
-				
+
 			} else {
 				mAccelSituation = Constants.NO_MOVE_DETECTED;
 				decelerationMovingAverageTime.clearValues();
@@ -687,17 +685,17 @@ public class ProcessingAccelerationActivity extends Activity {
 	 * Bluetooth connected module.
 	 * 
 	 * @param magnitude
-	 * @param accelDetected 
+	 * @param accelDetected
 	 */
 	private void writeToBluetoothDevice(double magnitude, int accelSituation) {
 		// calculate light intensity to be used for pwm display of light amount
 		int lightIntensity = (int) (magnitude * Constants.MAX_LIGHT_LEVEL / Constants.MAX_ACCEL);
-		
+
 		// commented the use of green and red at the same time; not good results
-//		if (accelSituation == Constants.ACCEL_DETECTED) {
-//			// if accel. add 128 to it
-//			lightIntensity = lightIntensity + Constants.MAX_LIGHT_LEVEL;
-//		}
+		// if (accelSituation == Constants.ACCEL_DETECTED) {
+		// // if accel. add 128 to it
+		// lightIntensity = lightIntensity + Constants.MAX_LIGHT_LEVEL;
+		// }
 
 		byte[] resultBytes = MathUtil.intToByteArray(lightIntensity);
 
@@ -706,7 +704,7 @@ public class ProcessingAccelerationActivity extends Activity {
 		 * tempMagnitude = (float) magnitude; byte[] resultBytes2 =
 		 * MathUtil.floatToByteArray(tempMagnitude);
 		 */
-		
+
 		// only the last byte out of 4 bytes in int is important.
 		mConnectedThread.write(resultBytes[3]);
 	}

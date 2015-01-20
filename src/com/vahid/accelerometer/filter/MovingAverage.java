@@ -16,7 +16,7 @@ public class MovingAverage {
 	/**
 	 * Get the current moving average.
 	 */
-	public float getMovingAverage() {
+	public float getAverage() {
 		return mAverage;
 	}
 

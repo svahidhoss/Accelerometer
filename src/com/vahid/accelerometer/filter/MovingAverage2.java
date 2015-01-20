@@ -36,7 +36,7 @@ public class MovingAverage2 {
 	 * 
 	 * @return
 	 */
-	public double getMovingAverage() {
+	public double getAverage() {
 		// technically the average is undefined
 		if (window.isEmpty())
 			return 0;

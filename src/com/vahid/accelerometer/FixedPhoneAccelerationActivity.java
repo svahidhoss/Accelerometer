@@ -438,13 +438,13 @@ public class FixedPhoneAccelerationActivity extends Activity {
 
 				// 3.Update the UI (set the value ) as the text of TextViews
 				tvXAxisValue.setText(MathUtil.round(
-						mAccelerationMovingAverageX.getMovingAverage(), 4));
+						mAccelerationMovingAverageX.getAverage(), 4));
 				tvYAxisValue.setText(MathUtil.round(
-						mAccelerationMovingAverageY.getMovingAverage(), 4));
+						mAccelerationMovingAverageY.getAverage(), 4));
 
 				// 4. calculate the linear acceleration magnitude. (only in y axis because the phone is fixed.)
 				// We're using the average values instead of the raw values.
-				mPhoneAccelerationLevelY = mAccelerationMovingAverageY.getMovingAverage();
+				mPhoneAccelerationLevelY = mAccelerationMovingAverageY.getAverage();
 
 				// 5. Detect the situation
 				new DisplayDetectedSituationTask().run();
@@ -479,15 +479,15 @@ public class FixedPhoneAccelerationActivity extends Activity {
 		public void run() {
 			// 5. updating the UI with Acceleration Magnitude
 			tvFinalValue.setText(MathUtil
-					.round(mAccelerationMovingAverageY.getMovingAverage(), 3));
-			int progressPercentage = (int) Math.abs(mAccelerationMovingAverageY.getMovingAverage() * 5);
+					.round(mAccelerationMovingAverageY.getAverage(), 3));
+			int progressPercentage = (int) Math.abs(mAccelerationMovingAverageY.getAverage() * 5);
 
 			// update UI, for debugging:
 			
 			// check if the values are more than threshold
-			if (Math.abs(mAccelerationMovingAverageY.getMovingAverage()) >= Constants.ACCEL_THRESHOLD) {
+			if (Math.abs(mAccelerationMovingAverageY.getAverage()) >= Constants.ACCEL_THRESHOLD) {
 				// brake is happening
-				if (mAccelerationMovingAverageY.getMovingAverage() < 0) {
+				if (mAccelerationMovingAverageY.getAverage() < 0) {
 					mAccelSituation = Constants.BRAKE_DETECTED;
 
 					// TODO: To make sure if it's a brake.

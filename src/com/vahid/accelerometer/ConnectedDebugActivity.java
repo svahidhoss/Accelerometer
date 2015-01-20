@@ -412,22 +412,22 @@ public class ConnectedDebugActivity extends Activity {
 
 				mCurrentAccelerationBearing = MathUtil
 						.calculateCurrentAccelerationBearing(
-								elaMovingAverageY.getMovingAverage(),
-								elaMovingAverageX.getMovingAverage());
+								elaMovingAverageY.getAverage(),
+								elaMovingAverageX.getAverage());
 
 				// 3.Update the UI (set the value ) as the text of every
 				// TextView
 				tvXAxisValue.setText(MathUtil.round(
-						elaMovingAverageX.getMovingAverage(), 6));
+						elaMovingAverageX.getAverage(), 6));
 				tvYAxisValue.setText(MathUtil.round(
-						elaMovingAverageY.getMovingAverage(), 6));
+						elaMovingAverageY.getAverage(), 6));
 				tvZAxisValue.setText(MathUtil.round(
-						elaMovingAverageZ.getMovingAverage(), 6));
+						elaMovingAverageZ.getAverage(), 6));
 
 				// 4. calculate the linear acceleration mag. (-z)
 				mLinearAccelerationMagnitude = MathUtil
-						.getVectorMagnitudeMinusZ(elaMovingAverageY.getMovingAverage(),
-								elaMovingAverageX.getMovingAverage());
+						.getVectorMagnitudeMinusZ(elaMovingAverageY.getAverage(),
+								elaMovingAverageX.getAverage());
 				// laMagMovingAverage
 				// .pushValue((float) mLinearAccelerationMagnitude);
 

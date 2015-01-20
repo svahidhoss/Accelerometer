@@ -29,8 +29,8 @@ public class Constants {
 	public static final int MAC_ADDRESS_CHAR_LENGTH = 17;
 
 	/** GPS values **/
-	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(5);
-	public static float GPS_MIN_DISTANCE_METER = 5;
+	public static long GPS_MIN_TIME_MIL_SEC = TimeUnit.SECONDS.toMillis(1);
+	public static float GPS_MIN_DISTANCE_METER = 2;
 	public static long SHUT_DOWN_AFTER_SEC = 20;
 
 	/** Path Change Detection **/

@@ -68,7 +68,7 @@ public class MovingMedian {
 		index++;
 	}
 
-	public double getMedian() {
+	public double getAverage() {
 		// returning the median
 		if (upperQueue.size() == lowerQueue.size())
 			return (upperQueue.peek() + lowerQueue.peek()) / 2.0;
