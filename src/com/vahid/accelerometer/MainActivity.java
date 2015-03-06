@@ -27,38 +27,31 @@ public class MainActivity extends Activity {
 	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
 			.getDefaultAdapter();
 
-
 	/**** Defining view fields ****/
 	// 1.Initial views
-	private Button btnConnectBT, btnCheck, btnRunBarsActivity, btnRunAccelAct;
+	private Button btnConnectBT;
+
 	private TextView tvState;
 
-	// Sensor Values: it's important to initialize them.
-	private float[] acceleromterValues = new float[] { 0, 0, 0 };
-
-	/**** Alex values ****/
-	// --- Filters ---
-	boolean breakOn = false; // on when is more than one minimum defined
-								// (Constant.precision)
-	boolean breakReal = false; // when the braking is more long than
-								// (Constant.marginMilliseconds)
-	Calendar breakInitializedTime = null;
-
-	// ****calculate angles average
-	boolean noise = false;
-	boolean onAngles = false;
-	float sum_angles1 = 0f;
-	float sum_angles1_aux = 0f;
-	float sum_angles2 = 0f;
-	float sum_angles2_aux = 0f;
-	int n = 0;
-	int n_aux = 0;
-	float[] orientationValuesEarlier = new float[] { 0, 0, 0 };
-
-	// *****end*angles average
-
-	// -end--filters--
-
+	/**** Alex values - Not used in my app ****/
+	/*
+	 * // Sensor Values: it's important to initialize them. private Button
+	 * btnCheck, btnRunBarsActivity, btnRunAccelAct; private float[]
+	 * acceleromterValues = new float[] { 0, 0, 0 }; // --- Filters --- boolean
+	 * breakOn = false; // on when is more than one minimum defined //
+	 * (Constant.precision) boolean breakReal = false; // when the braking is
+	 * more long than // (Constant.marginMilliseconds) Calendar
+	 * breakInitializedTime = null;
+	 * 
+	 * // ****calculate angles average boolean noise = false; boolean onAngles =
+	 * false; float sum_angles1 = 0f; float sum_angles1_aux = 0f; float
+	 * sum_angles2 = 0f; float sum_angles2_aux = 0f; int n = 0; int n_aux = 0;
+	 * float[] orientationValuesEarlier = new float[] { 0, 0, 0 };
+	 * 
+	 * // *****end*angles average
+	 * 
+	 * // -end--filters--
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -90,8 +83,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		btnConnectBT = (Button) findViewById(R.id.btnConnectBT);
-		btnRunBarsActivity = (Button) findViewById(R.id.btnRunBarsAct);
-		btnRunAccelAct = (Button) findViewById(R.id.btnRunAccelAct);
+		// btnRunBarsActivity = (Button) findViewById(R.id.btnRunBarsAct);
+		// btnRunAccelAct = (Button) findViewById(R.id.btnRunAccelAct);
 
 		tvState = (TextView) findViewById(R.id.textViewNotConnected);
 
@@ -120,13 +113,7 @@ public class MainActivity extends Activity {
 	public void onButtonClicked(View view) {
 		switch (view.getId()) {
 		case R.id.btnConnectBT:
-			// open the file if set true, otherwise close it.
-//			if (Constants.BT_MODULE_EXISTS)
-//				initializeBluetooth();
-//			else {
-				runConnectedDebugActivity();
-//				return;
-//			}
+			runConnectedDebugActivity();
 			break;
 		case R.id.btnRunBarsAct:
 			// open the file if set true, otherwise close it.
@@ -138,7 +125,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	
 	/**
 	 * Dialog that is displayed when no bluetooth is found on the device. The
 	 * app then closes.
@@ -149,7 +135,6 @@ public class MainActivity extends Activity {
 		ImageView ivError = (ImageView) findViewById(R.id.imageViewWrong);
 		ivError.setVisibility(View.VISIBLE);
 	}
-
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -169,10 +154,6 @@ public class MainActivity extends Activity {
 		}
 
 	}
-
-
-
-
 
 	/**
 	 * Using the following function of "clicking TWICE the back button to exit
@@ -212,7 +193,7 @@ public class MainActivity extends Activity {
 		Intent intent = new Intent(this, ProcessingAccelerationActivity.class);
 		startActivity(intent);
 	}
-	
+
 	/**
 	 * Runs the Fixed Acceleration Bars Activity.
 	 */
@@ -221,47 +202,43 @@ public class MainActivity extends Activity {
 		startActivity(intent);
 	}
 
-	private void writeToBluetoothDevice(double magnitude) {
-		// ****writing also the module when brake is real.
-		double moduleReal;
-		if (breakReal) {
-			moduleReal = magnitude;
-		} else {
-			moduleReal = 0;
-		}
-
-		// ---with the idea of write this data and send by bluetooth,
-		// first it's necessary to covert them to byte...
-		byte[] x = MathUtil.doubleToByteArray(acceleromterValues[0]);
-		byte[] y = MathUtil.doubleToByteArray(acceleromterValues[1]);
-		byte[] z = MathUtil.doubleToByteArray(acceleromterValues[2]);
-		byte[] mod_byte = MathUtil.doubleToByteArray(magnitude);
-		byte[] xyz_and_Mod = new byte[8 * 4];
-
-		xyz_and_Mod = MathUtil.concatenateBytes(
-				MathUtil.concatenateBytes(MathUtil.concatenateBytes(x, y), z),
-				mod_byte);
-		// ---
-
-		byte[] moduleRealByte = MathUtil.doubleToByteArray(moduleReal);
-		byte[] all = new byte[8 * 4 + 8];
-		all = MathUtil.concatenateBytes(xyz_and_Mod, moduleRealByte);
-
-//		mConnectedThread.write(all);
-		
-		// ********write angles
-		/*
-		 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =
-		 * mmath.toByteArray(orientationValues[1]); byte[] roll =
-		 * mmath.toByteArray(orientationValues[2]); byte[] anglesByte =
-		 * mmath.concatenateBytes(mmath.concatenateBytes(az, pitch), roll);
-		 * 
-		 * connected.write(mmath.concatenateBytes(anglesByte, mod_byte));
-		 */
-		// /****end write angles
-
-		// *****end***writing also the module when brake is real.
-
-	}
+	/*
+	 * private void writeToBluetoothDevice(double magnitude) { // ****writing
+	 * also the module when brake is real. double moduleReal; if (breakReal) {
+	 * moduleReal = magnitude; } else { moduleReal = 0; }
+	 * 
+	 * // ---with the idea of write this data and send by bluetooth, // first
+	 * it's necessary to covert them to byte... byte[] x =
+	 * MathUtil.doubleToByteArray(acceleromterValues[0]); byte[] y =
+	 * MathUtil.doubleToByteArray(acceleromterValues[1]); byte[] z =
+	 * MathUtil.doubleToByteArray(acceleromterValues[2]); byte[] mod_byte =
+	 * MathUtil.doubleToByteArray(magnitude); byte[] xyz_and_Mod = new byte[8 *
+	 * 4];
+	 * 
+	 * xyz_and_Mod = MathUtil.concatenateBytes(
+	 * MathUtil.concatenateBytes(MathUtil.concatenateBytes(x, y), z), mod_byte);
+	 * // ---
+	 * 
+	 * byte[] moduleRealByte = MathUtil.doubleToByteArray(moduleReal); byte[]
+	 * all = new byte[8 * 4 + 8]; all = MathUtil.concatenateBytes(xyz_and_Mod,
+	 * moduleRealByte);
+	 * 
+	 * // mConnectedThread.write(all);
+	 * 
+	 * // ********write angles
+	 * 
+	 * byte[] az = mmath.toByteArray(orientationValues[0]); byte[] pitch =
+	 * mmath.toByteArray(orientationValues[1]); byte[] roll =
+	 * mmath.toByteArray(orientationValues[2]); byte[] anglesByte =
+	 * mmath.concatenateBytes(mmath.concatenateBytes(az, pitch), roll);
+	 * 
+	 * connected.write(mmath.concatenateBytes(anglesByte, mod_byte));
+	 * 
+	 * // /****end write angles
+	 * 
+	 * // *****end***writing also the module when brake is real.
+	 * 
+	 * }
+	 */
 
 }

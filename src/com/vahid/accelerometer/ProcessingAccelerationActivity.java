@@ -6,7 +6,6 @@ import com.vahid.accelerometer.bluetooth.BluetoothDevicesActivity;
 import com.vahid.accelerometer.bluetooth.ConnectThread;
 import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
-import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
 import com.vahid.accelerometer.filter.MovingMedian;
 import com.vahid.accelerometer.sensors.ProcessedSensorEventListener;

@@ -72,7 +72,10 @@ public class ConnectThread extends Thread {
 		// manageConnectedSocket(bluetoothSocket);
 	}
 
-	/** Will cancel an in-progress connection, and close the socket */
+	/** 
+	 * Will cancel an in-progress connection, and close the socket.
+	 * 
+	 */
 	public void cancel() {
 		try {
 			bluetoothSocket.close();
@@ -87,7 +90,7 @@ public class ConnectThread extends Thread {
 
 	/**
 	 * Method that sends back the current status of connection back to the
-	 * handler (on Main Activity)
+	 * handler (on Main Activity).
 	 * 
 	 * @param messageNumber
 	 */

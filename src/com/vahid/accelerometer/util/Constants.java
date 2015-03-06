@@ -30,7 +30,7 @@ public class Constants {
 
 	/** GPS values **/
 	public static long GPS_MIN_TIME_MIL_SEC = 500;
-	public static float GPS_MIN_DISTANCE_METER = 2;
+	public static float GPS_MIN_DISTANCE_METER = 1;
 	public static long SHUT_DOWN_AFTER_SEC = 20;
 
 	/** Path Change Detection **/

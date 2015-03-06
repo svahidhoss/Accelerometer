@@ -84,12 +84,12 @@ public class FixedPhoneAccelerationActivity extends Activity {
 	private float[] mFixedrAccelerationValues = new float[] { 0, 0, 0 };
 	private double mPhoneAccelerationLevelY;
 
-
 	// current situation of the activity.
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
-	// Moving Averages
-	private MovingAverage2 mAccelerationMovingAverageX, mAccelerationMovingAverageY;
+	// Moving Averages for filtering
+	private MovingAverage2 mAccelerationMovingAverageX,
+			mAccelerationMovingAverageY;
 	private MovingAverage laMagMovingAverage, mCurAccBearingMovingAverage,
 			mCurMovBearingMovingAverage;
 
@@ -212,9 +212,7 @@ public class FixedPhoneAccelerationActivity extends Activity {
 			checkBoxSaveToFile.setText(R.string.checkBoxSaveToFileInitialMsg);
 		}
 	}
-	
-	
-	
+
 	/**
 	 * Manages all the check boxes of this Activity.
 	 * 
@@ -261,7 +259,6 @@ public class FixedPhoneAccelerationActivity extends Activity {
 			break;
 		}
 	}
-	
 
 	/**
 	 * 2nd Important function of this activity. Initializes the views of this
@@ -283,9 +280,9 @@ public class FixedPhoneAccelerationActivity extends Activity {
 		tvRotationDegreeValue = (TextView) findViewById(R.id.rotationDegreeeValue);
 		tvAccelerationDegreeValue = (TextView) findViewById(R.id.accelerationDegreeeValue);
 		tvFinalTitle = (TextView) findViewById(R.id.finalTitle);
-		
+
 		// Changing the title of the common layout bars
-		tvFinalTitle.setText("Phone Accel.:");  
+		tvFinalTitle.setText("Phone Accel.:");
 
 		// tvBrake = (TextView) findViewById(R.id.brakeTextView);
 		// tvBrakeValue = (TextView) findViewById(R.id.brakeValueTextView);
@@ -326,7 +323,8 @@ public class FixedPhoneAccelerationActivity extends Activity {
 		// we are also ready to use the sensor and send the information of the
 		// brakes, so...
 		SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		mFixedAccelerationEventListener = new FixedAccelerationSensorEventListener(mHandler);
+		mFixedAccelerationEventListener = new FixedAccelerationSensorEventListener(
+				mHandler);
 		mFixedAccelerationEventListener.initializeSensors(mSensorManager);
 		mFixedAccelerationEventListener.registerSensors(mCurrentDelayRate);
 	}
@@ -371,13 +369,11 @@ public class FixedPhoneAccelerationActivity extends Activity {
 
 	}
 
-
-
 	/**
 	 * This handler is used to enable communication with the threads.
 	 */
 	private final Handler mHandler = new Handler() {
-		private int bearingCounter = 0;
+		// private int bearingCounter = 0;
 
 		@Override
 		public void handleMessage(Message msg) {
@@ -432,9 +428,10 @@ public class FixedPhoneAccelerationActivity extends Activity {
 				mFixedrAccelerationValues = (float[]) msg.obj;
 
 				// 2. calculate the actual acceleration bearing
-				mAccelerationMovingAverageX.pushValue(mFixedrAccelerationValues[0]);
-				mAccelerationMovingAverageY.pushValue(mFixedrAccelerationValues[1]);
-
+				mAccelerationMovingAverageX
+						.pushValue(mFixedrAccelerationValues[0]);
+				mAccelerationMovingAverageY
+						.pushValue(mFixedrAccelerationValues[1]);
 
 				// 3.Update the UI (set the value ) as the text of TextViews
 				tvXAxisValue.setText(MathUtil.round(
@@ -442,13 +439,14 @@ public class FixedPhoneAccelerationActivity extends Activity {
 				tvYAxisValue.setText(MathUtil.round(
 						mAccelerationMovingAverageY.getAverage(), 4));
 
-				// 4. calculate the linear acceleration magnitude. (only in y axis because the phone is fixed.)
+				// 4. calculate the linear acceleration magnitude. (only in y
+				// axis because the phone is fixed.)
 				// We're using the average values instead of the raw values.
-				mPhoneAccelerationLevelY = mAccelerationMovingAverageY.getAverage();
+				mPhoneAccelerationLevelY = mAccelerationMovingAverageY
+						.getAverage();
 
 				// 5. Detect the situation
 				new DisplayDetectedSituationTask().run();
-
 
 				break;
 			case Constants.BRAKE_DETECTED_MSG:
@@ -478,12 +476,13 @@ public class FixedPhoneAccelerationActivity extends Activity {
 		@Override
 		public void run() {
 			// 5. updating the UI with Acceleration Magnitude
-			tvFinalValue.setText(MathUtil
-					.round(mAccelerationMovingAverageY.getAverage(), 3));
-			int progressPercentage = (int) Math.abs(mAccelerationMovingAverageY.getAverage() * 5);
+			tvFinalValue.setText(MathUtil.round(
+					mAccelerationMovingAverageY.getAverage(), 3));
+			int progressPercentage = (int) Math.abs(mAccelerationMovingAverageY
+					.getAverage() * 5);
 
 			// update UI, for debugging:
-			
+
 			// check if the values are more than threshold
 			if (Math.abs(mAccelerationMovingAverageY.getAverage()) >= Constants.ACCEL_THRESHOLD) {
 				// brake is happening
@@ -573,7 +572,7 @@ public class FixedPhoneAccelerationActivity extends Activity {
 	 * app then closes.
 	 */
 	private void noBluetoothDetected() {
-		// TODO
+		// TODO check this
 		/*
 		 * btnConnectBT.setVisibility(View.GONE);
 		 * tvState.setText("Device does not support Bluetooth");

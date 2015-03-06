@@ -3,7 +3,6 @@ package com.vahid.accelerometer;
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 
-import com.vahid.accelerometer.bluetooth.ConnectedThread;
 import com.vahid.accelerometer.filter.MovingAverage;
 import com.vahid.accelerometer.filter.MovingAverage2;
 import com.vahid.accelerometer.filter.MovingAverageTime;
@@ -14,7 +13,6 @@ import com.vahid.accelerometer.util.MathUtil;
 import com.vahid.acceleromter.location.MyLocationListener;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.SensorManager;
@@ -79,7 +77,7 @@ public class ConnectedDebugActivity extends Activity {
 	// current situation of the activity.
 	private int mAccelSituation = Constants.NO_MOVE_DETECTED;
 
-	// Moving Averages
+	// Moving Averages used for filtering
 	private MovingAverage2 elaMovingAverageX, elaMovingAverageY,
 			elaMovingAverageZ;
 	private MovingAverage laMagMovingAverage;
@@ -100,8 +98,8 @@ public class ConnectedDebugActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the connected_menu; this adds items to the action bar if it
-		// is present.
+		// Inflate the connected_menu; 
+		// this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main_menu, menu);
 		return true;
 	}
@@ -138,7 +136,7 @@ public class ConnectedDebugActivity extends Activity {
 						SettingsActivity.SET_BEARING));
 			}
 			break;
-		// TODO no bt for now.
+		// TODO no bluetooth for now.
 		/*
 		 * case Constants.REQUEST_ENABLE_BT: if (resultCode == RESULT_CANCELED)
 		 * { Toast.makeText(this, R.string.bt_required, Toast.LENGTH_SHORT)

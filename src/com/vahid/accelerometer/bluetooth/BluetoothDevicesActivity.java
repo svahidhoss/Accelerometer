@@ -5,7 +5,6 @@ import java.util.Set;
 
 import com.vahid.accelerometer.R;
 import com.vahid.accelerometer.util.Constants;
-import com.vahid.accelerometer.util.MathUtil;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;

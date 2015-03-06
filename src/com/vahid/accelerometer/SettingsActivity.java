@@ -25,7 +25,7 @@ public class SettingsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		initViews();
 
-		// set default values of the GPS and BT checkboxes.
+		// set default values of the GPS and BT check-boxes.
 		if (Constants.GPS_MODULE_EXISTS) {
 			mGpsCheckBox.setChecked(true);
 		} else {
@@ -55,7 +55,9 @@ public class SettingsActivity extends Activity {
 
 	}
 
-	//
+	/*
+	 * Initializes the views of this activity.
+	 */
 	private void initViews() {
 		setContentView(R.layout.activity_settings);
 		etPrecision = (EditText) findViewById(R.id.editTextPrecisionID);
@@ -69,7 +71,8 @@ public class SettingsActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
+		// Inflate the menu; 
+		// this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.settings_m, menu);
 		return true;
 	}
@@ -145,7 +148,7 @@ public class SettingsActivity extends Activity {
 		// Is the view now checked?
 		boolean checked = ((CheckBox) view).isChecked();
 
-		// Check which checkbox was clicked
+		// Check which check-box was clicked
 		switch (view.getId()) {
 		// enable/disable GPS
 		case R.id.gpsCheckBox:
@@ -154,7 +157,7 @@ public class SettingsActivity extends Activity {
 			else
 				Constants.GPS_MODULE_EXISTS = false;
 			break;
-		// enable/disable BT to write send state back to BT server (PC)
+		// enable/disable BT to write and send state back to BT server (PC)
 		case R.id.btCheckBox:
 			if (checked)
 				Constants.BT_MODULE_EXISTS = true;
